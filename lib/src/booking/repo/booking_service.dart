@@ -13,29 +13,24 @@ class BookingService {
   final _functions = FirebaseFunctions.instance;
   final _auth = FirebaseAuth.instance;
 
-  CollectionReference get _bookedEventsCollection =>
-      _firestore.collection('booked_events');
-
   CollectionReference get _usersCollection => _firestore.collection('users');
+
+  CollectionReference _userBookings(String uid) =>
+      _usersCollection.doc(uid).collection('bookings');
 
   Future<Object> fetchBookingHistory() async {
     try {
       final user = _auth.currentUser;
       if (user == null) return Failure(response: 'User not logged in');
 
-      Stream<List<EventHistoryModel>> stream = _bookedEventsCollection
-          .where('userId', isEqualTo: user.uid)
-          .snapshots()
-          .map(
-            (snapshot) => snapshot.docs
-                .map(
-                  (doc) => EventHistoryModel.fromMap(
-                    doc.data() as Map<String, dynamic>,
-                  ),
-                )
-                .toList(),
-          );
-      return Success(response: stream);
+      return _userBookings(
+        user.uid,
+      ).orderBy('bookedAt', descending: true).snapshots().map((snapshot) {
+        final events = snapshot.docs.map((doc) {
+          return EventHistoryModel.fromMap(doc.data() as Map<String, dynamic>);
+        }).toList();
+        return Success(response: events);
+      });
     } catch (e) {
       return Failure(response: 'Failed to fetch events');
     }
@@ -53,7 +48,7 @@ class BookingService {
         return Failure(response: 'User not logged in!');
       }
 
-      final int amountInSatang = amount.toInt();
+      final int amountInSatang = (amount * 100).toInt();
 
       final result = await _functions.httpsCallable('createPaymentIntent').call(
         {'amount': amountInSatang, 'currency': 'thb'},
@@ -75,16 +70,16 @@ class BookingService {
       WriteBatch batch = _firestore.batch();
 
       // Update User Document
+      DocumentReference newBookingRef = _userBookings(user.uid).doc();
       batch.update(_usersCollection.doc(user.uid), {
         'hasTicket': true,
-        'lastPaymentAmount': amount,
         'lastPayment': FieldValue.serverTimestamp(),
       });
 
       // Create Booked Event Document
-      DocumentReference newBookingRef = _bookedEventsCollection.doc();
       final bookedEvent = EventHistoryModel(
         userId: user.uid,
+        eventId: event.eventId,
         eventImage: event.eventImage,
         eventDate: event.eventDate,
         eventLocation: event.eventLocation,

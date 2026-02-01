@@ -1,5 +1,6 @@
 class EventHistoryModel {
   final String userId;
+  final String eventId;
   final String eventImage;
   final String eventName;
   final DateTime eventDate;
@@ -10,6 +11,7 @@ class EventHistoryModel {
 
   const EventHistoryModel({
     required this.userId,
+    required this.eventId,
     required this.eventImage,
     required this.eventDate,
     required this.eventLocation,
@@ -22,6 +24,7 @@ class EventHistoryModel {
   Map<String, dynamic> toMap() {
     return {
       'userId': userId,
+      'eventId': eventId,
       'eventImage': eventImage,
       'eventName': eventName,
       'eventDate': eventDate.toIso8601String(),
@@ -35,13 +38,14 @@ class EventHistoryModel {
   factory EventHistoryModel.fromMap(Map<String, dynamic> map) {
     return EventHistoryModel(
       userId: map['userId'],
-      eventImage: map['eventImage'],
-      eventName: map['eventName'],
-      eventDate: DateTime.parse(map['eventDate']),
-      eventLocation: map['eventLocation'],
-      ticketPrice: map['ticketPrice'],
-      totalAmount: map['totalAmount'],
-      quantity: map['quantity'],
+      eventId: map['eventId'] ?? '',
+      eventImage: map['eventImage'] ?? '',
+      eventName: map['eventName'] ?? 'Unnamed Event',
+      eventDate: DateTime.tryParse(map['eventDate'] ?? '') ?? DateTime.now(),
+      eventLocation: map['eventLocation'] ?? '',
+      ticketPrice: double.tryParse(map['ticketPrice']?.toString() ?? '0') ?? 0,
+      totalAmount: double.tryParse(map['totalAmount']?.toString() ?? '0') ?? 0,
+      quantity: int.tryParse(map['quantity']?.toString() ?? '0') ?? 0,
     );
   }
 }

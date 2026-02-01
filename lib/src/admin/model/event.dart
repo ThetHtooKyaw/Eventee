@@ -32,11 +32,11 @@ class EventModel {
   factory EventModel.fromMap(Map<String, dynamic> map) {
     return EventModel(
       eventId: map['eventId'] ?? '',
-      eventName: map['eventName'] ?? 'Unnamed Event',
       eventImage: map['eventImage'] ?? '',
-      ticketPrice: double.tryParse(map['ticketPrice']?.toString() ?? '0') ?? 0,
+      eventName: map['eventName'] ?? 'Unnamed Event',
       eventDate: DateTime.tryParse(map['eventDate'] ?? '') ?? DateTime.now(),
       eventLocation: map['eventLocation'] ?? '',
+      ticketPrice: double.tryParse(map['ticketPrice']?.toString() ?? '0') ?? 0,
       eventDetail: map['eventDetail'] ?? '',
     );
   }

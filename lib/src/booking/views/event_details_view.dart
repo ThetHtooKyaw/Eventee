@@ -221,11 +221,9 @@ class _EventDetailsViewState extends State<EventDetailsView> {
           Expanded(
             child: ElevatedButton(
               onPressed: () async {
-                final stripeAmount = displayAmount * 100;
-
                 await vm.makePayment(
                   event: widget.event,
-                  amount: stripeAmount.toDouble(),
+                  amount: displayAmount.toDouble(),
                   quantity: quantity,
                 );
 
