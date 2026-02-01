@@ -10,7 +10,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 
 class BookingService {
   final _firestore = FirebaseFirestore.instance;
-  final _functions = FirebaseFunctions.instance;
+  final _functions = FirebaseFunctions.instanceFor(region: "asia-southeast1");
   final _auth = FirebaseAuth.instance;
 
   CollectionReference get _usersCollection => _firestore.collection('users');
@@ -23,14 +23,17 @@ class BookingService {
       final user = _auth.currentUser;
       if (user == null) return Failure(response: 'User not logged in');
 
-      return _userBookings(
+      final stream = _userBookings(
         user.uid,
-      ).orderBy('bookedAt', descending: true).snapshots().map((snapshot) {
-        final events = snapshot.docs.map((doc) {
+      ).orderBy('bookedAt', descending: true).snapshots();
+
+      final eventStrean = stream.map((snapshot) {
+        return snapshot.docs.map((doc) {
           return EventHistoryModel.fromMap(doc.data() as Map<String, dynamic>);
         }).toList();
-        return Success(response: events);
       });
+
+      return Success(response: eventStrean);
     } catch (e) {
       return Failure(response: 'Failed to fetch events');
     }
@@ -48,11 +51,16 @@ class BookingService {
         return Failure(response: 'User not logged in!');
       }
 
-      final int amountInSatang = (amount * 100).toInt();
+      final int amountInSatang = (amount * 100).round();
 
-      final result = await _functions.httpsCallable('createPaymentIntent').call(
-        {'amount': amountInSatang, 'currency': 'thb'},
+      final HttpsCallable callable = _functions.httpsCallable(
+        'createPaymentIntent',
       );
+
+      final result = await callable.call(<String, dynamic>{
+        'amount': amountInSatang,
+        'currency': 'thb',
+      });
 
       final clientSecret = result.data['clientSecret'];
 
@@ -99,6 +107,10 @@ class BookingService {
       await batch.commit();
 
       return Success(response: 'Make payment successfully!');
+    } on StripeException catch (e) {
+      return Failure(
+        response: 'Payment cancelled or failed: ${e.error.localizedMessage}',
+      );
     } catch (e) {
       return Failure(response: 'Failed to make payment: $e.');
     }

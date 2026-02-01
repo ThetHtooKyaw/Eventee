@@ -36,11 +36,15 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
     return Scaffold(
       appBar: AppBar(centerTitle: true, title: const Text('Booking History')),
 
-      body: StreamBuilder(
+      body: StreamBuilder<List<EventHistoryModel>>(
         stream: vm.historyStream,
         builder: (context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return LoadingColumn(message: 'Loading Booking History');
+          }
+
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No booking history found!'));
           }
 
           if (snapshot.hasError) {
@@ -52,33 +56,21 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
             );
           }
 
-          if (snapshot.hasData) {
-            List<EventHistoryModel> events = snapshot.data;
+          List<EventHistoryModel> events = snapshot.data;
 
-            if (events.isEmpty) {
-              return Center(
-                child: Text(
-                  'No booking history found!',
-                  style: t.textTheme.bodyLarge,
-                ),
-              );
-            }
+          return ListView.separated(
+            padding: EdgeInsets.symmetric(horizontal: AppFormat.primaryPadding),
+            shrinkWrap: true,
+            itemCount: events.length,
+            separatorBuilder: (context, index) => SizedBox(height: 10),
+            itemBuilder: (context, index) {
+              EventHistoryModel event = events[index];
 
-            return ListView.builder(
-              padding: EdgeInsets.zero,
-              itemCount: events.length,
-              shrinkWrap: true,
-              itemBuilder: (context, index) {
-                EventHistoryModel event = events[index];
+              String eventDate = formatDate(event.eventDate);
 
-                String eventDate = formatDate(event.eventDate);
-
-                return _buildBookingHistoryCard(t, event, eventDate);
-              },
-            );
-          }
-
-          return const SizedBox.shrink();
+              return _buildBookingHistoryCard(t, event, eventDate);
+            },
+          );
         },
       ),
     );
@@ -90,13 +82,13 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
     String eventDate,
   ) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppFormat.primaryBorderRadius),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppFormat.secondaryPadding),
+        padding: const EdgeInsets.all(AppFormat.primaryBorderRadius),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -106,17 +98,13 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
               children: [
                 Text(
                   'Order #', // ${event.id!.substring(0, 8)}
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: AppColor.textPrimary,
-                  ),
+                  style: t.textTheme.titleSmall,
                 ),
                 const SizedBox(height: 4),
 
                 Text(
                   eventDate,
-                  style: t.textTheme.bodySmall?.copyWith(
+                  style: t.textTheme.bodyMedium?.copyWith(
                     color: AppColor.textSecondary,
                   ),
                 ),
@@ -126,7 +114,7 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
 
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 4,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 // Booking Image
                 ClipRRect(
@@ -135,15 +123,15 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
                   ),
                   child: CachedNetworkImage(
                     imageUrl: event.eventImage,
-                    height: 60,
-                    width: 60,
+                    height: 80,
+                    width: 80,
                     fit: BoxFit.cover,
                     progressIndicatorBuilder: (context, url, progress) =>
                         CircularProgressIndicator(),
                     errorWidget: (context, url, error) => Icon(Icons.error),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 20),
 
                 // Booking Info
                 Expanded(
@@ -154,23 +142,23 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
                         event.eventName,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: t.textTheme.bodySmall?.copyWith(
-                          color: AppColor.textSecondary,
+                        style: t.textTheme.titleSmall?.copyWith(
+                          color: AppColor.primary,
                         ),
                       ),
                       const SizedBox(height: 4),
+
+                      Text(
+                        "Total Amount: ${event.totalAmount} Baht",
+                        style: t.textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 4),
+
                       Text(
                         'Qty: ${event.quantity}',
-                        style: t.textTheme.bodySmall,
+                        style: t.textTheme.bodyLarge,
                       ),
                     ],
-                  ),
-                ),
-
-                Text(
-                  "Total Amount ${event.totalAmount} Baht",
-                  style: t.textTheme.titleSmall?.copyWith(
-                    color: AppColor.primary,
                   ),
                 ),
               ],

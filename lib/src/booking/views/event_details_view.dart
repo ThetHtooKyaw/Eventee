@@ -47,7 +47,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
         }
 
         if (vm.loading) {
-          return LoadingColumn(message: 'Making payment');
+          return Scaffold(body: LoadingColumn(message: 'Making payment'));
         }
         return Scaffold(
           // Bottom Bar
@@ -211,11 +211,18 @@ class _EventDetailsViewState extends State<EventDetailsView> {
       padding: const EdgeInsets.all(AppFormat.primaryPadding),
       child: Row(
         children: [
-          Text(
-            'Amount: $displayAmount Baht',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: t.textTheme.titleSmall,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Amount', style: t.textTheme.bodyMedium),
+              Text(
+                '$displayAmount Baht',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: t.textTheme.titleSmall,
+              ),
+            ],
           ),
           const SizedBox(width: 20),
           Expanded(

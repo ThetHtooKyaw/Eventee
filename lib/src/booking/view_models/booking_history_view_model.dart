@@ -45,6 +45,7 @@ class BookingHistoryViewModel extends ChangeNotifier {
 
     if (response is Success) {
       _historyStream = response.response as Stream<List<EventHistoryModel>>;
+      notifyListeners();
     } else if (response is Failure) {
       setBookingError(BookingError(message: response.response.toString()));
     }
