@@ -12,6 +12,8 @@ import 'package:eventee/src/auth/views/login_view.dart';
 import 'package:eventee/src/booking/repo/booking_service.dart';
 import 'package:eventee/src/booking/view_models/booking_history_view_model.dart';
 import 'package:eventee/src/booking/view_models/event_details_view_model.dart';
+import 'package:eventee/src/chat/repo/chat_service.dart';
+import 'package:eventee/src/chat/view_models/chat_view_model.dart';
 import 'package:eventee/src/home/viewa_models/home_view_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -36,6 +38,7 @@ void main() async {
         Provider(create: (_) => AdminService()),
         Provider(create: (_) => AuthService()),
         Provider(create: (_) => BookingService()),
+        Provider(create: (_) => ChatService()),
 
         // ViewModels
         ChangeNotifierProvider<UploadEventViewModel>(
@@ -61,6 +64,9 @@ void main() async {
         ),
         ChangeNotifierProvider<AccountViewModel>(
           create: (context) => AccountViewModel(context.read<AuthService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => ChatViewModel(context.read<ChatService>()),
         ),
       ],
       child: const MainApp(),

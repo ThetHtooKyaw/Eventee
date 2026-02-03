@@ -36,15 +36,9 @@ class _LoginViewState extends State<LoginView> {
           child: Consumer<LoginViewModel>(
             builder: (context, vm, _) {
               if (vm.authError != null) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(vm.authError!.message),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  vm.clearAuthError();
-                });
+                if (vm.authError != null) {
+                  return Center(child: Text('Error: ${vm.authError!.message}'));
+                }
               }
 
               if (vm.loading) {

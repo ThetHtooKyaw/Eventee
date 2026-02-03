@@ -1,5 +1,6 @@
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/src/admin/views/upload_event_view.dart';
+import 'package:eventee/src/chat/views/chat_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
@@ -82,17 +83,15 @@ class _AccountViewState extends State<AccountView> {
                     ),
                   ),
 
-                  // _buildMenuListItem(
-                  //   context,
-                  //   icon: Icons.history,
-                  //   title: 'Order History',
-                  //   onTap: () => Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //       builder: (context) => OrderHistoryView(),
-                  //     ),
-                  //   ),
-                  // ),
+                  _buildMenuListItem(
+                    context,
+                    icon: Icons.chat,
+                    title: 'Chat With AI Assistant',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ChatView()),
+                    ),
+                  ),
                   const Divider(),
 
                   _buildMenuListItem(

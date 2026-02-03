@@ -35,15 +35,9 @@ class _EventDetailsViewState extends State<EventDetailsView> {
     return Consumer<EventDetailsViewModel>(
       builder: (context, vm, child) {
         if (vm.bookingError != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(vm.bookingError!.message),
-                backgroundColor: Colors.red,
-              ),
-            );
-            vm.clearBookingError();
-          });
+          if (vm.bookingError != null) {
+              return Center(child: Text('Error: ${vm.bookingError!.message}'));
+            }
         }
 
         if (vm.loading) {
