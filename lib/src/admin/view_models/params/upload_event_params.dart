@@ -9,6 +9,7 @@ class UploadEventParams extends Equatable {
   final String eventLocation;
   final double ticketPrice;
   final String eventDetail;
+  final String eventCategory;
 
   const UploadEventParams({
     required this.eventImage,
@@ -17,6 +18,7 @@ class UploadEventParams extends Equatable {
     required this.eventLocation,
     required this.ticketPrice,
     required this.eventDetail,
+    required this.eventCategory,
   });
 
   @override
@@ -27,5 +29,6 @@ class UploadEventParams extends Equatable {
     eventName,
     ticketPrice,
     eventDetail,
+    eventCategory,
   ];
 }

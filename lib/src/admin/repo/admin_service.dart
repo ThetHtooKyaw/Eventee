@@ -52,6 +52,7 @@ class AdminService {
         eventLocation: params.eventLocation,
         ticketPrice: params.ticketPrice,
         eventDetail: params.eventDetail,
+        eventCategory: params.eventCategory,
       );
 
       await _eventsCollection.doc(eventId.id).set(event.toMap());

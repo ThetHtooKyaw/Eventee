@@ -1,6 +1,7 @@
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
+import 'package:eventee/src/chat/models/message.dart';
 import 'package:eventee/src/chat/view_models/chat_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
@@ -15,8 +16,6 @@ class ChatView extends StatefulWidget {
 }
 
 class _ChatViewState extends State<ChatView> {
-  final _textController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
@@ -26,101 +25,96 @@ class _ChatViewState extends State<ChatView> {
   }
 
   @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text('Chat AI Assistant'),
-        backgroundColor: AppColor.background,
-      ),
-      body: Consumer<ChatViewModel>(
-        builder: (context, vm, _) {
-          if (vm.chatError != null) {
-            if (vm.chatError != null) {
-              return Center(child: Text('Error: ${vm.chatError!.message}'));
-            }
-          }
+    final isScreenLoading = context.select<ChatViewModel, bool>(
+      (vm) => vm.isScreenLoading,
+    );
+    final vm = context.read<ChatViewModel>();
 
-          if (vm.currentUserId == null) {
-            return const LoadingColumn(message: 'Initializing...');
-          }
-
-          return Column(
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            centerTitle: true,
+            title: const Text('Chat AI Assistant'),
+            backgroundColor: AppColor.background,
+          ),
+          body: Column(
             children: [
               // Chat Messages List
               Expanded(
-                child: GroupedListView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppFormat.secondaryPadding,
-                  ),
-                  reverse: true,
-                  order: GroupedListOrder.DESC,
-                  useStickyGroupSeparators: true,
-                  floatingHeader: true,
-                  elements: vm.messages,
-                  groupBy: (message) => DateTime(
-                    message.date.year,
-                    message.date.month,
-                    message.date.day,
-                  ),
-                  groupHeaderBuilder: (message) => SizedBox(
-                    height: 40,
-                    child: Center(
-                      child: Text(DateFormat.yMMMd().format(message.date)),
-                    ),
-                  ),
-                  itemBuilder: (context, message) => Align(
-                    alignment: message.isSentByMe
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-
-                    child: Row(
-                      mainAxisAlignment: message.isSentByMe
-                          ? MainAxisAlignment.end
-                          : MainAxisAlignment.start,
-                      children: [
-                        // AI Avater (Left side)
-                        if (!message.isSentByMe) ...[
-                          CircleAvatar(
-                            backgroundColor: AppColor.white,
-                            child: const Icon(
-                              Icons.smart_toy,
-                              color: Colors.blue,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                        ],
-
-                        // Message Bubble
-                        Flexible(
-                          child: Card(
-                            elevation: 4,
-                            child: Padding(
-                              padding: const EdgeInsets.all(
-                                AppFormat.secondaryPadding,
-                              ),
-                              child: Text(message.text),
-                            ),
-                          ),
+                child: Selector<ChatViewModel, List<Message>>(
+                  selector: (_, vm) => vm.messages,
+                  shouldRebuild: (prevuous, next) => true,
+                  builder: (context, messages, child) {
+                    return GroupedListView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppFormat.secondaryPadding,
+                      ),
+                      reverse: true,
+                      order: GroupedListOrder.DESC,
+                      useStickyGroupSeparators: true,
+                      floatingHeader: true,
+                      elements: messages,
+                      groupBy: (message) => DateTime(
+                        message.date.year,
+                        message.date.month,
+                        message.date.day,
+                      ),
+                      groupHeaderBuilder: (message) => SizedBox(
+                        height: 40,
+                        child: Center(
+                          child: Text(DateFormat.yMMMd().format(message.date)),
                         ),
+                      ),
+                      itemBuilder: (context, message) => Align(
+                        alignment: message.isSentByMe
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
 
-                        // User Avatar (Right side)
-                        if (message.isSentByMe) ...[
-                          const SizedBox(width: 10),
-                          const CircleAvatar(
-                            backgroundColor: AppColor.white,
-                            child: Icon(Icons.person),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
+                        child: Row(
+                          mainAxisAlignment: message.isSentByMe
+                              ? MainAxisAlignment.end
+                              : MainAxisAlignment.start,
+                          children: [
+                            // AI Avater (Left side)
+                            if (!message.isSentByMe) ...[
+                              CircleAvatar(
+                                backgroundColor: AppColor.white,
+                                child: const Icon(
+                                  Icons.smart_toy,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                            ],
+
+                            // Message Bubble
+                            Flexible(
+                              child: Card(
+                                elevation: 4,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                    AppFormat.secondaryPadding,
+                                  ),
+                                  child: Text(message.text),
+                                ),
+                              ),
+                            ),
+
+                            // User Avatar (Right side)
+                            if (message.isSentByMe) ...[
+                              const SizedBox(width: 10),
+                              const CircleAvatar(
+                                backgroundColor: AppColor.white,
+                                child: Icon(Icons.person),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
 
@@ -134,31 +128,28 @@ class _ChatViewState extends State<ChatView> {
                   children: [
                     Expanded(
                       child: TextField(
-                        controller: _textController,
+                        controller: vm.textController,
                         decoration: const InputDecoration(
                           hintText: 'Type your message here...',
                         ),
-                        onSubmitted: (text) {
-                          vm.sendMessage(text: text.trim());
-                          _textController.clear();
-                        },
+                        onSubmitted: (text) => vm.sendMessage(),
                       ),
                     ),
                     const SizedBox(width: 10),
                     IconButton(
-                      onPressed: () {
-                        vm.sendMessage(text: _textController.text.trim());
-                        _textController.clear();
-                      },
+                      onPressed: () => vm.sendMessage(),
                       icon: const Icon(Icons.send),
                     ),
                   ],
                 ),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        ),
+
+        if (isScreenLoading)
+          LoadingOverlayColumn(message: 'Initializing chat assistant'),
+      ],
     );
   }
 }

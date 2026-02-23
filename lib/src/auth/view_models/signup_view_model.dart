@@ -1,62 +1,72 @@
+import 'package:eventee/core/utils/base_view_model.dart';
 import 'package:eventee/src/auth/view_models/params/signup_params.dart';
 import 'package:flutter/material.dart';
 import 'package:eventee/core/status/failure.dart';
-import 'package:eventee/src/auth/models/auth_error.dart';
 import 'package:eventee/src/auth/repo/auth_service.dart';
 
-class SignUpViewModel extends ChangeNotifier {
+class SignUpViewModel extends BaseViewModel {
   // Dependencies
   final AuthService _authService;
   SignUpViewModel(this._authService);
 
+  // Controllers
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneNumberController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+
   // Variables
-  bool _loading = false;
-  AuthError? _authError;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   // Getters
-  bool get loading => _loading;
-  AuthError? get authError => _authError;
-
-  // Setters
-  setLoading(bool loading) {
-    _loading = loading;
-    notifyListeners();
-  }
-
-  setAuthError(AuthError authError) {
-    _authError = authError;
-    notifyListeners();
-  }
-
-  void clearAuthError() {
-    _authError = null;
-    notifyListeners();
-  }
+  GlobalKey<FormState> get formKey => _formKey;
 
   // Use Cases
-  Future<void> createUser({required SignUpParams params}) async {
-    setLoading(true);
-    clearAuthError();
+  Future<void> createUser() async {
+    setActionLoading(true);
+    setError(null);
+
+    final params = SignUpParams(
+      username: nameController.text.trim(),
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+      phoneNumber: phoneNumberController.text.trim(),
+      address: addressController.text.trim(),
+    );
 
     final response = await _authService.createUser(params: params);
 
     if (response is Failure) {
-      setAuthError(AuthError(message: response.response.toString()));
+      setError(response.response.toString());
     }
 
-    setLoading(false);
+    setActionLoading(false);
   }
 
   Future<void> signUpWithGoogle() async {
-    setLoading(true);
-    clearAuthError();
+    setActionLoading(true);
+    setError(null);
 
     final response = await _authService.signUpWithGoogle();
 
     if (response is Failure) {
-      setAuthError(AuthError(message: response.response.toString()));
+      setError(response.response.toString());
     }
 
-    setLoading(false);
+    setActionLoading(false);
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    phoneNumberController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    addressController.dispose();
+    super.dispose();
   }
 }

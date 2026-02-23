@@ -1,3 +1,5 @@
+import 'package:eventee/src/booking/models/booking.dart';
+
 class EventHistoryModel {
   final String userId;
   final String eventId;
@@ -6,6 +8,7 @@ class EventHistoryModel {
   final DateTime eventDate;
   final String eventLocation;
   final double ticketPrice;
+  final String eventDetail;
   final double totalAmount;
   final int quantity;
 
@@ -17,6 +20,7 @@ class EventHistoryModel {
     required this.eventLocation,
     required this.eventName,
     required this.ticketPrice,
+    required this.eventDetail,
     required this.totalAmount,
     required this.quantity,
   });
@@ -30,6 +34,7 @@ class EventHistoryModel {
       'eventDate': eventDate.toIso8601String(),
       'eventLocation': eventLocation,
       'ticketPrice': ticketPrice,
+      'eventDetail': eventDetail,
       'totalAmount': totalAmount,
       'quantity': quantity,
     };
@@ -44,8 +49,27 @@ class EventHistoryModel {
       eventDate: DateTime.tryParse(map['eventDate'] ?? '') ?? DateTime.now(),
       eventLocation: map['eventLocation'] ?? '',
       ticketPrice: double.tryParse(map['ticketPrice']?.toString() ?? '0') ?? 0,
+      eventDetail: map['eventDetail'] ?? '',
       totalAmount: double.tryParse(map['totalAmount']?.toString() ?? '0') ?? 0,
       quantity: int.tryParse(map['quantity']?.toString() ?? '0') ?? 0,
+    );
+  }
+
+  factory EventHistoryModel.fromBooking({
+    required String userId,
+    required BookingModel bookedEvent,
+  }) {
+    return EventHistoryModel(
+      userId: userId,
+      eventId: bookedEvent.eventId,
+      eventImage: bookedEvent.eventImage,
+      eventName: bookedEvent.eventName,
+      eventDate: bookedEvent.eventDate,
+      eventLocation: bookedEvent.eventLocation,
+      ticketPrice: bookedEvent.ticketPrice,
+      eventDetail: bookedEvent.eventDetail,
+      totalAmount: bookedEvent.totalAmount,
+      quantity: bookedEvent.quantity,
     );
   }
 }

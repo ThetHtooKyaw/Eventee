@@ -1,11 +1,12 @@
+import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/widgets/bottom_nav_bar.dart';
+import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:eventee/src/auth/view_models/login_view_model.dart';
 import 'package:eventee/src/auth/view_models/params/login_params.dart';
 import 'package:eventee/src/auth/views/signup_view.dart';
-import 'package:eventee/core/widgets/loading_column.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -15,37 +16,70 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  final _formKey = GlobalKey<FormState>();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
   bool _obscurePassword = true;
 
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
+  Future<void> login() async {
+    final vm = context.read<LoginViewModel>();
+
+    if (vm.formKey.currentState!.validate()) {
+      await vm.loginUser(
+        params: LoginParams(
+          email: vm.emailController.text.trim(),
+          password: vm.passwordController.text.trim(),
+        ),
+      );
+
+      if (vm.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(vm.errorMessage!),
+            backgroundColor: Colors.red,
+          ),
+        );
+        vm.setError(null);
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => BottomNavBar()),
+        );
+      }
+    }
+  }
+
+  Future<void> loginWithGoogle() async {
+    final vm = context.read<LoginViewModel>();
+
+    await vm.signInWithGoogle();
+
+    if (vm.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(vm.errorMessage!), backgroundColor: Colors.red),
+      );
+      vm.setError(null);
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => BottomNavBar()),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isActionLoading = context.select<LoginViewModel, bool>(
+      (vm) => vm.isActionLoading,
+    );
+
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Consumer<LoginViewModel>(
-            builder: (context, vm, _) {
-              if (vm.authError != null) {
-                if (vm.authError != null) {
-                  return Center(child: Text('Error: ${vm.authError!.message}'));
-                }
-              }
-
-              if (vm.loading) {
-                return LoadingColumn(message: 'Logging in');
-              }
-
-              return Column(
+      body: Stack(
+        children: [
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppFormat.primaryPadding,
+                vertical: AppFormat.secondaryPadding,
+              ),
+              child: Column(
                 children: [
                   // Title
                   Text(
@@ -64,25 +98,7 @@ class _LoginViewState extends State<LoginView> {
 
                   // Action Buttons
                   ElevatedButton(
-                    onPressed: () async {
-                      if (_formKey.currentState!.validate()) {
-                        await vm.loginUser(
-                          params: LoginParams(
-                            email: emailController.text.trim(),
-                            password: passwordController.text.trim(),
-                          ),
-                        );
-
-                        if (vm.authError == null && mounted) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => BottomNavBar(),
-                            ),
-                          );
-                        }
-                      }
-                    },
+                    onPressed: isActionLoading ? null : () => login(),
                     style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 48),
                       shape: RoundedRectangleBorder(
@@ -90,6 +106,30 @@ class _LoginViewState extends State<LoginView> {
                       ),
                     ),
                     child: Text("Login"),
+                  ),
+                  SizedBox(height: 20),
+
+                  Divider(),
+                  const SizedBox(height: 20),
+
+                  ElevatedButton(
+                    onPressed: isActionLoading ? null : () => loginWithGoogle(),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(double.infinity, 60),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/icons/google.png',
+                          height: 30,
+                          width: 30,
+                          fit: BoxFit.cover,
+                        ),
+                        const SizedBox(width: 20),
+                        Text("Sign in with Google"),
+                      ],
+                    ),
                   ),
                   SizedBox(height: 20),
 
@@ -115,22 +155,26 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                 ],
-              );
-            },
+              ),
+            ),
           ),
-        ),
+
+          if (isActionLoading) LoadingOverlayColumn(message: 'Logging in'),
+        ],
       ),
     );
   }
 
   Widget _buildLoginForm(BuildContext context) {
+    final vm = context.read<LoginViewModel>();
+
     return Form(
-      key: _formKey,
+      key: vm.formKey,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           TextFormField(
-            controller: emailController,
+            controller: vm.emailController,
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(labelText: "Email"),
             validator: (value) {
@@ -145,7 +189,7 @@ class _LoginViewState extends State<LoginView> {
           SizedBox(height: 16),
 
           TextFormField(
-            controller: passwordController,
+            controller: vm.passwordController,
             keyboardType: TextInputType.text,
             obscureText: _obscurePassword,
             decoration: InputDecoration(

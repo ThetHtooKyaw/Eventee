@@ -1,55 +1,51 @@
+import 'dart:async';
+
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
-import 'package:eventee/src/admin/model/event_history.dart';
-import 'package:eventee/src/booking/models/booking_error.dart';
+import 'package:eventee/core/utils/base_view_model.dart';
+import 'package:eventee/src/booking/models/event_history.dart';
 import 'package:eventee/src/booking/repo/booking_service.dart';
-import 'package:flutter/material.dart';
 
-class BookingHistoryViewModel extends ChangeNotifier {
+class BookingHistoryViewModel extends BaseViewModel {
   // Dependencies
   final BookingService _bookingService;
   BookingHistoryViewModel(this._bookingService);
 
   // Variables
-  bool _loading = false;
-  BookingError? _bookingError;
-  Stream<List<EventHistoryModel>>? _historyStream;
+  StreamSubscription? _historySubscription;
+  List<EventHistoryModel> _eventHistory = [];
 
   // Getters
-  bool get loading => _loading;
-  BookingError? get bookingError => _bookingError;
-  Stream<List<EventHistoryModel>>? get historyStream => _historyStream;
-
-  // Setters
-  void setLoading(bool loading) {
-    _loading = loading;
-    notifyListeners();
-  }
-
-  void setBookingError(BookingError bookingError) {
-    _bookingError = bookingError;
-    notifyListeners();
-  }
-
-  void clearBookingError() {
-    _bookingError = null;
-    notifyListeners();
-  }
+  List<EventHistoryModel> get eventHistory => _eventHistory;
 
   // Use Cases
   Future<void> fetchBookingHistory() async {
-    setLoading(true);
-    clearBookingError();
+    setScreenLoading(true);
+    setError(null);
 
     final response = await _bookingService.fetchBookingHistory();
 
     if (response is Success) {
-      _historyStream = response.response as Stream<List<EventHistoryModel>>;
-      notifyListeners();
-    } else if (response is Failure) {
-      setBookingError(BookingError(message: response.response.toString()));
-    }
+      final stream = response.response as Stream<List<EventHistoryModel>>;
 
-    setLoading(false);
+      await _historySubscription?.cancel();
+      _historySubscription = stream.listen(
+        (eventList) {
+          _eventHistory = eventList;
+          if (isScreenLoading) {
+            setScreenLoading(false);
+          } else {
+            notifyListeners();
+          }
+        },
+        onError: (error) {
+          setError(error.toString());
+          if (isScreenLoading) setScreenLoading(false);
+        },
+      );
+    } else if (response is Failure) {
+      setError(response.response.toString());
+      setScreenLoading(false);
+    }
   }
 }

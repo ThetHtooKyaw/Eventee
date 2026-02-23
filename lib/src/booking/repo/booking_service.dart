@@ -2,16 +2,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
-import 'package:eventee/src/admin/model/event.dart';
-import 'package:eventee/src/admin/model/event_history.dart';
+import 'package:eventee/src/booking/models/event_history.dart';
+import 'package:eventee/src/booking/models/booking.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 
 class BookingService {
   final _firestore = FirebaseFirestore.instance;
-  final _functions = FirebaseFunctions.instanceFor(region: "asia-southeast1");
+  final _functions = FirebaseFunctions.instance;
   final _auth = FirebaseAuth.instance;
+
+  static const platform = MethodChannel('com.example.eventee/calendar');
 
   CollectionReference get _usersCollection => _firestore.collection('users');
 
@@ -27,11 +30,14 @@ class BookingService {
         user.uid,
       ).orderBy('bookedAt', descending: true).snapshots();
 
-      final eventStrean = stream.map((snapshot) {
-        return snapshot.docs.map((doc) {
-          return EventHistoryModel.fromMap(doc.data() as Map<String, dynamic>);
-        }).toList();
-      });
+      Stream<List<EventHistoryModel>> eventStrean = stream.map(
+        (snapshot) => snapshot.docs
+            .map(
+              (doc) =>
+                  EventHistoryModel.fromMap(doc.data() as Map<String, dynamic>),
+            )
+            .toList(),
+      );
 
       return Success(response: eventStrean);
     } catch (e) {
@@ -39,11 +45,7 @@ class BookingService {
     }
   }
 
-  Future<Object> makePayment({
-    required EventModel event,
-    required double amount,
-    required int quantity,
-  }) async {
+  Future<Object> makePayment({required BookingModel bookedEvent}) async {
     try {
       final user = _auth.currentUser;
 
@@ -51,19 +53,29 @@ class BookingService {
         return Failure(response: 'User not logged in!');
       }
 
-      final int amountInSatang = (amount * 100).round();
-
+      // The Handshake (Cloud Function)
+      final int amount = (bookedEvent.totalAmount * 100).toInt();
       final HttpsCallable callable = _functions.httpsCallable(
         'createPaymentIntent',
       );
-
       final result = await callable.call(<String, dynamic>{
-        'amount': amountInSatang,
+        'amount': amount,
         'currency': 'thb',
+        'email': user.email,
       });
 
-      final clientSecret = result.data['clientSecret'];
+      if (result.data == null) {
+        return Failure(response: 'Cloud function returned null');
+      }
 
+      final data = Map<String, dynamic>.from(result.data as dynamic);
+      final clientSecret = data['clientSecret'];
+
+      if (clientSecret == null) {
+        return Failure(response: 'Client secret missing from server response');
+      }
+
+      // The Payment Sheet
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
@@ -71,9 +83,43 @@ class BookingService {
           style: ThemeMode.light,
         ),
       );
-
       await Stripe.instance.presentPaymentSheet();
 
+      // Save Booking to Firestore
+      final saveResult = await _saveBooking(
+        user: user,
+        bookedEvent: bookedEvent,
+      );
+
+      if (saveResult is Failure) {
+        return Failure(
+          response:
+              'PAYMENT SUCCESSFUL, but saving failed: ${saveResult.response}. Please contact support.',
+        );
+      }
+
+      // Add Event to Calendar
+      await _sendToCalendar(bookedEvent: bookedEvent);
+
+      return Success(response: 'Make payment successfully!');
+    } on FirebaseFunctionsException catch (e) {
+      return Failure(response: 'Cloud function error: ${e.message}');
+    } on StripeException catch (e) {
+      if (e.error.code == FailureCode.Canceled) {
+        return Failure(response: 'Payment cancelled by user.');
+      }
+
+      return Failure(response: 'Payment failed: ${e.error.localizedMessage}');
+    } catch (e) {
+      return Failure(response: 'System error: $e.');
+    }
+  }
+
+  Future<Object> _saveBooking({
+    required User user,
+    required BookingModel bookedEvent,
+  }) async {
+    try {
       // Atomic Operation
       WriteBatch batch = _firestore.batch();
 
@@ -85,34 +131,36 @@ class BookingService {
       });
 
       // Create Booked Event Document
-      final bookedEvent = EventHistoryModel(
+      final saveBooking = EventHistoryModel.fromBooking(
         userId: user.uid,
-        eventId: event.eventId,
-        eventImage: event.eventImage,
-        eventDate: event.eventDate,
-        eventLocation: event.eventLocation,
-        eventName: event.eventName,
-        ticketPrice: event.ticketPrice,
-        totalAmount: amount,
-        quantity: quantity,
+        bookedEvent: bookedEvent,
       );
 
       batch.set(newBookingRef, {
-        ...bookedEvent.toMap(),
+        ...saveBooking.toMap(),
         'bookingId': newBookingRef.id,
         'bookedAt': FieldValue.serverTimestamp(),
         'status': 'paid',
       });
 
       await batch.commit();
-
-      return Success(response: 'Make payment successfully!');
-    } on StripeException catch (e) {
-      return Failure(
-        response: 'Payment cancelled or failed: ${e.error.localizedMessage}',
-      );
+      return Success(response: 'Booking saved successfully');
     } catch (e) {
-      return Failure(response: 'Failed to make payment: $e.');
+      return Failure(response: 'failed to save booking: $e');
+    }
+  }
+
+  Future<void> _sendToCalendar({required BookingModel bookedEvent}) async {
+    try {
+      await platform.invokeMethod('addToCalendar', {
+        'title': bookedEvent.eventName,
+        'description': bookedEvent.eventDetail,
+        'startTime': bookedEvent.eventDate.millisecondsSinceEpoch,
+      });
+    } on PlatformException catch (e) {
+      debugPrint("Native error: ${e.message}");
+    } catch (e) {
+      debugPrint("Failed to send event to calendar: ${e.toString()}");
     }
   }
 }

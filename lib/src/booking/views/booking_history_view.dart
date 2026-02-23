@@ -1,10 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
-import 'package:eventee/src/admin/model/event_history.dart';
+import 'package:eventee/core/widgets/app_error.dart';
+import 'package:eventee/src/booking/models/event_history.dart';
 import 'package:eventee/src/booking/view_models/booking_history_view_model.dart';
+import 'package:eventee/src/booking/view_models/event_details_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
 
@@ -24,49 +25,46 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
     });
   }
 
-  String formatDate(DateTime eventDate) {
-    return DateFormat('dd, MMM, yyyy').format(eventDate);
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final vm = context.watch<BookingHistoryViewModel>();
 
     return Scaffold(
       appBar: AppBar(centerTitle: true, title: const Text('Booking History')),
 
-      body: StreamBuilder<List<EventHistoryModel>>(
-        stream: vm.historyStream,
-        builder: (context, AsyncSnapshot snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return LoadingColumn(message: 'Loading Booking History');
+      body: Consumer<BookingHistoryViewModel>(
+        builder: (context, vm, child) {
+          if (vm.isScreenLoading) {
+            return const LoadingColumn(message: 'Loading booking history');
           }
 
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No booking history found!'));
+          if (vm.errorMessage != null) {
+            return AppError(errorMessage: vm.errorMessage!);
           }
 
-          if (snapshot.hasError) {
+          if (vm.eventHistory.isEmpty) {
             return Center(
               child: Text(
-                'Error: ${snapshot.error}',
-                style: t.textTheme.bodyLarge?.copyWith(color: Colors.red),
+                'No booking history found!',
+                style: t.textTheme.bodyLarge,
               ),
             );
           }
 
-          List<EventHistoryModel> events = snapshot.data;
-
           return ListView.separated(
-            padding: EdgeInsets.symmetric(horizontal: AppFormat.primaryPadding),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppFormat.primaryPadding,
+              vertical: AppFormat.secondaryPadding,
+            ),
             shrinkWrap: true,
-            itemCount: events.length,
+            itemCount: vm.eventHistory.length,
             separatorBuilder: (context, index) => SizedBox(height: 10),
             itemBuilder: (context, index) {
-              EventHistoryModel event = events[index];
+              EventHistoryModel event = vm.eventHistory[index];
 
-              String eventDate = formatDate(event.eventDate);
+              String eventDate = context
+                  .read<EventDetailsViewModel>()
+                  .formatDate(event.eventDate);
 
               return _buildBookingHistoryCard(t, event, eventDate);
             },
@@ -82,7 +80,6 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
     String eventDate,
   ) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 20),
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppFormat.primaryBorderRadius),

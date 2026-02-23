@@ -1,65 +1,75 @@
+import 'dart:async';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
+import 'package:eventee/core/utils/base_view_model.dart';
 import 'package:eventee/src/admin/model/event.dart';
 import 'package:eventee/src/admin/repo/admin_service.dart';
-import 'package:eventee/src/home/models/home_error.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-class HomeViewModel extends ChangeNotifier {
+class HomeViewModel extends BaseViewModel {
   // Dependencies
   final AdminService _adminService;
   HomeViewModel(this._adminService);
 
+  // Controllers
+  final TextEditingController searchController = TextEditingController();
+
   // Variables
-  bool _loading = false;
-  HomeError? _homeError;
-  Stream<List<EventModel>>? _eventStream;
+  final List<(IconData icon, String label)> _categories = const [
+    (Icons.list_alt, 'All'),
+    (Icons.music_note, 'Music'),
+    (Icons.sports_basketball, 'Sport'),
+    (Icons.brush, 'Art'),
+    (Icons.fastfood, 'Food'),
+  ];
+  StreamSubscription? _eventSubscription;
   List<EventModel> _events = [];
   List<EventModel> _filteredEvents = [];
+  String _selectedCategory = 'All';
 
   // Getters
-  bool get loading => _loading;
-  HomeError? get homeError => _homeError;
-  Stream<List<EventModel>>? get eventStream => _eventStream;
-  List<EventModel> get events => _events;
-  List<EventModel> get filteredEvents => _filteredEvents;
-
-  // Setters
-  void setLoading(bool loading) {
-    _loading = loading;
-    notifyListeners();
-  }
-
-  void setHomeError(HomeError homeError) {
-    _homeError = homeError;
-    notifyListeners();
-  }
-
-  void clearHomeError() {
-    _homeError = null;
-    notifyListeners();
-  }
+  List<(IconData icon, String label)> get categories => _categories;
+  List<EventModel> get events => _filteredEvents;
+  String get selectedCategory => _selectedCategory;
 
   // Use Cases
+
   Future<void> fetchAllEvents() async {
-    setLoading(true);
-    clearHomeError();
+    setScreenLoading(true);
+    setError(null);
 
     final response = await _adminService.fetchAllEvents();
 
     if (response is Success) {
       final stream = response.response as Stream<List<EventModel>>;
-      _eventStream = stream.map((eventList) {
-        _events = eventList;
-        _filteredEvents = eventList;
-        return eventList;
-      });
-      notifyListeners();
-    } else if (response is Failure) {
-      setHomeError(HomeError(message: response.response.toString()));
-    }
 
-    setLoading(false);
+      await _eventSubscription?.cancel();
+      _eventSubscription = stream.listen(
+        (eventList) {
+          _events = eventList;
+
+          if (_selectedCategory == 'All') {
+            _filteredEvents = eventList;
+          } else {
+            filterByCategory(_selectedCategory);
+          }
+
+          if (isScreenLoading) {
+            setScreenLoading(false);
+          } else {
+            notifyListeners();
+          }
+        },
+        onError: (error) {
+          setError(error.toString());
+          if (isScreenLoading) setScreenLoading(false);
+        },
+      );
+    } else if (response is Failure) {
+      setError(response.response.toString());
+      setScreenLoading(false);
+    }
   }
 
   void filterEvents(String query) {
@@ -71,5 +81,31 @@ class HomeViewModel extends ChangeNotifier {
       }).toList();
     }
     notifyListeners();
+  }
+
+  void filterByCategory(String category) {
+    _selectedCategory = category;
+
+    if (category == 'All') {
+      _filteredEvents = List.from(_events);
+      notifyListeners();
+    } else {
+      _filteredEvents = _events.where((event) {
+        return event.eventCategory.toLowerCase() == category.toLowerCase();
+      }).toList();
+    }
+
+    notifyListeners();
+  }
+
+  String formatDate(DateTime eventDate) {
+    return DateFormat('MMM, dd').format(eventDate);
+  }
+
+  @override
+  void dispose() {
+    _eventSubscription?.cancel();
+    searchController.dispose();
+    super.dispose();
   }
 }

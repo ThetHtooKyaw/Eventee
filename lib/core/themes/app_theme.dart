@@ -51,6 +51,8 @@ class AppTheme {
         elevation: 8,
       ),
 
+      progressIndicatorTheme: ProgressIndicatorThemeData(color: Colors.black),
+
       cardTheme: CardThemeData(
         color: AppColor.white,
         shadowColor: AppColor.textPrimary.withAlpha(50),
@@ -66,6 +68,8 @@ class AppTheme {
           ),
           foregroundColor: AppColor.white,
           backgroundColor: AppColor.primary,
+          disabledBackgroundColor: Colors.grey,
+          disabledForegroundColor: Colors.white,
           textStyle: AppTextStyle.titleSmall,
         ),
       ),

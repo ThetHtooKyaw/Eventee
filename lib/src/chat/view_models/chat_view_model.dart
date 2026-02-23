@@ -1,60 +1,47 @@
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
-import 'package:eventee/src/chat/models/chat_error.dart';
+import 'package:eventee/core/utils/base_view_model.dart';
 import 'package:eventee/src/chat/models/message.dart';
 import 'package:eventee/src/chat/repo/chat_service.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
-class ChatViewModel extends ChangeNotifier {
+class ChatViewModel extends BaseViewModel {
   // Dependencies
   final ChatService _chatService;
   ChatViewModel(this._chatService);
 
+  // Controllers
+  final TextEditingController textController = TextEditingController();
+
   // Variables
-  bool _loading = false;
-  ChatError? _chatError;
   String? _currentUserId;
-  List<Message> _messages = [];
+  final List<Message> _messages = [];
 
   // Getters
-  bool get loading => _loading;
-  ChatError? get chatError => _chatError;
   String? get currentUserId => _currentUserId;
   List<Message> get messages => _messages;
 
-  // Setters
-  void setLoading(bool loading) {
-    _loading = loading;
-    notifyListeners();
-  }
-
-  void setChatError(ChatError chatError) {
-    _chatError = chatError;
-    notifyListeners();
-  }
-
-  void clearChatError() {
-    _chatError = null;
-    notifyListeners();
-  }
-
   // Use Cases
   Future<void> getCurrentUser() async {
-    setLoading(true);
-    clearChatError();
+    setScreenLoading(true);
+    setError(null);
 
     final response = await _chatService.getCurrentUser();
 
     if (response is Success) {
       _currentUserId = response.response as String;
     } else if (response is Failure) {
-      setChatError(ChatError(message: response.response.toString()));
+      setError(response.response.toString());
     }
 
-    setLoading(false);
+    setScreenLoading(false);
   }
 
-  Future<void> sendMessage({required String text}) async {
+  Future<void> sendMessage() async {
+    final text = textController.text.trim();
+    if (text.isEmpty) return;
+    textController.clear();
+
     final message = Message(
       senderId: _currentUserId ?? 'unknown-user',
       text: text,
@@ -64,20 +51,22 @@ class ChatViewModel extends ChangeNotifier {
     _messages.add(message);
     notifyListeners();
 
-    final loadingMessage = Message(
-      senderId: 'gemini-ai',
-      text: 'Thinking...',
-      date: DateTime.now(),
-      isSentByMe: false,
-      isLoading: true,
+    _messages.add(
+      Message(
+        senderId: 'gemini-ai-loading',
+        text: 'Thinking...',
+        date: DateTime.now(),
+        isSentByMe: false,
+        isLoading: true,
+      ),
     );
-    _messages.add(loadingMessage);
+    notifyListeners();
 
     await getAIResponse(promptText: message.text);
   }
 
   Future<void> getAIResponse({required String promptText}) async {
-    clearChatError();
+    setError(null);
 
     final response = await _chatService.geminiAIResponse(
       promptText: promptText,
@@ -97,10 +86,15 @@ class ChatViewModel extends ChangeNotifier {
         ),
       );
     } else if (response is Failure) {
-      setChatError(ChatError(message: response.response.toString()));
-      print(response.response.toString());
+      setError(response.response.toString());
     }
 
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    textController.dispose();
+    super.dispose();
   }
 }

@@ -6,6 +6,7 @@ class EventModel {
   final String eventLocation;
   final double ticketPrice;
   final String eventDetail;
+  final String eventCategory;
 
   const EventModel({
     required this.eventId,
@@ -15,6 +16,7 @@ class EventModel {
     required this.eventName,
     required this.ticketPrice,
     required this.eventDetail,
+    required this.eventCategory,
   });
 
   Map<String, dynamic> toMap() {
@@ -26,6 +28,7 @@ class EventModel {
       'eventLocation': eventLocation,
       'ticketPrice': ticketPrice,
       'eventDetail': eventDetail,
+      'eventCategory': eventCategory,
     };
   }
 
@@ -38,6 +41,7 @@ class EventModel {
       eventLocation: map['eventLocation'] ?? '',
       ticketPrice: double.tryParse(map['ticketPrice']?.toString() ?? '0') ?? 0,
       eventDetail: map['eventDetail'] ?? '',
+      eventCategory: map['eventCategory'] ?? '',
     );
   }
 }

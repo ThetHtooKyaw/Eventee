@@ -1,42 +1,72 @@
+import 'package:eventee/src/admin/model/event.dart';
+
 class BookingModel {
-  final String? id;
-  final String name;
-  final double price;
-  final String description;
-  final String images;
-  final String category;
+  final String eventId;
+  final String eventImage;
+  final String eventName;
+  final DateTime eventDate;
+  final String eventLocation;
+  final double ticketPrice;
+  final String eventDetail;
+  final double totalAmount;
   final int quantity;
 
-  BookingModel({
-    this.id,
-    required this.name,
-    required this.price,
-    required this.description,
-    required this.images,
-    required this.category,
+  const BookingModel({
+    required this.eventId,
+    required this.eventImage,
+    required this.eventDate,
+    required this.eventLocation,
+    required this.eventName,
+    required this.ticketPrice,
+    required this.eventDetail,
+    required this.totalAmount,
     required this.quantity,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'name': name,
-      'price': price,
-      'description': description,
-      'images': images,
-      'category': category,
+      'eventId': eventId,
+      'eventImage': eventImage,
+      'eventName': eventName,
+      'eventDate': eventDate.toIso8601String(),
+      'eventLocation': eventLocation,
+      'ticketPrice': ticketPrice,
+      'eventDetail': eventDetail,
+      'totalAmount': totalAmount,
       'quantity': quantity,
     };
   }
 
-  factory BookingModel.fromMap(Map<String, dynamic> map, {String? docId}) {
+  factory BookingModel.fromMap(Map<String, dynamic> map) {
     return BookingModel(
-      id: docId ?? '',
-      name: map['name'],
-      price: (map['price'] as num).toDouble(),
-      description: map['description'],
-      images: map['images'] ?? '',
-      category: map['category'],
-      quantity: map['quantity'],
+      eventId: map['eventId'] ?? '',
+      eventImage: map['eventImage'] ?? '',
+      eventName: map['eventName'] ?? 'Unnamed Event',
+      eventDate: DateTime.tryParse(map['eventDate'] ?? '') ?? DateTime.now(),
+      eventLocation: map['eventLocation'] ?? '',
+      ticketPrice: double.tryParse(map['ticketPrice']?.toString() ?? '0') ?? 0,
+      eventDetail: map['eventDetail'] ?? '',
+      totalAmount: double.tryParse(map['totalAmount']?.toString() ?? '0') ?? 0,
+      quantity: int.tryParse(map['quantity']?.toString() ?? '0') ?? 0,
     );
   }
+
+  factory BookingModel.fromEvent({
+    required EventModel event,
+    required double totalAmount,
+    required int quantity,
+  }) {
+    return BookingModel(
+      eventId: event.eventId,
+      eventImage: event.eventImage,
+      eventName: event.eventName,
+      eventDate: event.eventDate,
+      eventLocation: event.eventLocation,
+      ticketPrice: event.ticketPrice,
+      eventDetail: event.eventDetail,
+      totalAmount: totalAmount,
+      quantity: quantity,
+    );
+  }
+
 }

@@ -33,7 +33,7 @@ class AuthService {
 
       await _usersCollection.doc(userCredential.user!.uid).set(user.toMap());
 
-      return Success(response: 'User created successfully!');
+      return Success(response: 'Account created successfully!');
     } on FirebaseAuthException catch (e) {
       return Failure(
         response: 'FirebaseAuthException: ${e.code} - ${e.message}',
@@ -45,46 +45,53 @@ class AuthService {
 
   Future<Object?> signUpWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleSignInAccount = await _googleSignIn
-          .signIn();
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
-      if (googleSignInAccount == null) {
+      if (googleUser == null) {
         return Failure(response: 'Google sign-in was cancelled.');
       }
 
-      final GoogleSignInAuthentication googleSignInAuthentication =
-          await googleSignInAccount.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
-      if (googleSignInAuthentication.idToken == null ||
-          googleSignInAuthentication.accessToken == null) {
+      if (googleAuth.idToken == null || googleAuth.accessToken == null) {
         return Failure(response: 'Google authentication failed.');
       }
 
       final AuthCredential credential = GoogleAuthProvider.credential(
-        idToken: googleSignInAuthentication.idToken,
-        accessToken: googleSignInAuthentication.accessToken,
+        idToken: googleAuth.idToken,
+        accessToken: googleAuth.accessToken,
       );
 
-      UserCredential result = await _auth.signInWithCredential(credential);
+      final UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
 
-      User? userDetail = result.user;
+      final User? user = userCredential.user;
 
-      if (userDetail == null) {
-        return Failure(response: 'User authentication failed.');
+      if (user == null) {
+        return Failure(response: 'Firebase authentication failed.');
       }
 
-      final user = AppUser(
-        username: userDetail.displayName ?? '',
-        email: userDetail.email ?? '',
-        phoneNumber: '',
-        photoUrl: userDetail.photoURL ?? '',
-        address: '',
-        createdAt: DateTime.now(),
-      );
+      final DocumentSnapshot userDoc = await _usersCollection
+          .doc(user.uid)
+          .get();
 
-      await _usersCollection.doc(userDetail.uid).set(user.toMap());
+      if (!userDoc.exists) {
+        final appUser = AppUser(
+          username: user.displayName ?? '',
+          email: user.email ?? '',
+          phoneNumber: '',
+          photoUrl: user.photoURL ?? '',
+          address: '',
+          createdAt: DateTime.now(),
+        );
 
-      return Success(response: 'User created successfully!');
+        await _usersCollection.doc(user.uid).set(appUser.toMap());
+        return Success(response: 'Account created successfully!');
+      } else {
+        return Success(response: 'Welcome back!');
+      }
     } on FirebaseAuthException catch (e) {
       return Failure(
         response: 'FirebaseAuthException: ${e.code} - ${e.message}',
