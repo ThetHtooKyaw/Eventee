@@ -20,7 +20,7 @@ class QuantitySelector extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.remove_circle_outline),
           color: AppColor.primary,
-          disabledColor: AppColor.textSecondary,
+          disabledColor: AppColor.placeholder,
           onPressed: quantity > 1 ? onDecrement : null,
         ),
 

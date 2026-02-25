@@ -102,7 +102,7 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
                 Text(
                   eventDate,
                   style: t.textTheme.bodyMedium?.copyWith(
-                    color: AppColor.textSecondary,
+                    color: AppColor.placeholder,
                   ),
                 ),
               ],

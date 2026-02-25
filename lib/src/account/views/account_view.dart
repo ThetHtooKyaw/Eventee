@@ -3,7 +3,6 @@ import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/src/account/widgets/account_skeleton.dart';
 import 'package:eventee/src/admin/views/upload_event_view.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
-import 'package:eventee/src/chat/views/chat_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
@@ -76,16 +75,6 @@ class _AccountViewState extends State<AccountView> {
                     MaterialPageRoute(
                       builder: (context) => const UploadEventView(),
                     ),
-                  ),
-                ),
-
-                _buildMenuListItem(
-                  context,
-                  icon: Icons.chat,
-                  title: 'Chat With AI Assistant',
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ChatView()),
                   ),
                 ),
                 const Divider(indent: 20, endIndent: 20),

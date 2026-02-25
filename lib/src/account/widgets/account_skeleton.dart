@@ -36,7 +36,6 @@ class AccountSkeleton extends StatelessWidget {
           _buildMenuListItem(),
           _buildMenuListItem(),
           _buildMenuListItem(),
-          _buildMenuListItem(),
           const SizedBox(height: 20),
 
           SkeletonWidget(height: 40, width: double.infinity),

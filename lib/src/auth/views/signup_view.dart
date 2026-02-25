@@ -94,7 +94,7 @@ class _SignUpViewState extends State<SignUpView> {
                     "Discover, book, and experience unforgettable moments effortlessly",
                     textAlign: TextAlign.center,
                     style: t.textTheme.titleSmall?.copyWith(
-                      color: AppColor.textSecondary,
+                      color: AppColor.placeholder,
                     ),
                   ),
                   const SizedBox(height: 20),

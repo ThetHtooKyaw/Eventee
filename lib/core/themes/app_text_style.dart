@@ -31,20 +31,14 @@ class AppTextStyle {
 
   static const bodyLarge = TextStyle(
     fontSize: 16,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.normal,
     color: AppColor.textPrimary,
   );
 
   static const bodyMedium = TextStyle(
     fontSize: 14,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.normal,
     color: AppColor.textPrimary,
-  );
-
-  static const bodySecondary = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    color: AppColor.textSecondary,
   );
 
   static const bodySmall = TextStyle(fontSize: 12, color: AppColor.textPrimary);

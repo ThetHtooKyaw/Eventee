@@ -4,6 +4,7 @@ import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/src/chat/models/message.dart';
 import 'package:eventee/src/chat/view_models/chat_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -24,12 +25,24 @@ class _ChatViewState extends State<ChatView> {
     });
   }
 
+  Future<void> _handleSendMessage() async {
+    final vm = context.read<ChatViewModel>();
+
+    vm.sendMessage();
+
+    if (vm.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(vm.errorMessage!), backgroundColor: Colors.red),
+      );
+      vm.setError(null);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isScreenLoading = context.select<ChatViewModel, bool>(
       (vm) => vm.isScreenLoading,
     );
-    final vm = context.read<ChatViewModel>();
 
     return Stack(
       children: [
@@ -39,111 +52,116 @@ class _ChatViewState extends State<ChatView> {
             title: const Text('Chat AI Assistant'),
             backgroundColor: AppColor.background,
           ),
-          body: Column(
-            children: [
-              // Chat Messages List
-              Expanded(
-                child: Selector<ChatViewModel, List<Message>>(
-                  selector: (_, vm) => vm.messages,
-                  shouldRebuild: (prevuous, next) => true,
-                  builder: (context, messages, child) {
-                    return GroupedListView(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppFormat.secondaryPadding,
-                      ),
-                      reverse: true,
-                      order: GroupedListOrder.DESC,
-                      useStickyGroupSeparators: true,
-                      floatingHeader: true,
-                      elements: messages,
-                      groupBy: (message) => DateTime(
-                        message.date.year,
-                        message.date.month,
-                        message.date.day,
-                      ),
-                      groupHeaderBuilder: (message) => SizedBox(
-                        height: 40,
-                        child: Center(
-                          child: Text(DateFormat.yMMMd().format(message.date)),
-                        ),
-                      ),
-                      itemBuilder: (context, message) => Align(
-                        alignment: message.isSentByMe
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
 
-                        child: Row(
-                          mainAxisAlignment: message.isSentByMe
-                              ? MainAxisAlignment.end
-                              : MainAxisAlignment.start,
-                          children: [
-                            // AI Avater (Left side)
-                            if (!message.isSentByMe) ...[
-                              CircleAvatar(
-                                backgroundColor: AppColor.white,
-                                child: const Icon(
-                                  Icons.smart_toy,
-                                  color: Colors.blue,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                            ],
-
-                            // Message Bubble
-                            Flexible(
-                              child: Card(
-                                elevation: 4,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(
-                                    AppFormat.secondaryPadding,
-                                  ),
-                                  child: Text(message.text),
-                                ),
-                              ),
-                            ),
-
-                            // User Avatar (Right side)
-                            if (message.isSentByMe) ...[
-                              const SizedBox(width: 10),
-                              const CircleAvatar(
-                                backgroundColor: AppColor.white,
-                                child: Icon(Icons.person),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+          // TextField and Send Button
+          bottomNavigationBar: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppFormat.secondaryPadding,
+              vertical: AppFormat.secondaryPadding,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: context.read<ChatViewModel>().textController,
+                    decoration: const InputDecoration(
+                      hintText: 'Type your message here...',
+                    ),
+                    onSubmitted: (_) => _handleSendMessage(),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 10),
+                IconButton(
+                  onPressed: _handleSendMessage,
+                  icon: const Icon(Icons.send),
+                ),
+              ],
+            ),
+          ),
 
-              // TextField and Send Button
-              Padding(
+          body: Selector<ChatViewModel, List<Message>>(
+            selector: (_, vm) => vm.messages,
+            shouldRebuild: (prevuous, next) => true,
+            builder: (context, messages, child) {
+              return GroupedListView(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppFormat.secondaryPadding,
-                  vertical: AppFormat.primaryPadding,
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: vm.textController,
-                        decoration: const InputDecoration(
-                          hintText: 'Type your message here...',
+                reverse: true,
+                order: GroupedListOrder.DESC,
+                useStickyGroupSeparators: false,
+                floatingHeader: false,
+                elements: messages,
+                groupBy: (message) => DateTime(
+                  message.date.year,
+                  message.date.month,
+                  message.date.day,
+                ),
+                groupHeaderBuilder: (message) => SizedBox(
+                  height: 40,
+                  child: Center(
+                    child: Text(DateFormat.yMMMd().format(message.date)),
+                  ),
+                ),
+                itemBuilder: (context, message) => Align(
+                  alignment: message.isSentByMe
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
+
+                  child: Row(
+                    mainAxisAlignment: message.isSentByMe
+                        ? MainAxisAlignment.end
+                        : MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      // AI Avater (Left side)
+                      if (!message.isSentByMe) ...[
+                        CircleAvatar(
+                          backgroundColor: AppColor.white,
+                          child: const Icon(
+                            Icons.smart_toy,
+                            color: Colors.blue,
+                          ),
                         ),
-                        onSubmitted: (text) => vm.sendMessage(),
+                        const SizedBox(width: 10),
+                      ],
+
+                      // Message Bubble
+                      Flexible(
+                        child: Card(
+                          elevation: 4,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppFormat.primaryPadding,
+                              vertical: AppFormat.secondaryPadding,
+                            ),
+                            child: MarkdownBody(
+                              data: message.text,
+                              styleSheet: MarkdownStyleSheet(
+                                p: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(fontWeight: FontWeight.normal),
+                                strong: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    IconButton(
-                      onPressed: () => vm.sendMessage(),
-                      icon: const Icon(Icons.send),
-                    ),
-                  ],
+
+                      // User Avatar (Right side)
+                      // if (message.isSentByMe) ...[
+                      //   const SizedBox(width: 10),
+                      //   const CircleAvatar(
+                      //     backgroundColor: AppColor.white,
+                      //     child: Icon(Icons.person),
+                      //   ),
+                      // ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                separator: const SizedBox(height: 10),
+              );
+            },
           ),
         ),
 

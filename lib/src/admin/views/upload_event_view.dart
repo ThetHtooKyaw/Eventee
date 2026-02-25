@@ -283,7 +283,7 @@ class _UploadEventViewState extends State<UploadEventView> {
                       hint: Text(
                         'Select Category',
                         style: t.textTheme.bodyMedium?.copyWith(
-                          color: AppColor.textSecondary,
+                          color: AppColor.placeholder,
                         ),
                       ),
                       icon: Icon(
