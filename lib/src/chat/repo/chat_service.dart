@@ -32,7 +32,7 @@ class ChatService {
           .map((doc) {
             final data = doc.data() as Map<String, dynamic>;
 
-            return "Event: ${data['eventName']}, Date: ${data['eventDate']}, Location: ${data['eventLocation']}, Price: ${data['ticketPrice']} Baht, Details: ${data['eventDetail']}, Category: ${data['eventCategory']}";
+            return "Event: ${data['title']},  Location: ${data['location']}, Date: ${data['date']}, StartTime : ${data['startTime']}, EndTime: ${data['endTime']}, Price: ${data['price']} Baht, Details: ${data['description']}, Category: ${data['category']}";
           })
           .join("\n");
 

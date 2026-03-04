@@ -1,6 +1,4 @@
-import 'package:eventee/src/create_event/model/event.dart';
-
-class BookingModel {
+class EventModel {
   final String id;
   final String imageUrl;
   final String title;
@@ -10,11 +8,9 @@ class BookingModel {
   final DateTime endTime;
   final double price;
   final String description;
-  final double total;
-  final int quantity;
-  final String status;
+  final String category;
 
-  const BookingModel({
+  const EventModel({
     required this.id,
     required this.imageUrl,
     required this.location,
@@ -24,9 +20,7 @@ class BookingModel {
     required this.title,
     required this.price,
     required this.description,
-    required this.total,
-    required this.quantity,
-    required this.status,
+    required this.category,
   });
 
   Map<String, dynamic> toMap() {
@@ -40,14 +34,12 @@ class BookingModel {
       'endTime': endTime.toIso8601String(),
       'price': price,
       'description': description,
-      'total': total,
-      'quantity': quantity,
-      'status': status,
+      'category': category,
     };
   }
 
-  factory BookingModel.fromMap(Map<String, dynamic> map) {
-    return BookingModel(
+  factory EventModel.fromMap(Map<String, dynamic> map) {
+    return EventModel(
       id: map['id'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
       title: map['title'] ?? 'Unnamed Event',
@@ -57,31 +49,7 @@ class BookingModel {
       endTime: DateTime.tryParse(map['endTime'] ?? '') ?? DateTime.now(),
       price: double.tryParse(map['price']?.toString() ?? '0') ?? 0,
       description: map['description'] ?? '',
-      total: double.tryParse(map['total']?.toString() ?? '0') ?? 0,
-      quantity: int.tryParse(map['quantity']?.toString() ?? '0') ?? 0,
-      status: map['status'] ?? 'unknown',
-    );
-  }
-
-  factory BookingModel.fromEvent({
-    required EventModel event,
-    required double total,
-    required int quantity,
-    required String status,
-  }) {
-    return BookingModel(
-      id: event.id,
-      imageUrl: event.imageUrl,
-      title: event.title,
-      location: event.location,
-      date: event.date,
-      startTime: event.startTime,
-      endTime: event.endTime,
-      price: event.price,
-      description: event.description,
-      total: total,
-      quantity: quantity,
-      status: status,
+      category: map['category'] ?? '',
     );
   }
 }

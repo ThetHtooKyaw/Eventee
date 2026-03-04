@@ -3,10 +3,12 @@ import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/widgets/app_error.dart';
 import 'package:eventee/core/widgets/skeleton_widget.dart';
-import 'package:eventee/src/admin/model/event.dart';
+import 'package:eventee/src/create_event/model/event.dart';
 import 'package:eventee/src/booking/views/event_details_view.dart';
 import 'package:eventee/src/chat/views/chat_view.dart';
 import 'package:eventee/src/home/viewa_models/home_view_model.dart';
+import 'package:eventee/src/home/widgets/event_list_skeleton.dart';
+import 'package:eventee/src/home/widgets/section_title.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -34,6 +36,7 @@ class _HomeViewState extends State<HomeView> {
     return Scaffold(
       backgroundColor: AppColor.background,
 
+      // Chat Button
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(
           context,
@@ -73,13 +76,10 @@ class _HomeViewState extends State<HomeView> {
 
                   // Search Bar
                   Positioned(
-                    bottom: 26,
+                    bottom: 1,
                     right: AppFormat.primaryPadding,
                     left: AppFormat.primaryPadding,
-                    child: Transform.translate(
-                      offset: Offset(0, 25),
-                      child: _buildSearchBar(vmAction),
-                    ),
+                    child: _buildSearchBar(vmAction),
                   ),
                 ],
               ),
@@ -97,24 +97,29 @@ class _HomeViewState extends State<HomeView> {
                   // Categories
                   SizedBox(
                     height: 100,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppFormat.primaryPadding,
-                      ),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: vmAction.categories.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 20),
-                      itemBuilder: (context, index) {
-                        final (icon, label) = vmAction.categories[index];
+                    child: Selector<HomeViewModel, String>(
+                      selector: (_, vm) => vm.selectedCategory,
+                      builder: (context, selectedCategory, child) {
+                        return ListView.separated(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppFormat.primaryPadding,
+                          ),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: vmAction.categories.length,
+                          separatorBuilder: (_, _) => const SizedBox(width: 20),
+                          itemBuilder: (context, index) {
+                            final (icon, label) = vmAction.categories[index];
 
-                        return _buildCategory(t, icon, label);
+                            return _buildCategory(t, icon, label);
+                          },
+                        );
                       },
                     ),
                   ),
                   const SizedBox(height: 10),
 
                   // Event Title
-                  _buildTitle(t, 'Upcoming Events', () {}),
+                  SectionTitle(title: 'Upcoming Events', onTap: () {}),
                   const SizedBox(height: 20),
 
                   // Event List
@@ -122,22 +127,6 @@ class _HomeViewState extends State<HomeView> {
                     height: 310,
                     child: Consumer<HomeViewModel>(
                       builder: (context, vm, child) {
-                        if (vm.isScreenLoading) {
-                          return ListView.separated(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: AppFormat.primaryPadding,
-                            ),
-                            shrinkWrap: true,
-                            scrollDirection: Axis.horizontal,
-                            itemCount: 6,
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(width: 20),
-                            itemBuilder: (context, index) {
-                              return _buildEventSkeletion();
-                            },
-                          );
-                        }
-
                         if (vm.errorMessage != null) {
                           return AppError(errorMessage: vm.errorMessage!);
                         }
@@ -157,12 +146,19 @@ class _HomeViewState extends State<HomeView> {
                           ),
                           shrinkWrap: true,
                           scrollDirection: Axis.horizontal,
-                          itemCount: vm.events.length,
+                          itemCount: vm.isScreenLoading ? 6 : vm.events.length,
                           separatorBuilder: (context, index) =>
                               const SizedBox(width: 20),
                           itemBuilder: (context, index) {
+                            if (vm.isScreenLoading) {
+                              return EventListSkeleton();
+                            }
+
                             EventModel event = vm.events[index];
-                            String eventDate = vm.formatDate(event.eventDate);
+                            String eventDate = vm.formatDateMonthDay(
+                              event.date,
+                            );
+                            String eventTime = vm.formatTime(event.startTime);
 
                             return GestureDetector(
                               onTap: () => Navigator.push(
@@ -172,7 +168,12 @@ class _HomeViewState extends State<HomeView> {
                                       EventDetailsView(event: event),
                                 ),
                               ),
-                              child: _buildEvents(t, event, eventDate),
+                              child: _buildEvents(
+                                t,
+                                event,
+                                eventDate,
+                                eventTime,
+                              ),
                             );
                           },
                         );
@@ -226,120 +227,56 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildSearchBar(HomeViewModel vmAction) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Expanded(
-          child: TextField(
-            controller: vmAction.searchController,
-            onChanged: (value) => vmAction.filterEvents(value),
-            decoration: InputDecoration(
-              hintText: 'Search...',
-              prefixIcon: Icon(Icons.search, color: AppColor.primary),
-              // TODO: Implement Filter Feature
-              suffixIcon: IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.filter_list, color: AppColor.primary),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: AppColor.primary, width: 1.5),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: AppColor.primary, width: 1.5),
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-          ),
+    return TextField(
+      controller: vmAction.searchController,
+      onChanged: (value) => vmAction.filterEvents(value),
+      decoration: InputDecoration(
+        hintText: 'Search...',
+        prefixIcon: Icon(Icons.search, color: AppColor.primary),
+        // TODO: Implement Filter Feature
+        suffixIcon: IconButton(
+          onPressed: () {},
+          icon: Icon(Icons.filter_list, color: AppColor.primary),
         ),
-        const SizedBox(width: 10),
-      ],
-    );
-  }
-
-  Widget _buildTitle(ThemeData t, String title, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppFormat.primaryPadding),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: t.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          InkWell(
-            onTap: onTap,
-            child: Text(
-              'See all',
-              style: t.textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w500,
-                color: AppColor.primary,
-              ),
-            ),
-          ),
-        ],
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: AppColor.primary, width: 1.5),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: AppColor.primary, width: 1.5),
+          borderRadius: BorderRadius.circular(30),
+        ),
       ),
     );
   }
 
   Widget _buildCategory(ThemeData t, IconData icon, String label) {
-    return Selector<HomeViewModel, String>(
-      selector: (_, vm) => vm.selectedCategory,
-      builder: (context, selectedCategory, child) {
-        return GestureDetector(
-          onTap: () => context.read<HomeViewModel>().filterByCategory(label),
-          child: Column(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: AppColor.primary,
-                foregroundColor: AppColor.white,
-                child: Icon(icon),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: t.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildEventSkeletion() {
-    return Container(
-      padding: const EdgeInsets.all(AppFormat.secondaryPadding),
-      decoration: BoxDecoration(
-        color: AppColor.white,
-        border: Border.all(color: AppColor.placeholder, width: 0.5),
-        borderRadius: BorderRadius.circular(AppFormat.primaryBorderRadius),
-      ),
+    return GestureDetector(
+      onTap: () => context.read<HomeViewModel>().filterByCategory(label),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
-          SkeletonWidget(height: 180, width: 300),
-          const SizedBox(height: 10),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SkeletonWidget(height: 20, width: 100),
-              SkeletonWidget(height: 20, width: 100),
-            ],
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: AppColor.primary,
+            foregroundColor: AppColor.white,
+            child: Icon(icon),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: t.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEvents(ThemeData t, EventModel event, String eventDate) {
+  Widget _buildEvents(
+    ThemeData t,
+    EventModel event,
+    String eventDate,
+    String eventTime,
+  ) {
     return Container(
       padding: const EdgeInsets.all(AppFormat.secondaryPadding),
       width: 320,
@@ -355,24 +292,32 @@ class _HomeViewState extends State<HomeView> {
           // Event Image
           Stack(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadiusGeometry.circular(
-                  AppFormat.primaryBorderRadius - 6,
-                ),
-                child: CachedNetworkImage(
-                  imageUrl: event.eventImage,
+              CachedNetworkImage(
+                imageUrl: event.imageUrl,
+                imageBuilder: (context, imageProvider) => Container(
                   height: 180,
                   width: 300,
-                  fit: BoxFit.cover,
-                  progressIndicatorBuilder: (context, url, progress) =>
-                      SkeletonWidget(height: 180, width: 300),
-                  errorWidget: (context, url, error) => Icon(Icons.error),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadiusGeometry.circular(
+                      AppFormat.primaryBorderRadius - 6,
+                    ),
+                    image: DecorationImage(
+                      image: imageProvider,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
+                progressIndicatorBuilder: (context, url, progress) =>
+                    SkeletonWidget(height: 180, width: 300),
+                errorWidget: (context, url, error) => Icon(Icons.error),
               ),
-              // TODO: Change to Category
+
+              // Event Category
               Container(
                 margin: const EdgeInsets.only(left: 10, top: 10),
-                width: 50,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppFormat.secondaryPadding,
+                ),
                 decoration: BoxDecoration(
                   color: AppColor.white,
                   borderRadius: BorderRadius.circular(
@@ -380,7 +325,7 @@ class _HomeViewState extends State<HomeView> {
                   ),
                 ),
                 child: Text(
-                  eventDate,
+                  event.category,
                   textAlign: TextAlign.center,
                   style: t.textTheme.bodyLarge?.copyWith(
                     color: AppColor.primary,
@@ -394,7 +339,7 @@ class _HomeViewState extends State<HomeView> {
 
           // Event Name
           Text(
-            event.eventName,
+            event.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: t.textTheme.titleSmall?.copyWith(
@@ -408,21 +353,24 @@ class _HomeViewState extends State<HomeView> {
             children: [
               Icon(Icons.location_on_rounded, size: 20),
               const SizedBox(width: 6),
-              Text(
-                event.eventLocation,
-                style: t.textTheme.bodyLarge?.copyWith(
-                  color: AppColor.textPlaceholder,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  event.location,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.textTheme.bodyMedium?.copyWith(
+                    color: AppColor.textPlaceholder,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               const SizedBox(width: 20),
 
               Icon(Icons.timer, size: 20),
               const SizedBox(width: 6),
-              // TODO: Get Event Time
               Text(
-                '$eventDate - 10:00 PM',
-                style: t.textTheme.bodyLarge?.copyWith(
+                '$eventDate - $eventTime',
+                style: t.textTheme.bodyMedium?.copyWith(
                   color: AppColor.textPlaceholder,
                   fontWeight: FontWeight.bold,
                 ),
@@ -435,7 +383,7 @@ class _HomeViewState extends State<HomeView> {
           Row(
             children: [
               Text(
-                '฿${event.ticketPrice}',
+                '฿${event.price}',
                 style: t.textTheme.titleSmall?.copyWith(
                   color: AppColor.primary,
                 ),

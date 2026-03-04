@@ -17,12 +17,14 @@ class MainActivity : FlutterFragmentActivity() {
                 val title = call.argument<String>("title")
                 val description = call.argument<String>("description")
                 val startTime = call.argument<Long>("startTime")
+                val endTime = call.argument<Long>("endTime")
 
                 val intent = Intent(Intent.ACTION_INSERT).apply {
                     data = CalendarContract.Events.CONTENT_URI
                     putExtra(CalendarContract.Events.TITLE, title)
                     putExtra(CalendarContract.Events.DESCRIPTION, description)
                     putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startTime)
+                    putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime)
                 }
 
                 try {

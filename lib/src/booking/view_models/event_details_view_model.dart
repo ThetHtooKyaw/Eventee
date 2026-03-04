@@ -2,7 +2,6 @@ import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/utils/base_view_model.dart';
 import 'package:eventee/src/booking/models/booking.dart';
 import 'package:eventee/src/booking/repo/booking_service.dart';
-import 'package:intl/intl.dart';
 
 class EventDetailsViewModel extends BaseViewModel {
   // Dependencies
@@ -27,10 +26,6 @@ class EventDetailsViewModel extends BaseViewModel {
     }
 
     setActionLoading(false);
-  }
-
-  String formatDate(DateTime eventDate) {
-    return DateFormat('dd, MMM, yyyy').format(eventDate);
   }
 
   int formatPrice(String ticketPrice) {

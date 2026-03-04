@@ -45,6 +45,21 @@ class BookingService {
     }
   }
 
+  Future<void> updateBookingStatus(String bookingId, String newStatus) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      await _userBookings(
+        user.uid,
+      ).doc(bookingId).update({'status': newStatus});
+    } catch (e) {
+      debugPrint(
+        "Background Sync Error: Failed to update booking $bookingId: $e",
+      );
+    }
+  }
+
   Future<Object> makePayment({required BookingModel bookedEvent}) async {
     try {
       final user = _auth.currentUser;
@@ -54,7 +69,7 @@ class BookingService {
       }
 
       // The Handshake (Cloud Function)
-      final int amount = (bookedEvent.totalAmount * 100).toInt();
+      final int amount = (bookedEvent.total * 100).toInt();
       final HttpsCallable callable = _functions.httpsCallable(
         'createPaymentIntent',
       );
@@ -120,30 +135,17 @@ class BookingService {
     required BookingModel bookedEvent,
   }) async {
     try {
-      // Atomic Operation
-      WriteBatch batch = _firestore.batch();
+      final newBookingRef = _userBookings(user.uid).doc();
 
-      // Update User Document
-      DocumentReference newBookingRef = _userBookings(user.uid).doc();
-      batch.update(_usersCollection.doc(user.uid), {
-        'hasTicket': true,
-        'lastPayment': FieldValue.serverTimestamp(),
-      });
-
-      // Create Booked Event Document
       final saveBooking = EventHistoryModel.fromBooking(
         userId: user.uid,
+        bookingId: newBookingRef.id,
         bookedEvent: bookedEvent,
+        bookedAt: DateTime.now(),
       );
 
-      batch.set(newBookingRef, {
-        ...saveBooking.toMap(),
-        'bookingId': newBookingRef.id,
-        'bookedAt': FieldValue.serverTimestamp(),
-        'status': 'paid',
-      });
+      await newBookingRef.set(saveBooking.toMap());
 
-      await batch.commit();
       return Success(response: 'Booking saved successfully');
     } catch (e) {
       return Failure(response: 'failed to save booking: $e');
@@ -153,9 +155,10 @@ class BookingService {
   Future<void> _sendToCalendar({required BookingModel bookedEvent}) async {
     try {
       await platform.invokeMethod('addToCalendar', {
-        'title': bookedEvent.eventName,
-        'description': bookedEvent.eventDetail,
-        'startTime': bookedEvent.eventDate.millisecondsSinceEpoch,
+        'title': bookedEvent.title,
+        'description': bookedEvent.description,
+        'startTime': bookedEvent.date.millisecondsSinceEpoch,
+        'endTime': bookedEvent.endTime.millisecondsSinceEpoch,
       });
     } on PlatformException catch (e) {
       debugPrint("Native error: ${e.message}");

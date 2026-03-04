@@ -62,7 +62,7 @@ class AppTheme {
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.all(10),
+          minimumSize: const Size(160, 60),
           foregroundColor: AppColor.white,
           backgroundColor: AppColor.primary,
           disabledBackgroundColor: AppColor.textPlaceholder,
@@ -97,7 +97,6 @@ class AppTheme {
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
           foregroundColor: AppColor.white,
-          disabledBackgroundColor: AppColor.textPlaceholder,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
               AppFormat.secondaryBorderRadius,

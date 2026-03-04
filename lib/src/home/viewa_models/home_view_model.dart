@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
 import 'package:eventee/core/utils/base_view_model.dart';
-import 'package:eventee/src/admin/model/event.dart';
-import 'package:eventee/src/admin/repo/admin_service.dart';
+import 'package:eventee/src/create_event/model/event.dart';
+import 'package:eventee/src/create_event/repo/admin_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -77,7 +77,7 @@ class HomeViewModel extends BaseViewModel {
       _filteredEvents = _events;
     } else {
       _filteredEvents = _events.where((event) {
-        return event.eventName.toLowerCase().contains(query.toLowerCase());
+        return event.title.toLowerCase().contains(query.toLowerCase());
       }).toList();
     }
     notifyListeners();
@@ -91,15 +91,19 @@ class HomeViewModel extends BaseViewModel {
       notifyListeners();
     } else {
       _filteredEvents = _events.where((event) {
-        return event.eventCategory.toLowerCase() == category.toLowerCase();
+        return event.category.toLowerCase() == category.toLowerCase();
       }).toList();
     }
 
     notifyListeners();
   }
 
-  String formatDate(DateTime eventDate) {
-    return DateFormat('MMM, dd').format(eventDate);
+  String formatDateMonthDay(DateTime date) {
+    return DateFormat('MMM dd').format(date);
+  }
+
+  String formatTime(DateTime time) {
+    return DateFormat('hh:mm a').format(time);
   }
 
   @override

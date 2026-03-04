@@ -1,7 +1,7 @@
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/src/account/widgets/account_skeleton.dart';
-import 'package:eventee/src/admin/views/upload_event_view.dart';
+import 'package:eventee/src/create_event/views/create_event_view.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -73,7 +73,7 @@ class _AccountViewState extends State<AccountView> {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const UploadEventView(),
+                      builder: (context) => const CreateEventView(),
                     ),
                   ),
                 ),
