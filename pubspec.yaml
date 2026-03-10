@@ -56,6 +56,7 @@ dependencies:
   coupon_uikit: ^0.3.0
   pretty_qr_code: ^3.6.0
   readmore: ^3.0.0
+  csc_picker_plus: ^0.0.3
 
 dev_dependencies:
   flutter_test:

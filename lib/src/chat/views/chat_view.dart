@@ -1,5 +1,6 @@
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
+import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/src/chat/models/message.dart';
 import 'package:eventee/src/chat/view_models/chat_view_model.dart';
@@ -31,15 +32,14 @@ class _ChatViewState extends State<ChatView> {
     vm.sendMessage();
 
     if (vm.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(vm.errorMessage!), backgroundColor: Colors.red),
-      );
+      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
       vm.setError(null);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = Theme.of(context);
     final isScreenLoading = context.select<ChatViewModel, bool>(
       (vm) => vm.isScreenLoading,
     );
@@ -49,15 +49,20 @@ class _ChatViewState extends State<ChatView> {
         Scaffold(
           appBar: AppBar(
             centerTitle: true,
-            title: const Text('Chat AI Assistant'),
-            backgroundColor: AppColor.background,
+            backgroundColor: AppColor.white,
+            leadingWidth: 70,
+            leading: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: Icon(Icons.arrow_back_ios_new_rounded, size: 32),
+            ),
+            title: Text('Eventee Assistant', style: t.textTheme.titleSmall),
           ),
 
           // TextField and Send Button
           bottomNavigationBar: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppFormat.secondaryPadding,
-              vertical: AppFormat.secondaryPadding,
+              vertical: AppFormat.primaryPadding,
             ),
             child: Row(
               children: [
@@ -65,7 +70,7 @@ class _ChatViewState extends State<ChatView> {
                   child: TextField(
                     controller: context.read<ChatViewModel>().textController,
                     decoration: const InputDecoration(
-                      hintText: 'Type your message here...',
+                      hintText: 'Ask Eventee...',
                     ),
                     onSubmitted: (_) => _handleSendMessage(),
                   ),
@@ -73,6 +78,14 @@ class _ChatViewState extends State<ChatView> {
                 const SizedBox(width: 10),
                 IconButton(
                   onPressed: _handleSendMessage,
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppColor.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppFormat.secondaryBorderRadius,
+                      ),
+                    ),
+                  ),
                   icon: const Icon(Icons.send),
                 ),
               ],
@@ -84,9 +97,7 @@ class _ChatViewState extends State<ChatView> {
             shouldRebuild: (prevuous, next) => true,
             builder: (context, messages, child) {
               return GroupedListView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppFormat.secondaryPadding,
-                ),
+                padding: const EdgeInsets.all(AppFormat.secondaryPadding),
                 reverse: true,
                 order: GroupedListOrder.DESC,
                 useStickyGroupSeparators: false,
@@ -138,10 +149,12 @@ class _ChatViewState extends State<ChatView> {
                             child: MarkdownBody(
                               data: message.text,
                               styleSheet: MarkdownStyleSheet(
-                                p: Theme.of(context).textTheme.bodyLarge
-                                    ?.copyWith(fontWeight: FontWeight.normal),
-                                strong: Theme.of(context).textTheme.bodyLarge
-                                    ?.copyWith(fontWeight: FontWeight.bold),
+                                p: t.textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.normal,
+                                ),
+                                strong: t.textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),

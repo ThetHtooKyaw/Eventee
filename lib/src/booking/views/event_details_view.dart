@@ -2,9 +2,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:coupon_uikit/coupon_uikit.dart';
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
+import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/core/widgets/skeleton_widget.dart';
 import 'package:eventee/core/widgets/view_appbar.dart';
+import 'package:eventee/src/account/view_models/account_view_model.dart';
+import 'package:eventee/src/auth/models/app_user.dart';
 import 'package:eventee/src/create_event/model/event.dart';
 import 'package:eventee/src/booking/models/booking.dart';
 import 'package:eventee/src/booking/view_models/event_details_view_model.dart';
@@ -42,17 +45,10 @@ class _EventDetailsViewState extends State<EventDetailsView> {
     );
 
     if (vm.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(vm.errorMessage!), backgroundColor: Colors.red),
-      );
+      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
       vm.setError(null);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Event ticket purchased successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      AppSnackbars.showSuccessSnackbar(context, vm.successMessage!);
       Navigator.pop(context);
     }
   }
@@ -63,16 +59,28 @@ class _EventDetailsViewState extends State<EventDetailsView> {
     final isActionLoading = context.select<EventDetailsViewModel, bool>(
       (vm) => vm.isActionLoading,
     );
+    final userData = context.select<AccountViewModel, AppUser?>(
+      (vm) => vm.user,
+    );
     final homeVM = context.read<HomeViewModel>();
     final eventDate = homeVM.formatDateMonthDay(widget.event.date);
     final eventStartTime = homeVM.formatTime(widget.event.startTime);
     final eventEndTime = homeVM.formatTime(widget.event.endTime);
+    final photoUrl = userData?.photoUrl ?? '';
 
     return Stack(
       children: [
         Scaffold(
-          // TODO: Get User Image
-          appBar: ViewAppbar(actionIcon: CircleAvatar()),
+          appBar: ViewAppbar(
+            actionIcon: CircleAvatar(
+              radius: 24,
+              backgroundImage: NetworkImage(photoUrl),
+              backgroundColor: AppColor.placeholder.withOpacity(0.4),
+              child: photoUrl.isEmpty
+                  ? const Icon(Icons.person, color: Colors.black, size: 40)
+                  : null,
+            ),
+          ),
 
           // Bottom Bar
           bottomNavigationBar: Padding(
@@ -83,6 +91,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
             child: ElevatedButton(
               onPressed: () => _showTicketSheet(
                 t,
+                userData,
                 eventDate,
                 eventStartTime,
                 eventEndTime,
@@ -186,7 +195,6 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                       ),
                       const SizedBox(height: 20),
 
-                      // TODO: Implement Read More Feature
                       // Description
                       Text(
                         'About',
@@ -364,6 +372,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
 
   Future<dynamic> _showTicketSheet(
     ThemeData t,
+    AppUser? userData,
     String eventDate,
     String eventStartTime,
     String eventEndTime,
@@ -447,9 +456,8 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                                   ),
                                 ),
 
-                                // TODO: Get User Name
                                 Text(
-                                  'Tony',
+                                  userData?.username ?? 'Unknown',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: t.textTheme.titleSmall?.copyWith(
@@ -500,7 +508,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
 
                       Text(
                         widget.event.location,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: t.textTheme.titleSmall?.copyWith(
                           color: AppColor.white,

@@ -57,7 +57,7 @@ class AdminService {
 
       await _eventsCollection.doc(eventId.id).set(event.toMap());
 
-      return Success(response: 'Event detail uploaded successfully!');
+      return Success(response: 'Event uploaded successfully!');
     } catch (e) {
       return Failure(response: 'Failed to upload event detail: $e.');
     }

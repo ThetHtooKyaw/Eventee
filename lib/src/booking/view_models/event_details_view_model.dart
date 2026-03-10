@@ -1,4 +1,5 @@
 import 'package:eventee/core/status/failure.dart';
+import 'package:eventee/core/status/success.dart';
 import 'package:eventee/core/utils/base_view_model.dart';
 import 'package:eventee/src/booking/models/booking.dart';
 import 'package:eventee/src/booking/repo/booking_service.dart';
@@ -21,7 +22,9 @@ class EventDetailsViewModel extends BaseViewModel {
       bookedEvent: bookedEvent,
     );
 
-    if (response is Failure) {
+    if (response is Success) {
+      setSuccess(response.response.toString());
+    } else if (response is Failure) {
       setError(response.response.toString());
     }
 

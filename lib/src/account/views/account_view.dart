@@ -1,5 +1,7 @@
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
+import 'package:eventee/src/account/views/account_detail_view.dart';
+import 'package:eventee/src/account/widgets/account_menu.dart';
 import 'package:eventee/src/account/widgets/account_skeleton.dart';
 import 'package:eventee/src/create_event/views/create_event_view.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
@@ -18,147 +20,224 @@ class _AccountViewState extends State<AccountView> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AccountViewModel>().loadUser();
-    });
+    final vm = context.read<AccountViewModel>();
+    if (vm.user == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        vm.loadUser();
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final isScreenLoading = context.select<AccountViewModel, bool>(
-      (vm) => vm.isScreenLoading,
-    );
     final userData = context.select<AccountViewModel, AppUser?>(
       (vm) => vm.user,
+    );
+    final isScreenLoading = context.select<AccountViewModel, bool>(
+      (vm) => vm.isScreenLoading,
     );
 
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("My Account", style: t.textTheme.titleMedium),
+        backgroundColor: AppColor.white,
+        title: Text("Eventee Account", style: t.textTheme.titleSmall),
       ),
       body: isScreenLoading
           ? AccountSkeleton()
           : userData == null
           ? Center(child: Text('No user found!', style: t.textTheme.bodyLarge))
-          : ListView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppFormat.secondaryPadding,
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(AppFormat.primaryPadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildProfile(userData, t),
+                  const SizedBox(height: 20),
+
+                  Text(
+                    'PERSONALIZE',
+                    style: t.textTheme.bodyMedium?.copyWith(
+                      color: AppColor.textPlaceholder,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 10),
+
+                  MenuCard(
+                    child: Column(
+                      children: [
+                        // Personal Information
+                        MenuItem(
+                          icon: Icons.person,
+                          title: 'Personal Information',
+                          onTap: () async {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AccountDetailView(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildCustomDivider(),
+
+                        // Settings
+                        MenuItem(
+                          icon: Icons.settings,
+                          title: 'Settings',
+                          onTap: () {},
+                        ),
+                        _buildCustomDivider(),
+
+                        // Billing
+                        MenuItem(
+                          icon: Icons.wallet,
+                          title: 'Billing',
+                          onTap: () {},
+                        ),
+                        _buildCustomDivider(),
+
+                        // Favorites
+                        MenuItem(
+                          icon: Icons.bookmark,
+                          title: 'Favorites',
+                          onTap: () {},
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  Text(
+                    'GENERAL',
+                    style: t.textTheme.bodyMedium?.copyWith(
+                      color: AppColor.textPlaceholder,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 10),
+
+                  MenuCard(
+                    child: Column(
+                      children: [
+                        // Notifications
+                        MenuItem(
+                          icon: Icons.notifications,
+                          title: 'Notifications',
+                          onTap: () {},
+                        ),
+                        _buildCustomDivider(),
+
+                        // Language
+                        MenuItem(
+                          icon: Icons.language,
+                          title: 'Language',
+                          onTap: () {},
+                        ),
+                        _buildCustomDivider(),
+
+                        // Theme Mode
+                        MenuItem(
+                          icon: Icons.wb_sunny,
+                          title: 'Light/Dark Mode',
+                          onTap: () {},
+                        ),
+                        _buildCustomDivider(),
+
+                        // Add Event
+                        MenuItem(
+                          icon: Icons.add,
+                          title: 'Add Event',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CreateEventView(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      onPressed: () =>
+                          context.read<AccountViewModel>().logoutUser(),
+                      child: Text('Logout'),
+                    ),
+                  ),
+                ],
               ),
-              physics: NeverScrollableScrollPhysics(),
-              children: [
-                // Header
-                _buildProfileHeader(
-                  context,
-                  t,
-                  userData.username,
-                  userData.email,
-                  'photoUrl',
-                ),
-                const SizedBox(height: 20),
-
-                // Account Info
-                _buildMenuListItem(
-                  context,
-                  icon: Icons.person_outline,
-                  title: 'Profile Information',
-                  onTap: () {},
-                ),
-
-                _buildMenuListItem(
-                  context,
-                  icon: Icons.add,
-                  title: 'Add Event',
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CreateEventView(),
-                    ),
-                  ),
-                ),
-                const Divider(indent: 20, endIndent: 20),
-
-                _buildMenuListItem(
-                  context,
-                  icon: Icons.settings_outlined,
-                  title: 'Settings',
-                  onTap: () {},
-                ),
-                const SizedBox(height: 20),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                    ),
-                    onPressed: () =>
-                        context.read<AccountViewModel>().logoutUser(),
-                    child: Text('Logout'),
-                  ),
-                ),
-              ],
             ),
     );
   }
 
-  Widget _buildProfileHeader(
-    BuildContext context,
-    ThemeData t,
-    String userName,
-    String userEmail,
-    String photoUrl,
-  ) {
-    return Row(
-      children: [
-        // User Image
-        CircleAvatar(
-          radius: 40,
-          backgroundImage: null,
-          // backgroundImage: photoUrl.isNotEmpty ? (photoUrl) : null,
-          backgroundColor: AppColor.white,
-          child: const Icon(Icons.person, color: Colors.black),
-        ),
-        const SizedBox(width: 20),
-
-        // User Info
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                userName,
-                style: t.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-
-              Text(
-                userEmail,
-                style: t.textTheme.bodyLarge,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+  Widget _buildProfile(AppUser userData, ThemeData t) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: AppFormat.secondaryPadding,
+        horizontal: AppFormat.primaryPadding,
+      ),
+      decoration: BoxDecoration(
+        color: AppColor.white,
+        borderRadius: BorderRadius.circular(AppFormat.primaryBorderRadius),
+      ),
+      child: Row(
+        children: [
+          // Image
+          CircleAvatar(
+            radius: 40,
+            backgroundImage: NetworkImage(userData.photoUrl),
+            backgroundColor: AppColor.placeholder.withOpacity(0.4),
+            child: userData.photoUrl.isEmpty
+                ? const Icon(Icons.person, color: Colors.black)
+                : null,
           ),
-        ),
-      ],
+          const SizedBox(width: 10),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Name
+                Text(
+                  userData.username,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+
+                // Email
+                Text(
+                  userData.email,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.textTheme.bodyLarge?.copyWith(
+                    color: AppColor.textPlaceholder,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildMenuListItem(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: AppColor.primary),
-      title: Text(title, style: Theme.of(context).textTheme.bodyLarge),
-      trailing: Icon(Icons.chevron_right, color: AppColor.textPrimary),
-      onTap: onTap,
-    );
+  Widget _buildCustomDivider() {
+    return const Divider(height: 0, thickness: 0.8, indent: 64, endIndent: 20);
   }
 }

@@ -21,10 +21,19 @@ class BookingService {
   CollectionReference _userBookings(String uid) =>
       _usersCollection.doc(uid).collection('bookings');
 
+  User get _currentUser {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw 'No authenticated user found.';
+    }
+
+    return user;
+  }
+
   Future<Object> fetchBookingHistory() async {
     try {
-      final user = _auth.currentUser;
-      if (user == null) return Failure(response: 'User not logged in');
+      final user = _currentUser;
 
       final stream = _userBookings(
         user.uid,
@@ -47,8 +56,7 @@ class BookingService {
 
   Future<void> updateBookingStatus(String bookingId, String newStatus) async {
     try {
-      final user = _auth.currentUser;
-      if (user == null) return;
+      final user = _currentUser;
 
       await _userBookings(
         user.uid,
@@ -62,11 +70,7 @@ class BookingService {
 
   Future<Object> makePayment({required BookingModel bookedEvent}) async {
     try {
-      final user = _auth.currentUser;
-
-      if (user == null) {
-        return Failure(response: 'User not logged in!');
-      }
+      final user = _currentUser;
 
       // The Handshake (Cloud Function)
       final int amount = (bookedEvent.total * 100).toInt();
@@ -116,7 +120,7 @@ class BookingService {
       // Add Event to Calendar
       await _sendToCalendar(bookedEvent: bookedEvent);
 
-      return Success(response: 'Make payment successfully!');
+      return Success(response: 'Ticket purchased successfully!');
     } on FirebaseFunctionsException catch (e) {
       return Failure(response: 'Cloud function error: ${e.message}');
     } on StripeException catch (e) {

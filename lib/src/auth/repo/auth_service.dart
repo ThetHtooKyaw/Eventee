@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:eventee/src/auth/view_models/params/login_params.dart';
 import 'package:eventee/src/auth/view_models/params/signup_params.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
-import 'package:eventee/src/auth/view_models/params/login_params.dart';
+
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
@@ -27,6 +28,7 @@ class AuthService {
         email: params.email,
         phoneNumber: params.phoneNumber,
         photoUrl: '',
+        dateOfBirth: null,
         address: params.address,
         createdAt: DateTime.now(),
       );
@@ -83,6 +85,7 @@ class AuthService {
           email: user.email ?? '',
           phoneNumber: '',
           photoUrl: user.photoURL ?? '',
+          dateOfBirth: null,
           address: '',
           createdAt: DateTime.now(),
         );
@@ -115,42 +118,6 @@ class AuthService {
       );
     } catch (e) {
       return Failure(response: 'Failed to login user: $e.');
-    }
-  }
-
-  Future<Object?> logoutUser() async {
-    try {
-      await _auth.signOut();
-      return Success(response: 'User logged out successfully!');
-    } on FirebaseAuthException catch (e) {
-      return Failure(
-        response: 'FirebaseAuthException: ${e.code} - ${e.message}',
-      );
-    } catch (e) {
-      return Failure(response: 'Failed to logout user: $e.');
-    }
-  }
-
-  Future<Object> getUser() async {
-    try {
-      final userData = _auth.currentUser;
-
-      if (userData == null) {
-        throw Failure(response: 'No authenticated user found.');
-      }
-      DocumentSnapshot snapshot = await _usersCollection
-          .doc(userData.uid)
-          .get();
-
-      if (!snapshot.exists) {
-        return Failure(response: 'User data not found.');
-      }
-
-      final user = AppUser.fromMap(snapshot.data() as Map<String, dynamic>);
-
-      return Success(response: user);
-    } catch (e) {
-      return Failure(response: 'Failed to fetch user data: $e.');
     }
   }
 }

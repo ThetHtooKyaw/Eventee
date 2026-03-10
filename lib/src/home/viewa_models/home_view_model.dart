@@ -34,7 +34,6 @@ class HomeViewModel extends BaseViewModel {
   String get selectedCategory => _selectedCategory;
 
   // Use Cases
-
   Future<void> fetchAllEvents() async {
     setScreenLoading(true);
     setError(null);

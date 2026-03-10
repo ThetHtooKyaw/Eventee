@@ -3,6 +3,9 @@ import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/widgets/app_error.dart';
 import 'package:eventee/core/widgets/skeleton_widget.dart';
+import 'package:eventee/src/account/view_models/account_view_model.dart';
+import 'package:eventee/src/auth/models/app_user.dart';
+import 'package:eventee/src/booking/view_models/event_details_view_model.dart';
 import 'package:eventee/src/create_event/model/event.dart';
 import 'package:eventee/src/booking/views/event_details_view.dart';
 import 'package:eventee/src/chat/views/chat_view.dart';
@@ -190,6 +193,10 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildHeader(ThemeData t) {
+    final userData = context.select<AccountViewModel, AppUser?>(
+      (vm) => vm.user,
+    );
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -207,9 +214,10 @@ class _HomeViewState extends State<HomeView> {
                   color: AppColor.white,
                 ),
               ),
-              // TODO: Get User Location
               Text(
-                'Thailand, Bangkok',
+                userData?.shortAddress ?? 'Unknown Location',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: t.textTheme.titleMedium?.copyWith(color: AppColor.white),
               ),
             ],
@@ -337,7 +345,7 @@ class _HomeViewState extends State<HomeView> {
           ),
           const SizedBox(height: 10),
 
-          // Event Name
+          // Event Title
           Text(
             event.title,
             maxLines: 1,
