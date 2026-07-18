@@ -20,9 +20,14 @@ class LoginViewModel extends BaseViewModel {
   GlobalKey<FormState> get formKey => _formKey;
 
   // Use Cases
-  Future<void> loginUser({required LoginParams params}) async {
+  Future<void> loginUser() async {
     setActionLoading(true);
     setError(null);
+
+    final params = LoginParams(
+      email: emailController.text,
+      password: passwordController.text,
+    );
 
     final response = await _authService.loginUser(params: params);
 

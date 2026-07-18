@@ -5,7 +5,6 @@ import 'package:eventee/core/widgets/app_error.dart';
 import 'package:eventee/core/widgets/skeleton_widget.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
-import 'package:eventee/src/booking/view_models/event_details_view_model.dart';
 import 'package:eventee/src/create_event/model/event.dart';
 import 'package:eventee/src/booking/views/event_details_view.dart';
 import 'package:eventee/src/chat/views/chat_view.dart';
@@ -317,7 +316,17 @@ class _HomeViewState extends State<HomeView> {
                 ),
                 progressIndicatorBuilder: (context, url, progress) =>
                     SkeletonWidget(height: 180, width: 300),
-                errorWidget: (context, url, error) => Icon(Icons.error),
+                errorWidget: (context, url, error) => Container(
+                  height: 180,
+                  width: 300,
+                  decoration: BoxDecoration(
+                    color: AppColor.placeholder,
+                    borderRadius: BorderRadiusGeometry.circular(
+                      AppFormat.primaryBorderRadius - 6,
+                    ),
+                  ),
+                  child: Icon(Icons.error),
+                ),
               ),
 
               // Event Category

@@ -5,7 +5,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:eventee/src/auth/view_models/login_view_model.dart';
-import 'package:eventee/src/auth/view_models/params/login_params.dart';
 import 'package:eventee/src/auth/views/signup_view.dart';
 
 class LoginView extends StatefulWidget {
@@ -22,12 +21,9 @@ class _LoginViewState extends State<LoginView> {
     final vm = context.read<LoginViewModel>();
 
     if (vm.formKey.currentState!.validate()) {
-      await vm.loginUser(
-        params: LoginParams(
-          email: vm.emailController.text.trim(),
-          password: vm.passwordController.text.trim(),
-        ),
-      );
+      await vm.loginUser();
+
+      if (!mounted) return;
 
       if (vm.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -50,6 +46,8 @@ class _LoginViewState extends State<LoginView> {
     final vm = context.read<LoginViewModel>();
 
     await vm.signInWithGoogle();
+
+    if (!mounted) return;
 
     if (vm.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(

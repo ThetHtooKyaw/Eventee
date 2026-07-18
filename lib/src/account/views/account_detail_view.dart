@@ -22,15 +22,18 @@ class _AccountDetailViewState extends State<AccountDetailView> {
   @override
   void initState() {
     super.initState();
-    final vm = context.read<AccountDetailViewModel>();
-    final accountVM = context.read<AccountViewModel>();
-    final user = accountVM.user;
-    if (user != null) {
-      vm.nameController.text = user.username;
-      vm.phNoController.text = user.phoneNumber;
-      vm.setBirthday(user.dateOfBirth);
-      vm.locationController.text = user.address;
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final vm = context.read<AccountDetailViewModel>();
+      final accountVM = context.read<AccountViewModel>();
+      final user = accountVM.user;
+      if (user != null) {
+        vm.nameController.text = user.username;
+        vm.phNoController.text = user.phoneNumber;
+        vm.setBirthday(user.dateOfBirth);
+        vm.locationController.text = user.address;
+      }
+    });
   }
 
   Future<void> _handleSave({
