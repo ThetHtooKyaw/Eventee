@@ -7,7 +7,6 @@ import 'package:eventee/src/account/view_models/account_view_model.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
 import 'package:eventee/src/create_event/model/event.dart';
 import 'package:eventee/src/booking/views/event_details_view.dart';
-import 'package:eventee/src/chat/views/chat_view.dart';
 import 'package:eventee/src/home/viewa_models/home_view_model.dart';
 import 'package:eventee/src/home/widgets/event_list_skeleton.dart';
 import 'package:eventee/src/home/widgets/section_title.dart';
@@ -38,18 +37,9 @@ class _HomeViewState extends State<HomeView> {
     return Scaffold(
       backgroundColor: AppColor.background,
 
-      // Chat Button
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ChatView()),
-        ),
-        backgroundColor: AppColor.white,
-        child: const Icon(Icons.chat, color: AppColor.primary),
-      ),
-
       body: CustomScrollView(
         slivers: [
+          // AppBar
           SliverAppBar(
             expandedHeight: 120,
             floating: false,
@@ -127,55 +117,68 @@ class _HomeViewState extends State<HomeView> {
                   // Event List
                   SizedBox(
                     height: 310,
-                    child: Consumer<HomeViewModel>(
-                      builder: (context, vm, child) {
-                        if (vm.errorMessage != null) {
-                          return AppError(errorMessage: vm.errorMessage!);
+                    child: Selector<HomeViewModel, String?>(
+                      selector: (_, vm) => vm.errorMessage,
+                      builder: (context, errorMessage, child) {
+                        if (errorMessage != null) {
+                          return AppError(errorMessage: errorMessage);
                         }
 
-                        if (vm.events.isEmpty && !vm.isScreenLoading) {
-                          return Center(
-                            child: Text(
-                              'No upcoming events!',
-                              style: t.textTheme.bodyLarge,
-                            ),
-                          );
-                        }
+                        return Selector<HomeViewModel, bool>(
+                          selector: (_, vm) => vm.isScreenLoading,
+                          builder: (context, isScreenLoading, child) {
+                            return Selector<HomeViewModel, List<EventModel>>(
+                              selector: (_, vm) => vm.events,
+                              builder: (context, events, child) {
+                                if (events.isEmpty && !isScreenLoading) {
+                                  return Center(
+                                    child: Text(
+                                      'No upcoming events!',
+                                      style: t.textTheme.bodyLarge,
+                                    ),
+                                  );
+                                }
 
-                        return ListView.separated(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: AppFormat.primaryPadding,
-                          ),
-                          shrinkWrap: true,
-                          scrollDirection: Axis.horizontal,
-                          itemCount: vm.isScreenLoading ? 6 : vm.events.length,
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(width: 20),
-                          itemBuilder: (context, index) {
-                            if (vm.isScreenLoading) {
-                              return EventListSkeleton();
-                            }
+                                return ListView.separated(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: AppFormat.primaryPadding,
+                                  ),
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: isScreenLoading
+                                      ? 6
+                                      : events.length,
+                                  separatorBuilder: (context, index) =>
+                                      const SizedBox(width: 20),
+                                  itemBuilder: (context, index) {
+                                    if (isScreenLoading) {
+                                      return EventListSkeleton();
+                                    }
 
-                            EventModel event = vm.events[index];
-                            String eventDate = vm.formatDateMonthDay(
-                              event.date,
-                            );
-                            String eventTime = vm.formatTime(event.startTime);
+                                    EventModel event = events[index];
+                                    String eventDate = vmAction
+                                        .formatDateMonthDay(event.date);
+                                    String eventTime = vmAction.formatTime(
+                                      event.startTime,
+                                    );
 
-                            return GestureDetector(
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      EventDetailsView(event: event),
-                                ),
-                              ),
-                              child: _buildEvents(
-                                t,
-                                event,
-                                eventDate,
-                                eventTime,
-                              ),
+                                    return GestureDetector(
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              EventDetailsView(event: event),
+                                        ),
+                                      ),
+                                      child: _buildEvents(
+                                        t,
+                                        event,
+                                        eventDate,
+                                        eventTime,
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
                             );
                           },
                         );
@@ -301,19 +304,9 @@ class _HomeViewState extends State<HomeView> {
             children: [
               CachedNetworkImage(
                 imageUrl: event.imageUrl,
-                imageBuilder: (context, imageProvider) => Container(
-                  height: 180,
-                  width: 300,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadiusGeometry.circular(
-                      AppFormat.primaryBorderRadius - 6,
-                    ),
-                    image: DecorationImage(
-                      image: imageProvider,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
+                memCacheWidth: 600,
+                memCacheHeight: 360,
+                fadeInDuration: const Duration(milliseconds: 120),
                 progressIndicatorBuilder: (context, url, progress) =>
                     SkeletonWidget(height: 180, width: 300),
                 errorWidget: (context, url, error) => Container(
@@ -326,6 +319,19 @@ class _HomeViewState extends State<HomeView> {
                     ),
                   ),
                   child: Icon(Icons.error),
+                ),
+                imageBuilder: (context, imageProvider) => Container(
+                  height: 180,
+                  width: 300,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadiusGeometry.circular(
+                      AppFormat.primaryBorderRadius - 6,
+                    ),
+                    image: DecorationImage(
+                      image: imageProvider,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
               ),
 
