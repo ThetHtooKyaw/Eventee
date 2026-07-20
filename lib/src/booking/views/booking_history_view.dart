@@ -48,34 +48,58 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
           ),
         ),
 
-        body: Consumer<BookingHistoryViewModel>(
-          builder: (context, vm, child) {
-            if (vm.isScreenLoading) {
-              return const LoadingColumn(message: 'Loading booking history');
+        body: Selector<BookingHistoryViewModel, String?>(
+          selector: (_, vm) => vm.errorMessage,
+          builder: (context, errorMessage, child) {
+            if (errorMessage != null) {
+              return AppError(errorMessage: errorMessage);
             }
 
-            if (vm.errorMessage != null) {
-              return AppError(errorMessage: vm.errorMessage!);
-            }
+            return Selector<BookingHistoryViewModel, bool>(
+              selector: (_, vm) => vm.isScreenLoading,
+              builder: (context, isScreenLoading, child) {
+                if (isScreenLoading) {
+                  return const LoadingColumn(
+                    message: 'Loading booking history',
+                  );
+                }
+                final vm = context.read<BookingHistoryViewModel>();
 
-            return TabBarView(
-              children: [
-                _buildBookingList(
-                  vm,
-                  vm.activeEventList,
-                  'No active bookings found!',
-                ),
-                _buildBookingList(
-                  vm,
-                  vm.completedEventList,
-                  'No completed bookings found!',
-                ),
-                _buildBookingList(
-                  vm,
-                  vm.cancelledEventList,
-                  'No cancelled bookings found!',
-                ),
-              ],
+                return TabBarView(
+                  children: [
+                    Selector<BookingHistoryViewModel, List<EventHistoryModel>>(
+                      selector: (_, vm) => vm.activeEventList,
+                      builder: (context, activeEvents, child) {
+                        return _buildBookingList(
+                          vm,
+                          activeEvents,
+                          'No active bookings found!',
+                        );
+                      },
+                    ),
+                    Selector<BookingHistoryViewModel, List<EventHistoryModel>>(
+                      selector: (_, vm) => vm.completedEventList,
+                      builder: (context, completedEvents, child) {
+                        return _buildBookingList(
+                          vm,
+                          completedEvents,
+                          'No completed bookings found!',
+                        );
+                      },
+                    ),
+                    Selector<BookingHistoryViewModel, List<EventHistoryModel>>(
+                      selector: (_, vm) => vm.cancelledEventList,
+                      builder: (context, cancelledEvents, child) {
+                        return _buildBookingList(
+                          vm,
+                          cancelledEvents,
+                          'No cancelled bookings found!',
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),

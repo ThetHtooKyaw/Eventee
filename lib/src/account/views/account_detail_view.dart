@@ -374,8 +374,11 @@ class _AccountDetailViewState extends State<AccountDetailView> {
   }
 
   Widget _buildDatePicker() {
-    return Consumer<AccountDetailViewModel>(
-      builder: (context, vm, child) {
+    return Selector<AccountDetailViewModel, DateTime?>(
+      selector: (_, vm) => vm.selectedBirthday,
+      builder: (context, selectedBirthday, child) {
+        final vm = context.read<AccountDetailViewModel>();
+
         return Column(
           children: [
             MenuCard(
@@ -395,7 +398,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                     ),
 
                     Text(
-                      vm.formatBirthday(vm.selectedBirthday ?? DateTime.now()),
+                      vm.formatBirthday(selectedBirthday ?? DateTime.now()),
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: AppColor.textPlaceholder,
                         fontWeight: FontWeight.bold,
