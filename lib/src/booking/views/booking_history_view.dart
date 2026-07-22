@@ -3,6 +3,7 @@ import 'package:coupon_uikit/coupon_uikit.dart';
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/widgets/app_error.dart';
+import 'package:eventee/core/widgets/skeleton_widget.dart';
 import 'package:eventee/src/booking/models/event_history.dart';
 import 'package:eventee/src/booking/view_models/booking_history_view_model.dart';
 import 'package:eventee/src/booking/widgets/custom_icon_label.dart';
@@ -292,7 +293,7 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
                 width: 100,
                 fit: BoxFit.cover,
                 progressIndicatorBuilder: (context, url, progress) =>
-                    CircularProgressIndicator(),
+                    SkeletonWidget(height: 100, width: 100),
                 errorWidget: (context, url, error) => Icon(Icons.error),
               ),
             ),

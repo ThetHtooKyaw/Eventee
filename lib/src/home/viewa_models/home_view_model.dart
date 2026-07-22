@@ -87,7 +87,6 @@ class HomeViewModel extends BaseViewModel {
 
     if (category == 'All') {
       _filteredEvents = List.from(_events);
-      notifyListeners();
     } else {
       _filteredEvents = _events.where((event) {
         return event.category.toLowerCase() == category.toLowerCase();

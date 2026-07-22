@@ -72,14 +72,14 @@ class BookingHistoryViewModel extends BaseViewModel {
     }
   }
 
-  void checkCompletedEvents() {
+  Future<void> checkCompletedEvents() async {
     final now = DateTime.now();
     for (var event in _eventHistory) {
-      if (event.status == 'active' && event.endTime.isBefore(now)) {
-        _bookingService.updateBookingStatus(event.bookingId, 'completed');
+      if (event.status.toLowerCase() == 'active' &&
+          event.endTime.isBefore(now)) {
+        await _bookingService.updateBookingStatus(event.bookingId, 'completed');
       }
     }
-    notifyListeners();
   }
 
   String formatDate(DateTime eventDate) {

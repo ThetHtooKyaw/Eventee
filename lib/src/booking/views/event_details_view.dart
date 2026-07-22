@@ -5,7 +5,6 @@ import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/core/widgets/skeleton_widget.dart';
-import 'package:eventee/core/widgets/view_appbar.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
 import 'package:eventee/src/create_event/model/event.dart';
@@ -17,6 +16,7 @@ import 'package:eventee/src/booking/widgets/timeline_card.dart';
 import 'package:eventee/src/home/viewa_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:eventee/core/widgets/quantity_selector.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:readmore/readmore.dart';
 
@@ -66,215 +66,210 @@ class _EventDetailsViewState extends State<EventDetailsView> {
     final eventDate = homeVM.formatDateMonthDay(widget.event.date);
     final eventStartTime = homeVM.formatTime(widget.event.startTime);
     final eventEndTime = homeVM.formatTime(widget.event.endTime);
-    final photoUrl = userData?.photoUrl ?? '';
 
-    return Stack(
-      children: [
-        Scaffold(
-          appBar: ViewAppbar(
-            actionIcon: CircleAvatar(
-              radius: 24,
-              backgroundImage: NetworkImage(photoUrl),
-              backgroundColor: AppColor.placeholder.withOpacity(0.4),
-              child: photoUrl.isEmpty
-                  ? const Icon(Icons.person, color: Colors.black, size: 40)
-                  : null,
-            ),
-          ),
-
-          // Bottom Bar
-          bottomNavigationBar: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppFormat.primaryPadding,
-              vertical: AppFormat.secondaryPadding,
-            ),
-            child: ElevatedButton(
-              onPressed: () => _showTicketSheet(
-                t,
-                userData,
-                eventDate,
-                eventStartTime,
-                eventEndTime,
-                isActionLoading,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Stack(
+        children: [
+          Scaffold(
+            // Bottom Bar
+            bottomNavigationBar: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppFormat.primaryPadding,
+                vertical: AppFormat.secondaryPadding,
               ),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+              child: ElevatedButton(
+                onPressed: () => _showTicketSheet(
+                  t,
+                  userData,
+                  eventDate,
+                  eventStartTime,
+                  eventEndTime,
+                  isActionLoading,
                 ),
-              ),
-              child: const Text("Get a Ticket"),
-            ),
-          ),
-
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppFormat.primaryPadding,
-            ),
-            child: Column(
-              children: [
-                const SizedBox(height: AppFormat.secondaryPadding),
-                // Image
-                _buildImageContainer(t, eventDate),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppFormat.primaryPadding,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Title
-                      Text(
-                        widget.event.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: t.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
+                ),
+                child: const Text("Get a Ticket"),
+              ),
+            ),
 
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+            body: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppFormat.primaryPadding,
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: AppFormat.secondaryPadding),
+                    // Image
+                    _buildImageContainer(t, eventDate),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppFormat.primaryPadding,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Title
                           Text(
-                            'By',
-                            style: t.textTheme.bodyLarge?.copyWith(
+                            widget.event.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: t.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(width: 10),
-                          CircleAvatar(
-                            radius: 16,
-                            backgroundColor: AppColor.primary,
-                            child: Text(
-                              'W',
-                              style: t.textTheme.bodyLarge?.copyWith(
-                                color: AppColor.white,
-                                fontWeight: FontWeight.bold,
+                          const SizedBox(height: 10),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'By',
+                                style: t.textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 10),
+                              CircleAvatar(
+                                radius: 16,
+                                backgroundColor: AppColor.primary,
+                                child: Text(
+                                  'W',
+                                  style: t.textTheme.bodyLarge?.copyWith(
+                                    color: AppColor.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+
+                              // TODO: Get Organizer Name
+                              // Organizer Name
+                              Expanded(
+                                child: Text(
+                                  'Organizer Name',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: t.textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+
+                              // Price
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                  horizontal: AppFormat.secondaryBorderRadius,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColor.primary,
+                                  borderRadius: BorderRadius.circular(
+                                    AppFormat.primaryBorderRadius,
+                                  ),
+                                ),
+                                child: Text(
+                                  '฿${widget.event.price}',
+                                  style: t.textTheme.titleSmall?.copyWith(
+                                    color: AppColor.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(height: 10),
 
-                          // TODO: Get Organizer Name
-                          // Organizer Name
-                          Expanded(
-                            child: Text(
-                              'Organizer Name',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: t.textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
+                          // Ticket Quantity
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Number of Tickets',
+                                style: t.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
+                              QuantitySelector(
+                                quantity: quantity,
+                                onIncrement: () =>
+                                    setState(() => quantity += 1),
+                                onDecrement: () =>
+                                    setState(() => quantity -= 1),
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 10),
 
-                          // Price
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 4,
-                              horizontal: AppFormat.secondaryBorderRadius,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColor.primary,
-                              borderRadius: BorderRadius.circular(
-                                AppFormat.primaryBorderRadius,
-                              ),
-                            ),
-                            child: Text(
-                              '฿${widget.event.price}',
-                              style: t.textTheme.titleSmall?.copyWith(
-                                color: AppColor.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Description
-                      Text(
-                        'About',
-                        style: t.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      ReadMoreText(
-                        widget.event.description,
-                        trimLines: 3,
-                        trimMode: TrimMode.Line,
-                        trimCollapsedText: 'Read More',
-                        trimExpandedText: 'Read Less',
-                        style: t.textTheme.bodyLarge?.copyWith(
-                          color: AppColor.textPlaceholder,
-                        ),
-                        moreStyle: t.textTheme.bodyLarge?.copyWith(
-                          color: AppColor.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        lessStyle: t.textTheme.bodyLarge?.copyWith(
-                          color: AppColor.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Timeline
-                      Text(
-                        'Timeline Event',
-                        style: t.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      TimelineCard(
-                        label: 'Opening Time',
-                        eventDate: eventDate,
-                        eventTime: eventStartTime,
-                      ),
-                      const SizedBox(height: 10),
-
-                      TimelineCard(
-                        label: 'Closing Time',
-                        eventDate: eventDate,
-                        eventTime: eventEndTime,
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Ticket Quantity
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                          // Timeline
                           Text(
-                            'Number of Tickets',
+                            'Timeline Event',
                             style: t.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          QuantitySelector(
-                            quantity: quantity,
-                            onIncrement: () => setState(() => quantity += 1),
-                            onDecrement: () => setState(() => quantity -= 1),
+                          const SizedBox(height: 10),
+
+                          TimelineCard(
+                            label: 'Opening Time',
+                            eventDate: eventDate,
+                            eventTime: eventStartTime,
+                          ),
+                          const SizedBox(height: 10),
+
+                          TimelineCard(
+                            label: 'Closing Time',
+                            eventDate: eventDate,
+                            eventTime: eventEndTime,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Description
+                          Text(
+                            'About',
+                            style: t.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          ReadMoreText(
+                            widget.event.description,
+                            trimLines: 3,
+                            trimMode: TrimMode.Line,
+                            trimCollapsedText: 'Read More',
+                            trimExpandedText: 'Read Less',
+                            style: t.textTheme.bodyLarge?.copyWith(
+                              color: AppColor.textPlaceholder,
+                            ),
+                            moreStyle: t.textTheme.bodyLarge?.copyWith(
+                              color: AppColor.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            lessStyle: t.textTheme.bodyLarge?.copyWith(
+                              color: AppColor.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
 
-        if (isActionLoading)
-          LoadingOverlayColumn(message: 'Processing payment'),
-      ],
+          if (isActionLoading)
+            LoadingOverlayColumn(message: 'Processing payment'),
+        ],
+      ),
     );
   }
 
@@ -304,29 +299,42 @@ class _EventDetailsViewState extends State<EventDetailsView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Location
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 6,
-                    horizontal: 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColor.white,
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.flag, size: 20),
-                      const SizedBox(width: 10),
-                      Text(
-                        widget.event.location,
-                        style: t.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: AppColor.white,
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 20,
+                      color: AppColor.primary,
+                    ),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ),
+
+                // Location
+                // Container(
+                //   padding: const EdgeInsets.symmetric(
+                //     vertical: 6,
+                //     horizontal: 16,
+                //   ),
+                //   decoration: BoxDecoration(
+                //     color: AppColor.white,
+                //     borderRadius: BorderRadius.circular(30),
+                //   ),
+                //   child: Row(
+                //     children: [
+                //       Icon(Icons.flag, size: 20),
+                //       const SizedBox(width: 10),
+                //       Text(
+                //         widget.event.location,
+                //         style: t.textTheme.bodyLarge?.copyWith(
+                //           fontWeight: FontWeight.bold,
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // ),
 
                 // TODO: Implement Save Feature
                 // Save Button

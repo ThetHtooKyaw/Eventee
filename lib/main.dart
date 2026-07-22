@@ -1,7 +1,7 @@
 import 'package:eventee/core/themes/app_theme.dart';
 import 'package:eventee/core/widgets/bottom_nav_bar.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
-import 'package:eventee/firebase_options.dart';
+import 'package:eventee/firebase_options_loader.dart';
 import 'package:eventee/src/account/repo/account_service.dart';
 import 'package:eventee/src/account/view_models/account_detail_view_model.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
@@ -24,10 +24,12 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // FirebaseAuth.instance.signOut();
 
+  // Must load .env before initializing Firebase
   await dotenv.load(fileName: ".env");
+
+  await Firebase.initializeApp(options: FirebaseOptionsLoader.currentPlatform);
+
   Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
   Stripe.instance.applySettings();
 

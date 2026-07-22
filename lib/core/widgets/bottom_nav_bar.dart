@@ -36,7 +36,6 @@ class _BottomNavBarState extends State<BottomNavBar> {
         backgroundColor: Colors.transparent,
         color: Colors.black,
         animationDuration: Duration(milliseconds: 500),
-
         onTap: (index) {
           setState(() {
             selectedIndex = index;
