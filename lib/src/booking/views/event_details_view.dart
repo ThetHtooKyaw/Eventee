@@ -35,7 +35,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
   Future<void> bookEvent(BuildContext context, double total) async {
     final vm = context.read<EventDetailsViewModel>();
 
-    await vm.makePayment(
+    final success = await vm.makePayment(
       bookedEvent: BookingModel.fromEvent(
         event: widget.event,
         total: total,
@@ -43,13 +43,14 @@ class _EventDetailsViewState extends State<EventDetailsView> {
         status: 'active',
       ),
     );
-
-    if (vm.errorMessage != null) {
-      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
-      vm.setError(null);
-    } else {
+ 
+    if (!mounted) return;
+ 
+    if (success) {
       AppSnackbars.showSuccessSnackbar(context, vm.successMessage!);
       Navigator.pop(context);
+    } else {
+      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
     }
   }
 

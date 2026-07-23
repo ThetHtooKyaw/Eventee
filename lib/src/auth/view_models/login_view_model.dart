@@ -10,17 +10,17 @@ class LoginViewModel extends BaseViewModel {
   LoginViewModel(this._authService);
 
   // Controllers
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   // Variables
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
 
   // Getters
   GlobalKey<FormState> get formKey => _formKey;
 
   // Use Cases
-  Future<void> loginUser() async {
+  Future<bool> loginUser() async {
     setActionLoading(true);
     setError(null);
 
@@ -33,11 +33,15 @@ class LoginViewModel extends BaseViewModel {
 
     if (response is Failure) {
       setError(response.response.toString());
+      setActionLoading(false);
+      return false;
     }
+
     setActionLoading(false);
+    return true;
   }
 
-  Future<void> signInWithGoogle() async {
+  Future<bool> signInWithGoogle() async {
     setActionLoading(true);
     setError(null);
 
@@ -45,9 +49,12 @@ class LoginViewModel extends BaseViewModel {
 
     if (response is Failure) {
       setError(response.response.toString());
+      setActionLoading(false);
+      return false;
     }
 
     setActionLoading(false);
+    return true;
   }
 
   @override

@@ -12,12 +12,12 @@ class AccountDetailViewModel extends BaseViewModel {
   AccountDetailViewModel(this._accountService);
 
   // Controllers
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController phNoController = TextEditingController();
-  final TextEditingController locationController = TextEditingController();
+  final nameController = TextEditingController();
+  final phNoController = TextEditingController();
+  final locationController = TextEditingController();
 
   // Variables
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   File? _profileImage;
   DateTime? _selectedBirthday;
   String? _country;
@@ -28,9 +28,6 @@ class AccountDetailViewModel extends BaseViewModel {
   GlobalKey<FormState> get formKey => _formKey;
   File? get profileImage => _profileImage;
   DateTime? get selectedBirthday => _selectedBirthday;
-  String? get country => _country;
-  String? get state => _state;
-  String? get city => _city;
 
   // Setters
   void setBirthday(DateTime? date) {
@@ -62,104 +59,138 @@ class AccountDetailViewModel extends BaseViewModel {
     super.dispose();
   }
 
-  Future<void> pickProfileImage() async {
+  ImageProvider? getAvatarImage(String photoUrl) {
+    if (_profileImage != null) {
+      return FileImage(_profileImage!);
+    }
+    if (photoUrl.isNotEmpty) {
+      return NetworkImage(photoUrl);
+    }
+
+    return null;
+  }
+
+  Future<bool> pickProfileImage() async {
     setActionLoading(true);
     setError(null);
 
     final response = await _accountService.pickProfileImage();
 
-    if (response is Success) {
-      _profileImage = response.response as File;
-    } else if (response is Failure) {
+    if (response is Failure) {
       setError(response.response.toString());
+      setActionLoading(false);
+      return false;
     }
 
+    _profileImage = (response as Success).response as File?;
     setActionLoading(false);
+    return true;
   }
 
-  Future<void> updateProfileImage() async {
+  Future<bool> updateProfileImage() async {
     setActionLoading(true);
     setError(null);
+    setSuccess(null);
+
+    if (profileImage == null) {
+      setError('Please pick an image first.');
+      setActionLoading(false);
+      return false;
+    }
 
     final response = await _accountService.updateProfileImage(
-      profileFile: _profileImage!,
+      profileFile: profileImage!,
     );
 
-    if (response is Success) {
-      setSuccess(response.response.toString());
-    } else if (response is Failure) {
+    if (response is Failure) {
       setError(response.response.toString());
+      setActionLoading(false);
+      return false;
     }
 
+    setSuccess((response as Success).response.toString());
     setActionLoading(false);
+    return true;
   }
 
-  Future<void> updateUsername() async {
+  Future<bool> updateUsername() async {
     setActionLoading(true);
     setError(null);
+    setSuccess(null);
 
     final response = await _accountService.updateUsername(
       newUsername: nameController.text.trim(),
     );
 
-    if (response is Success) {
-      setSuccess(response.response.toString());
-    } else if (response is Failure) {
+    if (response is Failure) {
       setError(response.response.toString());
+      setActionLoading(false);
+      return false;
     }
 
+    setSuccess((response as Success).response.toString());
     setActionLoading(false);
+    return true;
   }
 
-  Future<void> updatePhoneNumber() async {
+  Future<bool> updatePhoneNumber() async {
     setActionLoading(true);
     setError(null);
+    setSuccess(null);
 
     final response = await _accountService.updatePhoneNumber(
       newPhoneNumber: phNoController.text.trim(),
     );
 
-    if (response is Success) {
-      setSuccess(response.response.toString());
-    } else if (response is Failure) {
+    if (response is Failure) {
       setError(response.response.toString());
+      setActionLoading(false);
+      return false;
     }
 
+    setSuccess((response as Success).response.toString());
     setActionLoading(false);
+    return true;
   }
 
-  Future<void> updateDateOfBirth() async {
+  Future<bool> updateDateOfBirth() async {
     setActionLoading(true);
     setError(null);
+    setSuccess(null);
 
     final response = await _accountService.updateDateOfBirth(
       newDateOfBirth: _selectedBirthday!,
     );
 
-    if (response is Success) {
-      setSuccess(response.response.toString());
-    } else if (response is Failure) {
+    if (response is Failure) {
       setError(response.response.toString());
+      setActionLoading(false);
+      return false;
     }
 
+    setSuccess((response as Success).response.toString());
     setActionLoading(false);
+    return true;
   }
 
-  Future<void> updateLocation() async {
+  Future<bool> updateLocation() async {
     setActionLoading(true);
     setError(null);
+    setSuccess(null);
 
     final response = await _accountService.updateLocation(
       newLocation: formatLocation(),
     );
 
-    if (response is Success) {
-      setSuccess(response.response.toString());
-    } else if (response is Failure) {
+    if (response is Failure) {
       setError(response.response.toString());
+      setActionLoading(false);
+      return false;
     }
 
+    setSuccess((response as Success).response.toString());
     setActionLoading(false);
+    return true;
   }
 
   String formatBirthday(DateTime birthDate) {
@@ -175,15 +206,5 @@ class AccountDetailViewModel extends BaseViewModel {
     ].where((part) => part != null && part.isNotEmpty).join(', ');
 
     return parts;
-  }
-
-  ImageProvider? getAvatarImage(String? photoUrl) {
-    if (_profileImage != null) {
-      return FileImage(_profileImage!);
-    } else if (photoUrl != null && photoUrl.isNotEmpty) {
-      return NetworkImage(photoUrl);
-    }
-
-    return null;
   }
 }

@@ -10,22 +10,21 @@ class SignUpViewModel extends BaseViewModel {
   SignUpViewModel(this._authService);
 
   // Controllers
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController phoneNumberController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
-  final TextEditingController addressController = TextEditingController();
+  final nameController = TextEditingController();
+  final emailController = TextEditingController();
+  final phoneNumberController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+  final addressController = TextEditingController();
 
   // Variables
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
 
   // Getters
   GlobalKey<FormState> get formKey => _formKey;
 
   // Use Cases
-  Future<void> createUser() async {
+  Future<bool> createUser() async {
     setActionLoading(true);
     setError(null);
 
@@ -41,12 +40,15 @@ class SignUpViewModel extends BaseViewModel {
 
     if (response is Failure) {
       setError(response.response.toString());
+      setActionLoading(false);
+      return false;
     }
 
     setActionLoading(false);
+    return true;
   }
 
-  Future<void> signUpWithGoogle() async {
+  Future<bool> signUpWithGoogle() async {
     setActionLoading(true);
     setError(null);
 
@@ -54,9 +56,12 @@ class SignUpViewModel extends BaseViewModel {
 
     if (response is Failure) {
       setError(response.response.toString());
+      setActionLoading(false);
+      return false;
     }
 
     setActionLoading(false);
+    return true;
   }
 
   @override

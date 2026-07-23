@@ -1,4 +1,5 @@
 import 'package:eventee/core/themes/app_format.dart';
+import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/widgets/bottom_nav_bar.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/src/auth/repo/auth_service.dart';
@@ -23,44 +24,34 @@ class _LoginViewState extends State<LoginView> {
     final vm = context.read<LoginViewModel>();
 
     if (vm.formKey.currentState!.validate()) {
-      await vm.loginUser();
+      final success = await vm.loginUser();
 
       if (!mounted) return;
 
-      if (vm.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(vm.errorMessage!),
-            backgroundColor: Colors.red,
-          ),
-        );
-        vm.setError(null);
-      } else {
+      if (success) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => BottomNavBar()),
+          MaterialPageRoute(builder: (context) => const BottomNavBar()),
         );
+      } else {
+        AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
       }
     }
   }
 
   Future<void> loginWithGoogle() async {
     final vm = context.read<LoginViewModel>();
-
-    await vm.signInWithGoogle();
+    final success = await vm.signInWithGoogle();
 
     if (!mounted) return;
 
-    if (vm.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(vm.errorMessage!), backgroundColor: Colors.red),
-      );
-      vm.setError(null);
-    } else {
+    if (success) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => BottomNavBar()),
+        MaterialPageRoute(builder: (context) => const BottomNavBar()),
       );
+    } else {
+      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
     }
   }
 
@@ -143,13 +134,16 @@ class _LoginViewState extends State<LoginView> {
                           style: TextStyle(color: Colors.blue),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
-                              Navigator.pushReplacement(
+                              Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => ChangeNotifierProvider<SignUpViewModel>(
-                                    create: (context) => SignUpViewModel(context.read<AuthService>()),
-                                    child: SignUpView(),
-                                  ),
+                                  builder: (context) =>
+                                      ChangeNotifierProvider<SignUpViewModel>(
+                                        create: (context) => SignUpViewModel(
+                                          context.read<AuthService>(),
+                                        ),
+                                        child: SignUpView(),
+                                      ),
                                 ),
                               );
                             },

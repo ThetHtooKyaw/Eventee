@@ -37,7 +37,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
   }
 
   Future<void> _handleSave({
-    required Future<void> Function() updateAction,
+    required Future<bool> Function() updateAction,
     bool requiresValidation = false,
   }) async {
     final vm = context.read<AccountDetailViewModel>();
@@ -45,15 +45,16 @@ class _AccountDetailViewState extends State<AccountDetailView> {
 
     if (requiresValidation && !vm.formKey.currentState!.validate()) return;
 
-    await updateAction();
+    final success = await updateAction();
 
-    if (vm.errorMessage != null) {
-      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
-      vm.setError(null);
-    } else {
+    if (!mounted) return;
+
+    if (success) {
       AppSnackbars.showSuccessSnackbar(context, vm.successMessage!);
       await accountVM.loadUser(forceRefresh: true);
-      if (context.mounted) Navigator.pop(context);
+      Navigator.pop(context);
+    } else {
+      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
     }
   }
 
