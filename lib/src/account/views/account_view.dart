@@ -1,8 +1,12 @@
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
+import 'package:eventee/src/account/repo/account_service.dart';
+import 'package:eventee/src/account/view_models/account_detail_view_model.dart';
 import 'package:eventee/src/account/views/account_detail_view.dart';
 import 'package:eventee/src/account/widgets/account_menu.dart';
 import 'package:eventee/src/account/widgets/account_skeleton.dart';
+import 'package:eventee/src/create_event/repo/admin_service.dart';
+import 'package:eventee/src/create_event/view_models/create_event_view_model.dart';
 import 'package:eventee/src/create_event/views/create_event_view.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
 import 'package:flutter/material.dart';
@@ -74,10 +78,27 @@ class _AccountViewState extends State<AccountView> {
                           icon: Icons.person,
                           title: 'Personal Information',
                           onTap: () async {
+                            // Grab the existing AccountViewModel instance.
+                            final accountVM = context.read<AccountViewModel>();
+
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const AccountDetailView(),
+                                builder: (context) => MultiProvider(
+                                  providers: [
+                                    ChangeNotifierProvider.value(
+                                      value: accountVM,
+                                    ),
+                                    ChangeNotifierProvider<
+                                      AccountDetailViewModel
+                                    >(
+                                      create: (ctx) => AccountDetailViewModel(
+                                        ctx.read<AccountService>(),
+                                      ),
+                                    ),
+                                  ],
+                                  child: const AccountDetailView(),
+                                ),
                               ),
                             );
                           },
@@ -155,7 +176,13 @@ class _AccountViewState extends State<AccountView> {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const CreateEventView(),
+                              builder: (context) =>
+                                  ChangeNotifierProvider<CreateEventViewModel>(
+                                    create: (context) => CreateEventViewModel(
+                                      context.read<AdminService>(),
+                                    ),
+                                    child: const CreateEventView(),
+                                  ),
                             ),
                           ),
                         ),

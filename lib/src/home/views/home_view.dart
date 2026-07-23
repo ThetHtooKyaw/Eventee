@@ -5,9 +5,11 @@ import 'package:eventee/core/widgets/app_error.dart';
 import 'package:eventee/core/widgets/skeleton_widget.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
+import 'package:eventee/src/booking/repo/booking_service.dart';
+import 'package:eventee/src/booking/view_models/event_details_view_model.dart';
 import 'package:eventee/src/create_event/model/event.dart';
 import 'package:eventee/src/booking/views/event_details_view.dart';
-import 'package:eventee/src/home/viewa_models/home_view_model.dart';
+import 'package:eventee/src/home/view_models/home_view_model.dart';
 import 'package:eventee/src/home/widgets/event_list_skeleton.dart';
 import 'package:eventee/src/home/widgets/section_title.dart';
 import 'package:flutter/material.dart';
@@ -166,7 +168,20 @@ class _HomeViewState extends State<HomeView> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) =>
-                                              EventDetailsView(event: event),
+                                              ChangeNotifierProvider<
+                                                EventDetailsViewModel
+                                              >(
+                                                create: (context) =>
+                                                    EventDetailsViewModel(
+                                                      context
+                                                          .read<
+                                                            BookingService
+                                                          >(),
+                                                    ),
+                                                child: EventDetailsView(
+                                                  event: event,
+                                                ),
+                                              ),
                                         ),
                                       ),
                                       child: _buildEvents(

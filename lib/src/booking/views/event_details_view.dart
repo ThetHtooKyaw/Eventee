@@ -13,7 +13,7 @@ import 'package:eventee/src/booking/view_models/event_details_view_model.dart';
 import 'package:eventee/src/booking/widgets/bottom_curve_clipper.dart';
 import 'package:eventee/src/booking/widgets/info_card.dart';
 import 'package:eventee/src/booking/widgets/timeline_card.dart';
-import 'package:eventee/src/home/viewa_models/home_view_model.dart';
+import 'package:eventee/src/home/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:eventee/core/widgets/quantity_selector.dart';
 import 'package:flutter/services.dart';

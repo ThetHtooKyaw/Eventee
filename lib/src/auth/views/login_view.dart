@@ -1,6 +1,8 @@
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/widgets/bottom_nav_bar.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
+import 'package:eventee/src/auth/repo/auth_service.dart';
+import 'package:eventee/src/auth/view_models/signup_view_model.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -144,7 +146,10 @@ class _LoginViewState extends State<LoginView> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => SignUpView(),
+                                  builder: (context) => ChangeNotifierProvider<SignUpViewModel>(
+                                    create: (context) => SignUpViewModel(context.read<AuthService>()),
+                                    child: SignUpView(),
+                                  ),
                                 ),
                               );
                             },
