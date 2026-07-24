@@ -41,6 +41,12 @@ class BookingHistoryViewModel extends BaseViewModel {
       .toList();
 
   // Use Cases
+  @override
+  void dispose() {
+    _historySubscription?.cancel();
+    super.dispose();
+  }
+
   Future<void> fetchBookingHistory() async {
     setScreenLoading(true);
     setError(null);
@@ -55,11 +61,8 @@ class BookingHistoryViewModel extends BaseViewModel {
         (eventList) {
           _eventHistory = eventList;
           checkCompletedEvents();
-          if (isScreenLoading) {
-            setScreenLoading(false);
-          } else {
-            notifyListeners();
-          }
+          setScreenLoading(false);
+          notifyListeners();
         },
         onError: (error) {
           setError(error.toString());

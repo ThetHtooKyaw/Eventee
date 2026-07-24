@@ -35,16 +35,20 @@ class AccountViewModel extends BaseViewModel {
     setScreenLoading(false);
   }
 
-  Future<void> logoutUser() async {
-    setScreenLoading(true);
+  Future<bool> logoutUser() async {
+    setActionLoading(true);
+    setError(null);
+
     final response = await _accountService.logoutUser();
 
-    if (response is Success) {
-      _user = null;
-    } else if (response is Failure) {
+    if (response is Failure) {
       setError(response.response.toString());
+      setActionLoading(false);
+      return false;
     }
 
-    setScreenLoading(false);
+    _user = null;
+    setActionLoading(false);
+    return true;
   }
 }

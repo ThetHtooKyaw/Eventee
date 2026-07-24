@@ -3,6 +3,7 @@ import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
 import 'package:eventee/core/utils/base_view_model.dart';
 import 'package:eventee/src/account/repo/account_service.dart';
+import 'package:eventee/src/auth/models/app_user.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -57,6 +58,14 @@ class AccountDetailViewModel extends BaseViewModel {
     phNoController.dispose();
     locationController.dispose();
     super.dispose();
+  }
+
+  void initialize(AppUser user) {
+    nameController.text = user.username;
+    phNoController.text = user.phoneNumber;
+    locationController.text = user.address;
+    _selectedBirthday = user.dateOfBirth;
+    notifyListeners();
   }
 
   ImageProvider? getAvatarImage(String photoUrl) {

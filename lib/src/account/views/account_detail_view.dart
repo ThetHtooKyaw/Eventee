@@ -23,15 +23,9 @@ class _AccountDetailViewState extends State<AccountDetailView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final vm = context.read<AccountDetailViewModel>();
       final accountVM = context.read<AccountViewModel>();
-      final user = accountVM.user;
-      if (user != null) {
-        vm.nameController.text = user.username;
-        vm.phNoController.text = user.phoneNumber;
-        vm.setBirthday(user.dateOfBirth);
-        vm.locationController.text = user.address;
+      if (accountVM.user != null) {
+        context.read<AccountDetailViewModel>().initialize(accountVM.user!);
       }
     });
   }
@@ -58,27 +52,21 @@ class _AccountDetailViewState extends State<AccountDetailView> {
     }
   }
 
-  void _handlePickProfileImage(ImageProvider? avatarImage) {
-    final vm = context.read<AccountDetailViewModel>();
-
+  void _handlePickProfileImage(
+    AccountDetailViewModel vm,
+    ImageProvider? avatarImage,
+  ) {
     showModalBottomSheet(
       isScrollControlled: true,
       isDismissible: false,
       context: context,
-      builder: (context) {
-        return ChangeNotifierProvider<AccountDetailViewModel>.value(
+      builder: (sheetContext) {
+        return ChangeNotifierProvider.value(
           value: vm,
           child: AccountBottonsheet(
             height: MediaQuery.of(context).size.height * 0.95,
             title: 'Profile Image',
             onTap: () async {
-              if (vm.profileImage == null) {
-                AppSnackbars.showErrorSnackbar(
-                  context,
-                  'Please pick an image first.',
-                );
-                return;
-              }
               await _handleSave(updateAction: vm.updateProfileImage);
             },
             child: Column(
@@ -87,7 +75,6 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                 Center(
                   child: GestureDetector(
                     onTap: () => vm.pickProfileImage(),
-
                     child: _buildAvatar(avatarImage, radius: 140, iconSize: 60),
                   ),
                 ),
@@ -106,7 +93,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final vm = context.read<AccountDetailViewModel>();
+    final vm = context.watch<AccountDetailViewModel>();
 
     final userData = context.select<AccountViewModel, AppUser?>(
       (vm) => vm.user,
@@ -140,7 +127,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
               // Image
               Center(
                 child: GestureDetector(
-                  onTap: () => _handlePickProfileImage(avatarImage),
+                  onTap: () => _handlePickProfileImage(vm, avatarImage),
                   child: _buildAvatar(avatarImage),
                 ),
               ),
@@ -149,7 +136,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
               // Change Button
               _buildActionButton(
                 'Change',
-                () => _handlePickProfileImage(avatarImage),
+                () => _handlePickProfileImage(vm, avatarImage),
               ),
               const SizedBox(height: 20),
 
@@ -272,24 +259,21 @@ class _AccountDetailViewState extends State<AccountDetailView> {
         highlightColor: AppColor.placeholder.withOpacity(0.4),
         onTap: isReadOnly
             ? null
-            : () {
-                showModalBottomSheet(
-                  isScrollControlled: true,
-                  isDismissible: false,
-                  context: context,
-                  builder: (context) {
-                    return ChangeNotifierProvider<AccountDetailViewModel>.value(
-                      value: context.read<AccountDetailViewModel>(),
-                      child: AccountBottonsheet(
-                        height: MediaQuery.of(context).size.height * 0.7,
-                        title: title,
-                        onTap: onTap,
-                        child: child,
-                      ),
-                    );
-                  },
-                );
-              },
+            : () => showModalBottomSheet(
+                isScrollControlled: true,
+                context: context,
+                builder: (sheetContext) {
+                  return ChangeNotifierProvider.value(
+                    value: context.read<AccountDetailViewModel>(),
+                    child: AccountBottonsheet(
+                      height: MediaQuery.of(sheetContext).size.height * 0.7,
+                      title: title,
+                      onTap: onTap,
+                      child: child,
+                    ),
+                  );
+                },
+              ),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             vertical: 14,

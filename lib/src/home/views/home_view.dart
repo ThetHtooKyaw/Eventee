@@ -34,7 +34,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final vmAction = context.read<HomeViewModel>();
+    final vm = context.watch<HomeViewModel>();
 
     return Scaffold(
       backgroundColor: AppColor.background,
@@ -73,7 +73,7 @@ class _HomeViewState extends State<HomeView> {
                     bottom: 1,
                     right: AppFormat.primaryPadding,
                     left: AppFormat.primaryPadding,
-                    child: _buildSearchBar(vmAction),
+                    child: _buildSearchBar(vm),
                   ),
                 ],
               ),
@@ -99,10 +99,10 @@ class _HomeViewState extends State<HomeView> {
                             horizontal: AppFormat.primaryPadding,
                           ),
                           scrollDirection: Axis.horizontal,
-                          itemCount: vmAction.categories.length,
+                          itemCount: vm.categories.length,
                           separatorBuilder: (_, _) => const SizedBox(width: 20),
                           itemBuilder: (context, index) {
-                            final (icon, label) = vmAction.categories[index];
+                            final (icon, label) = vm.categories[index];
 
                             return _buildCategory(t, icon, label);
                           },
@@ -156,10 +156,11 @@ class _HomeViewState extends State<HomeView> {
                                       return EventListSkeleton();
                                     }
 
-                                    EventModel event = events[index];
-                                    String eventDate = vmAction
-                                        .formatDateMonthDay(event.date);
-                                    String eventTime = vmAction.formatTime(
+                                    final event = events[index];
+                                    final eventDate = vm.formatDateMonthDay(
+                                      event.date,
+                                    );
+                                    final eventTime = vm.formatTime(
                                       event.startTime,
                                     );
 
@@ -251,10 +252,10 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildSearchBar(HomeViewModel vmAction) {
+  Widget _buildSearchBar(HomeViewModel vm) {
     return TextField(
-      controller: vmAction.searchController,
-      onChanged: (value) => vmAction.filterEvents(value),
+      controller: vm.searchController,
+      onChanged: (value) => vm.filterEvents(value),
       decoration: InputDecoration(
         hintText: 'Search...',
         prefixIcon: Icon(Icons.search, color: AppColor.primary),

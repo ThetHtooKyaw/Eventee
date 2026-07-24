@@ -60,6 +60,7 @@ class _LoginViewState extends State<LoginView> {
     final isActionLoading = context.select<LoginViewModel, bool>(
       (vm) => vm.isActionLoading,
     );
+    final vm = context.read<LoginViewModel>();
 
     return Scaffold(
       body: Stack(
@@ -84,7 +85,7 @@ class _LoginViewState extends State<LoginView> {
                   SizedBox(height: 24),
 
                   // TextFields
-                  _buildLoginForm(context),
+                  _buildLoginForm(vm),
                   SizedBox(height: 20),
 
                   // Action Buttons
@@ -162,9 +163,7 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
-  Widget _buildLoginForm(BuildContext context) {
-    final vm = context.read<LoginViewModel>();
-
+  Widget _buildLoginForm(LoginViewModel vm) {
     return Form(
       key: vm.formKey,
       child: Column(

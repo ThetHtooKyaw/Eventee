@@ -61,6 +61,7 @@ class _SignUpViewState extends State<SignUpView> {
     final isActionLoading = context.select<SignUpViewModel, bool>(
       (vm) => vm.isActionLoading,
     );
+    final vm = context.read<SignUpViewModel>();
 
     return Scaffold(
       body: Stack(
@@ -95,7 +96,7 @@ class _SignUpViewState extends State<SignUpView> {
                   const SizedBox(height: 20),
 
                   // Text Fields
-                  _buildSignUpForm(context),
+                  _buildSignUpForm(vm),
 
                   ElevatedButton(
                     onPressed: isActionLoading ? null : () => signUp(),
@@ -162,9 +163,7 @@ class _SignUpViewState extends State<SignUpView> {
     );
   }
 
-  Widget _buildSignUpForm(BuildContext context) {
-    final vm = context.read<SignUpViewModel>();
-
+  Widget _buildSignUpForm(SignUpViewModel vm) {
     return Form(
       key: vm.formKey,
       child: Column(

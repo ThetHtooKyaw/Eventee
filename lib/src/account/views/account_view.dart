@@ -1,5 +1,6 @@
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
+import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/src/account/repo/account_service.dart';
 import 'package:eventee/src/account/view_models/account_detail_view_model.dart';
 import 'package:eventee/src/account/views/account_detail_view.dart';
@@ -8,7 +9,10 @@ import 'package:eventee/src/account/widgets/account_skeleton.dart';
 import 'package:eventee/src/create_event/repo/admin_service.dart';
 import 'package:eventee/src/create_event/view_models/create_event_view_model.dart';
 import 'package:eventee/src/create_event/views/create_event_view.dart';
+import 'package:eventee/src/auth/repo/auth_service.dart';
+import 'package:eventee/src/auth/view_models/login_view_model.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
+import 'package:eventee/src/auth/views/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
@@ -32,6 +36,27 @@ class _AccountViewState extends State<AccountView> {
     }
   }
 
+  Future<void> _logout() async {
+    final vm = context.read<AccountViewModel>();
+    final success = await vm.logoutUser();
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => ChangeNotifierProvider(
+            create: (context) => LoginViewModel(context.read<AuthService>()),
+            child: const LoginView(),
+          ),
+        ),
+        (Route<dynamic> route) => false,
+      );
+    } else {
+      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
@@ -40,6 +65,9 @@ class _AccountViewState extends State<AccountView> {
     );
     final isScreenLoading = context.select<AccountViewModel, bool>(
       (vm) => vm.isScreenLoading,
+    );
+    final isActionLoading = context.select<AccountViewModel, bool>(
+      (vm) => vm.isActionLoading,
     );
 
     return Scaffold(
@@ -197,9 +225,8 @@ class _AccountViewState extends State<AccountView> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                       ),
-                      onPressed: () =>
-                          context.read<AccountViewModel>().logoutUser(),
-                      child: Text('Logout'),
+                      onPressed: isActionLoading ? null : _logout,
+                      child: const Text('Logout'),
                     ),
                   ),
                 ],
