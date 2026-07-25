@@ -15,7 +15,7 @@ class AccountDetailViewModel extends BaseViewModel {
   // Controllers
   final nameController = TextEditingController();
   final phNoController = TextEditingController();
-  final locationController = TextEditingController();
+  final addressController = TextEditingController();
 
   // Variables
   final _formKey = GlobalKey<FormState>();
@@ -56,14 +56,14 @@ class AccountDetailViewModel extends BaseViewModel {
   void dispose() {
     nameController.dispose();
     phNoController.dispose();
-    locationController.dispose();
+    addressController.dispose();
     super.dispose();
   }
 
   void initialize(AppUser user) {
     nameController.text = user.username;
     phNoController.text = user.phoneNumber;
-    locationController.text = user.address;
+    addressController.text = user.address;
     _selectedBirthday = user.dateOfBirth;
     notifyListeners();
   }
@@ -182,13 +182,13 @@ class AccountDetailViewModel extends BaseViewModel {
     return true;
   }
 
-  Future<bool> updateLocation() async {
+  Future<bool> updateAddress() async {
     setActionLoading(true);
     setError(null);
     setSuccess(null);
 
-    final response = await _accountService.updateLocation(
-      newLocation: formatLocation(),
+    final response = await _accountService.updateAddress(
+      newAddress: formatAddress(),
     );
 
     if (response is Failure) {
@@ -206,9 +206,9 @@ class AccountDetailViewModel extends BaseViewModel {
     return DateFormat('dd/MM/yyyy').format(birthDate);
   }
 
-  String formatLocation() {
+  String formatAddress() {
     final parts = [
-      locationController.text.trim(),
+      addressController.text.trim(),
       _city,
       _state,
       _country,

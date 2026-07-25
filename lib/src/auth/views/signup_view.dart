@@ -23,7 +23,8 @@ class _SignUpViewState extends State<SignUpView> {
     final vm = context.read<SignUpViewModel>();
 
     if (vm.formKey.currentState!.validate()) {
-      final success = await vm.createUser();
+      final success = await vm
+          .createUser(); 
 
       if (!mounted) return;
 
@@ -186,34 +187,6 @@ class _SignUpViewState extends State<SignUpView> {
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter your email';
-              }
-              return null;
-            },
-          ),
-          SizedBox(height: 16),
-
-          TextFormField(
-            controller: vm.phoneNumberController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: "Phone Number"),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Please enter your phone number';
-              }
-              return null;
-            },
-          ),
-          SizedBox(height: 16),
-
-          TextFormField(
-            controller: vm.addressController,
-            keyboardType: TextInputType.streetAddress,
-            maxLines: 2,
-            decoration: InputDecoration(labelText: "Address"),
-
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Please enter your address';
               }
               return null;
             },

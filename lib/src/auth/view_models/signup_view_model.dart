@@ -1,5 +1,4 @@
 import 'package:eventee/core/utils/base_view_model.dart';
-import 'package:eventee/src/auth/view_models/params/signup_params.dart';
 import 'package:flutter/material.dart';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/src/auth/repo/auth_service.dart';
@@ -12,10 +11,8 @@ class SignUpViewModel extends BaseViewModel {
   // Controllers
   final nameController = TextEditingController();
   final emailController = TextEditingController();
-  final phoneNumberController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-  final addressController = TextEditingController();
 
   // Variables
   final _formKey = GlobalKey<FormState>();
@@ -28,15 +25,11 @@ class SignUpViewModel extends BaseViewModel {
     setActionLoading(true);
     setError(null);
 
-    final params = SignUpParams(
+    final response = await _authService.signUpUser(
       username: nameController.text.trim(),
       email: emailController.text.trim(),
       password: passwordController.text.trim(),
-      phoneNumber: phoneNumberController.text.trim(),
-      address: addressController.text.trim(),
     );
-
-    final response = await _authService.createUser(params: params);
 
     if (response is Failure) {
       setError(response.response.toString());
@@ -68,10 +61,8 @@ class SignUpViewModel extends BaseViewModel {
   void dispose() {
     nameController.dispose();
     emailController.dispose();
-    phoneNumberController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
-    addressController.dispose();
     super.dispose();
   }
 }

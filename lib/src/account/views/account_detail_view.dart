@@ -202,8 +202,8 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                     _buildPICard(
                       title: 'Address',
                       data: userData.address,
-                      onTap: () => _handleSave(updateAction: vm.updateLocation),
-                      child: _buildAddLocation(vm),
+                      onTap: () => _handleSave(updateAction: vm.updateAddress),
+                      child: _buildAddAddress(vm),
                     ),
                   ],
                 ),
@@ -416,7 +416,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
     );
   }
 
-  Widget _buildAddLocation(AccountDetailViewModel vm) {
+  Widget _buildAddAddress(AccountDetailViewModel vm) {
     return Column(
       children: [
         MenuCard(
@@ -437,7 +437,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
 
                 Expanded(
                   child: TextField(
-                    controller: vm.locationController,
+                    controller: vm.addressController,
                     keyboardType: TextInputType.text,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.bold,

@@ -1,4 +1,6 @@
+import 'package:eventee/core/services/location_service.dart';
 import 'package:eventee/core/themes/app_theme.dart';
+import 'package:eventee/core/view_models/location_view_model.dart';
 import 'package:eventee/core/widgets/bottom_nav_bar.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/firebase_options_loader.dart';
@@ -26,6 +28,7 @@ void main() async {
   await dotenv.load(fileName: ".env");
 
   await Firebase.initializeApp(options: FirebaseOptionsLoader.currentPlatform);
+  // await FirebaseAuth.instance.signOut();
 
   Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
   Stripe.instance.applySettings();
@@ -35,7 +38,8 @@ void main() async {
       providers: [
         // Services
         Provider(create: (_) => AdminService()),
-        Provider(create: (_) => AuthService(), lazy: false),
+        Provider(create: (_) => LocationService()),
+        Provider(create: (context) => AuthService()),
         Provider(create: (_) => BookingService()),
         Provider(create: (_) => AccountService()),
 
@@ -50,6 +54,12 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (context) => HomeViewModel(context.read<AdminService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => LocationViewModel(
+            context.read<LocationService>(),
+            context.read<AccountService>(),
+          ),
         ),
         ChangeNotifierProvider(
           create: (context) =>

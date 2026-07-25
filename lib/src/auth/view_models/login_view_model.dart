@@ -1,7 +1,6 @@
 import 'package:eventee/core/utils/base_view_model.dart';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/src/auth/repo/auth_service.dart';
-import 'package:eventee/src/auth/view_models/params/login_params.dart';
 import 'package:flutter/material.dart';
 
 class LoginViewModel extends BaseViewModel {
@@ -24,12 +23,10 @@ class LoginViewModel extends BaseViewModel {
     setActionLoading(true);
     setError(null);
 
-    final params = LoginParams(
-      email: emailController.text,
-      password: passwordController.text,
+    final response = await _authService.loginUser(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
     );
-
-    final response = await _authService.loginUser(params: params);
 
     if (response is Failure) {
       setError(response.response.toString());

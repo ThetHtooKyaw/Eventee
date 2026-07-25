@@ -27,9 +27,9 @@ class AccountService {
 
   Future<Object> getUser() async {
     try {
-      final userData = _currentUserId;
-
-      DocumentSnapshot snapshot = await _usersCollection.doc(userData).get();
+      DocumentSnapshot snapshot = await _usersCollection
+          .doc(_currentUserId)
+          .get();
 
       if (!snapshot.exists) {
         return Failure(response: 'User data not found.');
@@ -81,8 +81,9 @@ class AccountService {
 
   Future<Object> updateUsername({required String newUsername}) async {
     try {
-      final userData = _currentUserId;
-      await _usersCollection.doc(userData).update({'username': newUsername});
+      await _usersCollection.doc(_currentUserId).update({
+        'username': newUsername,
+      });
       return Success(response: 'Username updated successfully!');
     } catch (e) {
       return Failure(response: 'Failed to update username: $e');
@@ -91,8 +92,7 @@ class AccountService {
 
   Future<Object> updatePhoneNumber({required String newPhoneNumber}) async {
     try {
-      final userData = _currentUserId;
-      await _usersCollection.doc(userData).update({
+      await _usersCollection.doc(_currentUserId).update({
         'phoneNumber': newPhoneNumber,
       });
       return Success(response: 'Phone number updated successfully!');
@@ -103,8 +103,7 @@ class AccountService {
 
   Future<Object> updateDateOfBirth({required DateTime newDateOfBirth}) async {
     try {
-      final userData = _currentUserId;
-      await _usersCollection.doc(userData).update({
+      await _usersCollection.doc(_currentUserId).update({
         'dateOfBirth': newDateOfBirth,
       });
       return Success(response: 'Date of birth updated successfully!');
@@ -113,13 +112,14 @@ class AccountService {
     }
   }
 
-  Future<Object> updateLocation({required String newLocation}) async {
+  Future<Object> updateAddress({required String newAddress}) async {
     try {
-      final userData = _currentUserId;
-      await _usersCollection.doc(userData).update({'location': newLocation});
-      return Success(response: 'Location updated successfully!');
+      await _usersCollection.doc(_currentUserId).update({
+        'address': newAddress,
+      });
+      return Success(response: 'Address updated successfully!');
     } catch (e) {
-      return Failure(response: 'Failed to update location: $e');
+      return Failure(response: 'Failed to update address: $e');
     }
   }
 

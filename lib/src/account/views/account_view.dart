@@ -23,16 +23,16 @@ class AccountView extends StatefulWidget {
 }
 
 class _AccountViewState extends State<AccountView> {
-  @override
-  void initState() {
-    super.initState();
-    final vm = context.read<AccountViewModel>();
-    if (vm.user == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        vm.loadUser();
-      });
-    }
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   final vm = context.read<AccountViewModel>();
+  //   if (vm.user == null) {
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       vm.loadUser();
+  //     });
+  //   }
+  // }
 
   Future<void> _logout() async {
     final vm = context.read<AccountViewModel>();
@@ -42,9 +42,7 @@ class _AccountViewState extends State<AccountView> {
 
     if (success) {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const LoginView(),
-        ),
+        MaterialPageRoute(builder: (context) => const LoginView()),
         (Route<dynamic> route) => false,
       );
     } else {

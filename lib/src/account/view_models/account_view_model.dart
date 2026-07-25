@@ -1,6 +1,6 @@
-import 'package:eventee/core/utils/base_view_model.dart';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
+import 'package:eventee/core/utils/base_view_model.dart';
 import 'package:eventee/src/account/repo/account_service.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
 
@@ -16,7 +16,6 @@ class AccountViewModel extends BaseViewModel {
   AppUser? get user => _user;
 
   // Use Cases
-
   Future<void> loadUser({bool forceRefresh = false}) async {
     if (_user != null && !forceRefresh) return;
 
@@ -25,11 +24,10 @@ class AccountViewModel extends BaseViewModel {
 
     final response = await _accountService.getUser();
 
-    if (response is Success) {
-      _user = response.response as AppUser;
-      notifyListeners();
-    } else if (response is Failure) {
+    if (response is Failure) {
       setError(response.response.toString());
+    } else {
+      _user = (response as Success).response as AppUser;
     }
 
     setScreenLoading(false);

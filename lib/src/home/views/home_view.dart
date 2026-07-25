@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
+import 'package:eventee/core/utils/app_snackbars.dart';
+import 'package:eventee/core/view_models/location_view_model.dart';
 import 'package:eventee/core/widgets/app_error.dart';
 import 'package:eventee/core/widgets/skeleton_widget.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
@@ -27,8 +29,28 @@ class _HomeViewState extends State<HomeView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<HomeViewModel>().fetchAllEvents();
+      initializeHomeScreen();
     });
+  }
+
+  Future<void> initializeHomeScreen() async {
+    final locationViewModel = context.read<LocationViewModel>();
+    final success = await locationViewModel.requestLocationPermission();
+
+    if (!mounted) return;
+
+    if (success) {
+      await context.read<AccountViewModel>().loadUser();
+    } else {
+      AppSnackbars.showErrorSnackbar(
+        context,
+        locationViewModel.errorMessage ?? 'Failed to get location permission.',
+      );
+    }
+
+    if (mounted) {
+      context.read<HomeViewModel>().fetchAllEvents();
+    }
   }
 
   @override
@@ -38,7 +60,6 @@ class _HomeViewState extends State<HomeView> {
 
     return Scaffold(
       backgroundColor: AppColor.background,
-
       body: CustomScrollView(
         slivers: [
           // AppBar
@@ -53,7 +74,7 @@ class _HomeViewState extends State<HomeView> {
                 children: [
                   // Background Color
                   Container(
-                    height: 146,
+                    height: 120,
                     width: double.infinity,
                     color: AppColor.primary,
                   ),
@@ -62,6 +83,7 @@ class _HomeViewState extends State<HomeView> {
                   SafeArea(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
+                        vertical: AppFormat.secondaryPadding,
                         horizontal: AppFormat.primaryPadding,
                       ),
                       child: _buildHeader(t),
@@ -236,7 +258,7 @@ class _HomeViewState extends State<HomeView> {
                 userData?.shortAddress ?? 'Unknown Location',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: t.textTheme.titleMedium?.copyWith(color: AppColor.white),
+                style: t.textTheme.titleSmall?.copyWith(color: AppColor.white),
               ),
             ],
           ),
