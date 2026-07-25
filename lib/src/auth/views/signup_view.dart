@@ -58,10 +58,7 @@ class _SignUpViewState extends State<SignUpView> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final isActionLoading = context.select<SignUpViewModel, bool>(
-      (vm) => vm.isActionLoading,
-    );
-    final vm = context.read<SignUpViewModel>();
+    final vm = context.watch<SignUpViewModel>();
 
     return Scaffold(
       body: Stack(
@@ -99,7 +96,7 @@ class _SignUpViewState extends State<SignUpView> {
                   _buildSignUpForm(vm),
 
                   ElevatedButton(
-                    onPressed: isActionLoading ? null : () => signUp(),
+                    onPressed: vm.isActionLoading ? null : () => signUp(),
                     style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 60),
                     ),
@@ -112,7 +109,7 @@ class _SignUpViewState extends State<SignUpView> {
 
                   // Action Buttons
                   ElevatedButton(
-                    onPressed: isActionLoading
+                    onPressed: vm.isActionLoading
                         ? null
                         : () => signUpWithGoogle(),
                     style: ElevatedButton.styleFrom(
@@ -156,7 +153,7 @@ class _SignUpViewState extends State<SignUpView> {
             ),
           ),
 
-          if (isActionLoading)
+          if (vm.isActionLoading)
             LoadingOverlayColumn(message: 'Creating your account'),
         ],
       ),

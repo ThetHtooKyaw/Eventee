@@ -7,14 +7,12 @@ import 'package:eventee/src/account/views/account_detail_view.dart';
 import 'package:eventee/src/account/widgets/account_menu.dart';
 import 'package:eventee/src/account/widgets/account_skeleton.dart';
 import 'package:eventee/src/create_event/repo/admin_service.dart';
-import 'package:eventee/src/create_event/view_models/create_event_view_model.dart';
 import 'package:eventee/src/create_event/views/create_event_view.dart';
-import 'package:eventee/src/auth/repo/auth_service.dart';
-import 'package:eventee/src/auth/view_models/login_view_model.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
 import 'package:eventee/src/auth/views/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:eventee/src/create_event/view_models/create_event_view_model.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
 
 class AccountView extends StatefulWidget {
@@ -45,10 +43,7 @@ class _AccountViewState extends State<AccountView> {
     if (success) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (context) => ChangeNotifierProvider(
-            create: (context) => LoginViewModel(context.read<AuthService>()),
-            child: const LoginView(),
-          ),
+          builder: (context) => const LoginView(),
         ),
         (Route<dynamic> route) => false,
       );
@@ -106,27 +101,18 @@ class _AccountViewState extends State<AccountView> {
                           icon: Icons.person,
                           title: 'Personal Information',
                           onTap: () async {
-                            // Grab the existing AccountViewModel instance.
-                            final accountVM = context.read<AccountViewModel>();
-
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => MultiProvider(
-                                  providers: [
-                                    ChangeNotifierProvider.value(
-                                      value: accountVM,
-                                    ),
+                                builder: (context) =>
                                     ChangeNotifierProvider<
                                       AccountDetailViewModel
                                     >(
                                       create: (ctx) => AccountDetailViewModel(
                                         ctx.read<AccountService>(),
                                       ),
+                                      child: const AccountDetailView(),
                                     ),
-                                  ],
-                                  child: const AccountDetailView(),
-                                ),
                               ),
                             );
                           },

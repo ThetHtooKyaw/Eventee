@@ -54,10 +54,7 @@ class _CreateEventViewState extends State<CreateEventView> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final isActionLoading = context.select<CreateEventViewModel, bool>(
-      (vm) => vm.isActionLoading,
-    );
-    final vm = context.read<CreateEventViewModel>();
+    final vm = context.watch<CreateEventViewModel>();
 
     return Stack(
       children: [
@@ -191,7 +188,7 @@ class _CreateEventViewState extends State<CreateEventView> {
                     // Action Button
                     Center(
                       child: ElevatedButton(
-                        onPressed: isActionLoading
+                        onPressed: vm.isActionLoading
                             ? null
                             : () => _handleUpload(),
                         style: ElevatedButton.styleFrom(
@@ -219,7 +216,8 @@ class _CreateEventViewState extends State<CreateEventView> {
           ),
         ),
 
-        if (isActionLoading) LoadingOverlayColumn(message: 'Uploading event'),
+        if (vm.isActionLoading)
+          LoadingOverlayColumn(message: 'Uploading event'),
       ],
     );
   }

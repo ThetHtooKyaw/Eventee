@@ -43,9 +43,9 @@ class _EventDetailsViewState extends State<EventDetailsView> {
         status: 'active',
       ),
     );
- 
+
     if (!mounted) return;
- 
+
     if (success) {
       AppSnackbars.showSuccessSnackbar(context, vm.successMessage!);
       Navigator.pop(context);
@@ -57,12 +57,13 @@ class _EventDetailsViewState extends State<EventDetailsView> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final isActionLoading = context.select<EventDetailsViewModel, bool>(
-      (vm) => vm.isActionLoading,
-    );
     final userData = context.select<AccountViewModel, AppUser?>(
       (vm) => vm.user,
     );
+    final isActionLoading = context.select<EventDetailsViewModel, bool>(
+      (vm) => vm.isActionLoading,
+    );
+
     final homeVM = context.read<HomeViewModel>();
     final eventDate = homeVM.formatDateMonthDay(widget.event.date);
     final eventStartTime = homeVM.formatTime(widget.event.startTime);

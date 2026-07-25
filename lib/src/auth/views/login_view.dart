@@ -2,8 +2,6 @@ import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/widgets/bottom_nav_bar.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
-import 'package:eventee/src/auth/repo/auth_service.dart';
-import 'package:eventee/src/auth/view_models/signup_view_model.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -57,10 +55,7 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    final isActionLoading = context.select<LoginViewModel, bool>(
-      (vm) => vm.isActionLoading,
-    );
-    final vm = context.read<LoginViewModel>();
+    final vm = context.watch<LoginViewModel>();
 
     return Scaffold(
       body: Stack(
@@ -90,7 +85,7 @@ class _LoginViewState extends State<LoginView> {
 
                   // Action Buttons
                   ElevatedButton(
-                    onPressed: isActionLoading ? null : () => login(),
+                    onPressed: vm.isActionLoading ? null : () => login(),
                     style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 48),
                       shape: RoundedRectangleBorder(
@@ -105,7 +100,9 @@ class _LoginViewState extends State<LoginView> {
                   const SizedBox(height: 20),
 
                   ElevatedButton(
-                    onPressed: isActionLoading ? null : () => loginWithGoogle(),
+                    onPressed: vm.isActionLoading
+                        ? null
+                        : () => loginWithGoogle(),
                     style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 60),
                     ),
@@ -138,13 +135,7 @@ class _LoginViewState extends State<LoginView> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      ChangeNotifierProvider<SignUpViewModel>(
-                                        create: (context) => SignUpViewModel(
-                                          context.read<AuthService>(),
-                                        ),
-                                        child: SignUpView(),
-                                      ),
+                                  builder: (context) => const SignUpView(),
                                 ),
                               );
                             },
@@ -157,7 +148,7 @@ class _LoginViewState extends State<LoginView> {
             ),
           ),
 
-          if (isActionLoading) LoadingOverlayColumn(message: 'Logging in'),
+          if (vm.isActionLoading) LoadingOverlayColumn(message: 'Logging in'),
         ],
       ),
     );

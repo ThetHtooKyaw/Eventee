@@ -13,18 +13,17 @@ class CreateEventViewModel extends BaseViewModel {
   CreateEventViewModel(this._adminService);
 
   // Controllers
-  final TextEditingController eventNameController = TextEditingController();
-  final TextEditingController eventDateController = TextEditingController();
-  final TextEditingController eventStartTimeController =
-      TextEditingController();
-  final TextEditingController eventEndTimeController = TextEditingController();
-  final TextEditingController eventLocationController = TextEditingController();
+  final eventNameController = TextEditingController();
+  final eventDateController = TextEditingController();
+  final eventStartTimeController = TextEditingController();
+  final eventEndTimeController = TextEditingController();
+  final eventLocationController = TextEditingController();
 
-  final TextEditingController ticketPriceController = TextEditingController();
-  final TextEditingController eventDetailController = TextEditingController();
+  final ticketPriceController = TextEditingController();
+  final eventDetailController = TextEditingController();
 
   // Variables
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   final List<String> categories = ['Music', 'Sport', 'Art', 'Food'];
   File? _eventImage;
   String? _selectedCategory;

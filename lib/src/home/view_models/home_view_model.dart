@@ -13,7 +13,7 @@ class HomeViewModel extends BaseViewModel {
   HomeViewModel(this._adminService);
 
   // Controllers
-  final TextEditingController searchController = TextEditingController();
+  final searchController = TextEditingController();
 
   // Variables
   final List<(IconData icon, String label)> _categories = const [
