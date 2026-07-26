@@ -1,8 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
-import 'package:eventee/core/utils/app_snackbars.dart';
-import 'package:eventee/core/view_models/location_view_model.dart';
 import 'package:eventee/core/widgets/app_error.dart';
 import 'package:eventee/core/widgets/skeleton_widget.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
@@ -29,25 +27,11 @@ class _HomeViewState extends State<HomeView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      initializeHomeScreen();
-    });
-  }
+      if (!mounted) return;
 
-  Future<void> initializeHomeScreen() async {
-    final locationVm = context.read<LocationViewModel>();
-    final success = await locationVm.requestLocationPermission();
-
-    if (!mounted) return;
-
-    if (success) {
-      await context.read<AccountViewModel>().loadUser();
-    } else {
-      AppSnackbars.showErrorSnackbar(context, locationVm.errorMessage!);
-    }
-
-    if (mounted) {
+      context.read<AccountViewModel>().loadUser();
       context.read<HomeViewModel>().fetchAllEvents();
-    }
+    });
   }
 
   @override

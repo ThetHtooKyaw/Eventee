@@ -14,6 +14,8 @@ import 'package:eventee/src/home/view_models/home_view_model.dart';
 import 'package:eventee/src/auth/repo/auth_service.dart';
 import 'package:eventee/src/auth/views/login_view.dart';
 import 'package:eventee/src/booking/repo/booking_service.dart';
+import 'package:eventee/src/onboarding/view_models/onboarding_view_model.dart';
+import 'package:eventee/src/onboarding/views/onboarding_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -50,16 +52,18 @@ void main() async {
           create: (context) => SignUpViewModel(context.read<AuthService>()),
         ),
         ChangeNotifierProvider(
+          create: (context) =>
+              LocationViewModel(context.read<LocationService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) =>
+              OnboardingViewModel(context.read<LocationViewModel>()),
+        ),
+        ChangeNotifierProvider(
           create: (context) => AccountViewModel(context.read<AccountService>()),
         ),
         ChangeNotifierProvider(
           create: (context) => HomeViewModel(context.read<AdminService>()),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => LocationViewModel(
-            context.read<LocationService>(),
-            context.read<AccountService>(),
-          ),
         ),
         ChangeNotifierProvider(
           create: (context) =>
@@ -85,11 +89,12 @@ class MainApp extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return LoadingColumn(message: 'App Loading');
           }
+
           if (snapshot.hasData && snapshot.data != null) {
-            // The AccountViewModel is already provided above.
-            return const BottomNavBar();
+            return const OnboardingView();
+            // return const BottomNavBar();
           }
-          // The LoginViewModel is already provided above.
+
           return const LoginView();
         },
       ),

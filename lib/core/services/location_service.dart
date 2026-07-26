@@ -2,17 +2,10 @@ import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LocationService {
-  static const String _keyHasPermission = 'has_location_permission';
-  static const String skipToken = 'skipped_location_permission';
-
   Future<Object> requestLocationPermission() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final hasPermissionBefore = prefs.getBool(_keyHasPermission) ?? false;
-
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         return Failure(
@@ -21,13 +14,6 @@ class LocationService {
       }
 
       var permission = await Geolocator.checkPermission();
-      if (hasPermissionBefore &&
-          (permission == LocationPermission.always ||
-              permission == LocationPermission.whileInUse)) {
-        return Success(response: skipToken);
-      }
-
-      await prefs.setBool(_keyHasPermission, true);
 
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -58,9 +44,17 @@ class LocationService {
       }
 
       final placemark = placemarks.first;
-      final address = '${placemark.locality}, ${placemark.country}';
+      final address =
+          '${placemark.locality ?? ''}, ${placemark.administrativeArea ?? ''}, ${placemark.country ?? ''}';
 
-      return Success(response: address);
+      return Success(
+        response: {
+          'address': address,
+          'country': placemark.country,
+          'state': placemark.administrativeArea,
+          'city': placemark.locality,
+        },
+      );
     } catch (e) {
       return Failure(response: 'Failed to get location: $e');
     }

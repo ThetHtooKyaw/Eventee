@@ -29,6 +29,9 @@ class AccountDetailViewModel extends BaseViewModel {
   GlobalKey<FormState> get formKey => _formKey;
   File? get profileImage => _profileImage;
   DateTime? get selectedBirthday => _selectedBirthday;
+  String? get country => _country;
+  String? get state => _state;
+  String? get city => _city;
 
   // Setters
   void setBirthday(DateTime? date) {

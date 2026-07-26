@@ -137,6 +137,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.19.1"
+  country_state_city_picker:
+    dependency: "direct main"
+    description:
+      name: country_state_city_picker
+      sha256: ae5937ef7d7355be93c2515d517d78f7824178522965db74ebadf71df2a4dae9
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   coupon_uikit:
     dependency: "direct main"
     description:
@@ -161,22 +169,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.7"
-  csc_picker_plus:
-    dependency: "direct main"
-    description:
-      name: csc_picker_plus
-      sha256: "105e1989dd7462a504d60af024880918bb2936dbb9c97f46c4bd4923fe011411"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.3"
   cupertino_icons:
     dependency: "direct main"
     description:
       name: cupertino_icons
-      sha256: ba631d1c7f7bef6b729a622b7b752645a2d076dba9976925b8f25725a30e1ee6
+      sha256: "41e005c33bd814be4d3096aff55b1908d419fde52ca656c8c47719ec745873cd"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.8"
+    version: "1.0.9"
   curved_navigation_bar:
     dependency: "direct main"
     description:
@@ -185,6 +185,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.6"
+  dropdown_search:
+    dependency: transitive
+    description:
+      name: dropdown_search
+      sha256: f9414cca28d6414fdc1250f78a052bcb7ddb596f5a1affbca8e79737a979a60a
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.0"
   equatable:
     dependency: "direct main"
     description:

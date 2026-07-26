@@ -1,8 +1,8 @@
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
-import 'package:eventee/core/widgets/bottom_nav_bar.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
+import 'package:eventee/src/onboarding/views/onboarding_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -23,15 +23,14 @@ class _SignUpViewState extends State<SignUpView> {
     final vm = context.read<SignUpViewModel>();
 
     if (vm.formKey.currentState!.validate()) {
-      final success = await vm
-          .createUser(); 
+      final success = await vm.createUser();
 
       if (!mounted) return;
 
       if (success) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => BottomNavBar()),
+          MaterialPageRoute(builder: (context) => OnboardingView()),
         );
       } else {
         AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
@@ -49,7 +48,7 @@ class _SignUpViewState extends State<SignUpView> {
     if (success) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => BottomNavBar()),
+        MaterialPageRoute(builder: (context) => OnboardingView()),
       );
     } else {
       AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);

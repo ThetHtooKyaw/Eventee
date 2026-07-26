@@ -1,4 +1,4 @@
-import 'package:csc_picker_plus/csc_picker_plus.dart';
+import 'package:country_state_city_picker/country_state_city_picker.dart';
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
@@ -151,6 +151,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                         requiresValidation: true,
                       ),
                       child: _buildTextField(
+                        t,
                         'Name',
                         vm.nameController,
                         'Name can\'t be empty',
@@ -179,6 +180,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                         requiresValidation: true,
                       ),
                       child: _buildTextField(
+                        t,
                         'Phone Number',
                         vm.phNoController,
                         'Phone number can\'t be empty',
@@ -194,7 +196,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                       ),
                       onTap: () =>
                           _handleSave(updateAction: vm.updateDateOfBirth),
-                      child: _buildDatePicker(),
+                      child: _buildDatePicker(t),
                     ),
                     _buildCustomDivider(),
 
@@ -203,7 +205,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                       title: 'Address',
                       data: userData.address,
                       onTap: () => _handleSave(updateAction: vm.updateAddress),
-                      child: _buildAddAddress(vm),
+                      child: _buildAddAddress(t, vm),
                     ),
                   ],
                 ),
@@ -312,6 +314,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
   }
 
   Widget _buildTextField(
+    ThemeData theme,
     String label,
     TextEditingController controller,
     String? errorMessage,
@@ -326,9 +329,9 @@ class _AccountDetailViewState extends State<AccountDetailView> {
             Text(
               label,
               maxLines: 1,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(width: 40),
 
@@ -336,9 +339,9 @@ class _AccountDetailViewState extends State<AccountDetailView> {
               child: TextFormField(
                 controller: controller,
                 keyboardType: TextInputType.text,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   isDense: true,
@@ -357,7 +360,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
     );
   }
 
-  Widget _buildDatePicker() {
+  Widget _buildDatePicker(ThemeData theme) {
     return Selector<AccountDetailViewModel, DateTime?>(
       selector: (_, vm) => vm.selectedBirthday,
       builder: (context, selectedBirthday, child) {
@@ -376,14 +379,14 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                   children: [
                     Text(
                       'Birthday',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      style: theme.textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
 
                     Text(
                       vm.formatBirthday(selectedBirthday ?? DateTime.now()),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      style: theme.textTheme.bodyLarge?.copyWith(
                         color: AppColor.textPlaceholder,
                         fontWeight: FontWeight.bold,
                       ),
@@ -416,7 +419,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
     );
   }
 
-  Widget _buildAddAddress(AccountDetailViewModel vm) {
+  Widget _buildAddAddress(ThemeData theme, AccountDetailViewModel vm) {
     return Column(
       children: [
         MenuCard(
@@ -429,9 +432,9 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                 Text(
                   'Address',
                   maxLines: 1,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(width: 20),
 
@@ -439,7 +442,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                   child: TextField(
                     controller: vm.addressController,
                     keyboardType: TextInputType.text,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    style: theme.textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                     decoration: InputDecoration(
@@ -455,20 +458,23 @@ class _AccountDetailViewState extends State<AccountDetailView> {
 
         const SizedBox(height: 20),
 
-        CSCPickerPlus(
+        SelectState(
+          defaultValue: vm.country,
+          defaultState: vm.state,
+          defaultCity: vm.city,
           onCountryChanged: (value) => vm.setCountry(value),
           onStateChanged: (value) => vm.setState(value),
           onCityChanged: (value) => vm.setCity(value),
-          dropdownDecoration: BoxDecoration(
-            color: AppColor.white,
-            borderRadius: BorderRadius.circular(
-              AppFormat.secondaryBorderRadius,
-            ),
-          ),
-          disabledDropdownDecoration: BoxDecoration(
-            color: AppColor.placeholder,
-            borderRadius: BorderRadius.circular(
-              AppFormat.secondaryBorderRadius,
+          spacing: 20,
+          style: theme.textTheme.bodyLarge?.copyWith(color: AppColor.primary),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColor.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(
+                AppFormat.secondaryBorderRadius,
+              ),
+              borderSide: BorderSide.none,
             ),
           ),
         ),
