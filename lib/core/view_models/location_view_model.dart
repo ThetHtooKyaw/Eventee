@@ -15,6 +15,7 @@ class LocationViewModel extends BaseViewModel {
   Future<bool> requestLocationPermission() async {
     setError(null);
 
+    // Request location permission in the LocationService
     final response = await _locationService.requestLocationPermission();
 
     if (response is Failure) {
@@ -23,7 +24,20 @@ class LocationViewModel extends BaseViewModel {
     }
 
     final address = (response as Success).response as String;
-    await _accountService.updateAddress(newAddress: address);
+
+    if (address == LocationService.skipToken) {
+      return true;
+    }
+
+    // Update the user's address in the AccountService
+    final accountResponse = await _accountService.updateAddress(
+      newAddress: address,
+    );
+
+    if (accountResponse is Failure) {
+      setError(accountResponse.response.toString());
+      return false;
+    }
 
     return true;
   }

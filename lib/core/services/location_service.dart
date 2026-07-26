@@ -2,21 +2,33 @@ import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LocationService {
+  static const String _keyHasPermission = 'has_location_permission';
+  static const String skipToken = 'skipped_location_permission';
+
   Future<Object> requestLocationPermission() async {
     try {
-      bool serviceEnabled;
-      LocationPermission permission;
+      final prefs = await SharedPreferences.getInstance();
+      final hasPermissionBefore = prefs.getBool(_keyHasPermission) ?? false;
 
-      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         return Failure(
           response: 'Location services are disabled on this device.',
         );
       }
 
-      permission = await Geolocator.checkPermission();
+      var permission = await Geolocator.checkPermission();
+      if (hasPermissionBefore &&
+          (permission == LocationPermission.always ||
+              permission == LocationPermission.whileInUse)) {
+        return Success(response: skipToken);
+      }
+
+      await prefs.setBool(_keyHasPermission, true);
+
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {

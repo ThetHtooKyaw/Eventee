@@ -34,18 +34,15 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Future<void> initializeHomeScreen() async {
-    final locationViewModel = context.read<LocationViewModel>();
-    final success = await locationViewModel.requestLocationPermission();
+    final locationVm = context.read<LocationViewModel>();
+    final success = await locationVm.requestLocationPermission();
 
     if (!mounted) return;
 
     if (success) {
       await context.read<AccountViewModel>().loadUser();
     } else {
-      AppSnackbars.showErrorSnackbar(
-        context,
-        locationViewModel.errorMessage ?? 'Failed to get location permission.',
-      );
+      AppSnackbars.showErrorSnackbar(context, locationVm.errorMessage!);
     }
 
     if (mounted) {
