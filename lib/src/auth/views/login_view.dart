@@ -1,7 +1,9 @@
+import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/widgets/bottom_nav_bar.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
+import 'package:eventee/src/onboarding/views/onboarding_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,12 +18,13 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
+  final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
 
   Future<void> login() async {
     final vm = context.read<LoginViewModel>();
 
-    if (vm.formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate()) {
       final success = await vm.loginUser();
 
       if (!mounted) return;
@@ -39,15 +42,24 @@ class _LoginViewState extends State<LoginView> {
 
   Future<void> loginWithGoogle() async {
     final vm = context.read<LoginViewModel>();
-    final success = await vm.signInWithGoogle();
+    final result = await vm.signInWithGoogle();
 
     if (!mounted) return;
 
-    if (success) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const BottomNavBar()),
-      );
+    if (result != null && result is Map) {
+      final isNewUser = result['isNewUser'] as bool;
+      if (isNewUser) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const OnboardingView()),
+        );
+      } else {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const BottomNavBar()),
+          (route) => false,
+        );
+      }
     } else {
       AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
     }
@@ -81,7 +93,7 @@ class _LoginViewState extends State<LoginView> {
 
                   // TextFields
                   _buildLoginForm(vm),
-                  SizedBox(height: 20),
+                  SizedBox(height: 40),
 
                   // Action Buttons
                   ElevatedButton(
@@ -94,10 +106,10 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     child: Text("Login"),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 10),
 
                   Divider(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
 
                   ElevatedButton(
                     onPressed: vm.isActionLoading
@@ -156,7 +168,7 @@ class _LoginViewState extends State<LoginView> {
 
   Widget _buildLoginForm(LoginViewModel vm) {
     return Form(
-      key: vm.formKey,
+      key: _formKey,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -187,6 +199,7 @@ class _LoginViewState extends State<LoginView> {
                 },
                 icon: Icon(
                   _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  color: AppColor.primary,
                 ),
               ),
             ),

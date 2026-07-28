@@ -1,31 +1,62 @@
+import 'dart:io';
+
+import 'package:eventee/core/status/failure.dart';
+import 'package:eventee/core/status/success.dart';
 import 'package:eventee/core/utils/base_view_model.dart';
 import 'package:eventee/core/view_models/location_view_model.dart';
+import 'package:eventee/src/onboarding/repo/onboarding_service.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingViewModel extends BaseViewModel {
   // Dependencies
   final LocationViewModel _locationViewModel;
-  OnboardingViewModel(this._locationViewModel);
+  final OnboardingService _onboardingService;
+  OnboardingViewModel(this._locationViewModel, this._onboardingService);
 
   // Controllers
   final pageController = PageController();
-  final phoneController = TextEditingController();
   final addressController = TextEditingController();
   final dobCOntroller = TextEditingController();
 
   // Variables
   int currentPage = 0;
   int totalPages = 4;
+  String? _currentProfileAvatar;
+  File? _profileAvatar;
+  DateTime _selectedBirthday = DateTime(
+    DateTime.now().year - 18,
+    DateTime.now().month,
+    DateTime.now().day,
+  );
+  String? _phoneNumber;
   String? _country;
   String? _state;
   String? _city;
 
   // Getters
+  String? get currentProfileAvatar => _currentProfileAvatar;
+  File? get profileAvatar => _profileAvatar;
+  String? get phoneNumber => _phoneNumber;
   String? get country => _country;
   String? get state => _state;
   String? get city => _city;
 
   // Setters
+  void setCurrentPage(int index) {
+    currentPage = index;
+    notifyListeners();
+  }
+
+  void setBirthday(DateTime date) {
+    _selectedBirthday = date;
+    notifyListeners();
+  }
+
+  void setPhoneNo(String? number) {
+    _phoneNumber = number;
+    notifyListeners();
+  }
+
   void setCountry(String? value) {
     _country = value;
     notifyListeners();
@@ -46,32 +77,31 @@ class OnboardingViewModel extends BaseViewModel {
   void dispose() {
     super.dispose();
     pageController.dispose();
-    phoneController.dispose();
     addressController.dispose();
     dobCOntroller.dispose();
   }
 
-  void nextPage() {
-    if (currentPage < totalPages - 1) {
-      pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    } else {}
-  }
+  Future<bool> initializeProfileAvatar() async {
+    setScreenLoading(true);
+    setError(null);
 
-  void previousPage() {
-    if (currentPage > 0) {
-      pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+    final response = await _onboardingService.fetchCurrentProfileAvatar();
+
+    if (response is Failure) {
+      setError(response.response.toString());
+      setScreenLoading(false);
+      return false;
     }
+
+    _currentProfileAvatar = (response as Success).response as String;
+    notifyListeners();
+    setScreenLoading(false);
+    return true;
   }
 
   Future<bool> initialLocation() async {
-    setError(null);
     setScreenLoading(true);
+    setError(null);
 
     final locationData = await _locationViewModel.getCurrentLocation();
 
@@ -87,5 +117,84 @@ class OnboardingViewModel extends BaseViewModel {
     notifyListeners();
     setScreenLoading(false);
     return true;
+  }
+
+  Future<bool> submitOnboardingData() async {
+    setActionLoading(true);
+    setError(null);
+
+    final response = await _onboardingService.submitOnboardingData(
+      profileFile: _profileAvatar,
+      existingPhotoUrl: _currentProfileAvatar,
+      dateOfBirth: _selectedBirthday,
+      phoneNumber: _phoneNumber!,
+      address: formatAddress(),
+    );
+
+    if (response is Failure) {
+      setError(response.response.toString());
+      setActionLoading(false);
+      return false;
+    }
+
+    setActionLoading(false);
+    return true;
+  }
+
+  void nextPage() {
+    pageController.nextPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void previousPage() {
+    if (currentPage > 0) {
+      pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  ImageProvider? getProfileAvatar() {
+    if (_currentProfileAvatar != null && _currentProfileAvatar!.isNotEmpty) {
+      return NetworkImage(_currentProfileAvatar!);
+    }
+
+    if (_profileAvatar != null) {
+      return FileImage(_profileAvatar!);
+    }
+
+    return null;
+  }
+
+  Future<bool> pickProfileAvatar() async {
+    setActionLoading(true);
+    setError(null);
+
+    final response = await _onboardingService.pickProfileAvatar();
+
+    if (response is Failure) {
+      setError(response.response.toString());
+      setActionLoading(false);
+      return false;
+    }
+
+    _profileAvatar = (response as Success).response as File?;
+    _currentProfileAvatar = null;
+    setActionLoading(false);
+    return true;
+  }
+
+  String formatAddress() {
+    final parts = [
+      addressController.text.trim(),
+      _city,
+      _state,
+      _country,
+    ].where((part) => part != null && part.isNotEmpty).join(', ');
+
+    return parts;
   }
 }

@@ -60,6 +60,7 @@ dependencies:
   geocoding: ^3.0.0
   shared_preferences: ^2.5.5
   country_state_city_picker: ^2.0.0
+  intl_phone_number_input: ^0.7.5
 
 dev_dependencies:
   flutter_test:

@@ -15,6 +15,8 @@ class CreateEventView extends StatefulWidget {
 }
 
 class _CreateEventViewState extends State<CreateEventView> {
+  final _formKey = GlobalKey<FormState>();
+
   Future<void> _handleUpload() async {
     final vm = context.read<CreateEventViewModel>();
 
@@ -28,7 +30,7 @@ class _CreateEventViewState extends State<CreateEventView> {
       return;
     }
 
-    if (vm.formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate()) {
       await vm.uploadEventDetail();
 
       if (vm.errorMessage != null) {
@@ -65,7 +67,7 @@ class _CreateEventViewState extends State<CreateEventView> {
                 horizontal: AppFormat.primaryPadding,
               ),
               child: Form(
-                key: vm.formKey,
+                key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

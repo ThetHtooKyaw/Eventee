@@ -3,12 +3,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 
 class AuthService {
   final _auth = FirebaseAuth.instance;
-  final _firestore = FirebaseFirestore.instance;
   final _googleSignIn = GoogleSignIn();
+  final _firestore = FirebaseFirestore.instance;
+  final _storage = FirebaseStorage.instance;
 
   CollectionReference get _usersCollection => _firestore.collection('users');
 
@@ -17,10 +20,7 @@ class AuthService {
     required String password,
   }) async {
     try {
-      await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
 
       return Success(response: 'User logged in successfully!');
     } on FirebaseAuthException catch (e) {
@@ -63,11 +63,11 @@ class AuthService {
     }
   }
 
-  Future<Object> signUpWithGoogle() async {
+  Future<Object> authenticateWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        return Failure(response: 'Google sign-in was cancelled.');
+        return Failure(response: 'Google authentication was cancelled.');
       }
 
       final GoogleSignInAuthentication googleAuth =
@@ -80,26 +80,48 @@ class AuthService {
       final userCredential = await _auth.signInWithCredential(credential);
       final user = userCredential.user;
       if (user == null) {
-        return Failure(response: 'Failed to sign in with Google.');
+        return Failure(
+          response: 'Account setup could not be completed. Please try again.',
+        );
       }
 
       final userDoc = await _usersCollection.doc(user.uid).get();
+      final isNewUser = !userDoc.exists;
+
+      // Check user is new user
       if (!userDoc.exists) {
+        String? downloadUrl;
+
+        if (user.photoURL != null && user.photoURL!.isNotEmpty) {
+          final response = await http.get(Uri.parse(user.photoURL!));
+          if (response.statusCode == 200) {
+            final ref = _storage.ref().child('profile_images/${user.uid}.jpg');
+            final snapshot = await ref.putData(response.bodyBytes);
+            downloadUrl = await snapshot.ref.getDownloadURL();
+          }
+        }
+
         final newUser = AppUser(
           uid: user.uid,
           username: user.displayName ?? '',
           email: user.email ?? '',
-          photoUrl: user.photoURL ?? '',
+          photoUrl: downloadUrl ?? '',
           phoneNumber: '',
           address: '',
           dateOfBirth: null,
         );
+
         await _usersCollection.doc(user.uid).set(newUser.toMap());
       }
 
-      return Success(response: 'User signed in with Google successfully!');
+      return Success(
+        response: {
+          'message': 'User authenticated with Google successfully!',
+          'isNewUser': isNewUser,
+        },
+      );
     } catch (e) {
-      return Failure(response: 'Failed to sign in with Google: $e');
+      return Failure(response: 'Failed to authenticate with Google: $e');
     }
   }
 }

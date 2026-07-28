@@ -14,21 +14,24 @@ class AccountDetailViewModel extends BaseViewModel {
 
   // Controllers
   final nameController = TextEditingController();
-  final phNoController = TextEditingController();
   final addressController = TextEditingController();
 
   // Variables
-  final _formKey = GlobalKey<FormState>();
-  File? _profileImage;
-  DateTime? _selectedBirthday;
+  File? _profileAvatar;
+  DateTime? _selectedBirthday = DateTime(
+    DateTime.now().year - 18,
+    DateTime.now().month,
+    DateTime.now().day,
+  );
+  String? _phoneNumber;
   String? _country;
   String? _state;
   String? _city;
 
   // Getters
-  GlobalKey<FormState> get formKey => _formKey;
-  File? get profileImage => _profileImage;
+  File? get profileAvatar => _profileAvatar;
   DateTime? get selectedBirthday => _selectedBirthday;
+  String? get phoneNumber => _phoneNumber;
   String? get country => _country;
   String? get state => _state;
   String? get city => _city;
@@ -36,6 +39,11 @@ class AccountDetailViewModel extends BaseViewModel {
   // Setters
   void setBirthday(DateTime? date) {
     _selectedBirthday = date;
+    notifyListeners();
+  }
+
+  void setPhoneNo(String? number) {
+    _phoneNumber = number;
     notifyListeners();
   }
 
@@ -58,22 +66,20 @@ class AccountDetailViewModel extends BaseViewModel {
   @override
   void dispose() {
     nameController.dispose();
-    phNoController.dispose();
     addressController.dispose();
     super.dispose();
   }
 
   void initialize(AppUser user) {
     nameController.text = user.username;
-    phNoController.text = user.phoneNumber;
     addressController.text = user.address;
     _selectedBirthday = user.dateOfBirth;
     notifyListeners();
   }
 
-  ImageProvider? getAvatarImage(String photoUrl) {
-    if (_profileImage != null) {
-      return FileImage(_profileImage!);
+  ImageProvider? getProfileAvatar(String photoUrl) {
+    if (_profileAvatar != null) {
+      return FileImage(_profileAvatar!);
     }
     if (photoUrl.isNotEmpty) {
       return NetworkImage(photoUrl);
@@ -82,11 +88,11 @@ class AccountDetailViewModel extends BaseViewModel {
     return null;
   }
 
-  Future<bool> pickProfileImage() async {
+  Future<bool> pickProfileAvatar() async {
     setActionLoading(true);
     setError(null);
 
-    final response = await _accountService.pickProfileImage();
+    final response = await _accountService.pickProfileAvatar();
 
     if (response is Failure) {
       setError(response.response.toString());
@@ -94,24 +100,24 @@ class AccountDetailViewModel extends BaseViewModel {
       return false;
     }
 
-    _profileImage = (response as Success).response as File?;
+    _profileAvatar = (response as Success).response as File?;
     setActionLoading(false);
     return true;
   }
 
-  Future<bool> updateProfileImage() async {
+  Future<bool> updateProfileAvatar() async {
     setActionLoading(true);
     setError(null);
     setSuccess(null);
 
-    if (profileImage == null) {
+    if (profileAvatar == null) {
       setError('Please pick an image first.');
       setActionLoading(false);
       return false;
     }
 
-    final response = await _accountService.updateProfileImage(
-      profileFile: profileImage!,
+    final response = await _accountService.updateProfileAvatar(
+      profileFile: profileAvatar!,
     );
 
     if (response is Failure) {
@@ -150,8 +156,14 @@ class AccountDetailViewModel extends BaseViewModel {
     setError(null);
     setSuccess(null);
 
+    if (_phoneNumber == null || _phoneNumber!.isEmpty) {
+      setError('Phone number cannot be empty.');
+      setActionLoading(false);
+      return false;
+    }
+
     final response = await _accountService.updatePhoneNumber(
-      newPhoneNumber: phNoController.text.trim(),
+      newPhoneNumber: _phoneNumber!,
     );
 
     if (response is Failure) {
@@ -189,6 +201,12 @@ class AccountDetailViewModel extends BaseViewModel {
     setActionLoading(true);
     setError(null);
     setSuccess(null);
+
+    if (formatAddress().isEmpty) {
+      setError('Address cannot be empty.');
+      setActionLoading(false);
+      return false;
+    }
 
     final response = await _accountService.updateAddress(
       newAddress: formatAddress(),

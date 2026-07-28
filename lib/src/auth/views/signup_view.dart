@@ -2,6 +2,7 @@ import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
+import 'package:eventee/core/widgets/bottom_nav_bar.dart';
 import 'package:eventee/src/onboarding/views/onboarding_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -16,13 +17,14 @@ class SignUpView extends StatefulWidget {
 }
 
 class _SignUpViewState extends State<SignUpView> {
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  final _formKey = GlobalKey<FormState>();
+  bool obscurePassword = true;
+  bool obscureConfirmPassword = true;
 
   Future<void> signUp() async {
     final vm = context.read<SignUpViewModel>();
 
-    if (vm.formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate()) {
       final success = await vm.createUser();
 
       if (!mounted) return;
@@ -40,16 +42,24 @@ class _SignUpViewState extends State<SignUpView> {
 
   Future<void> signUpWithGoogle() async {
     final vm = context.read<SignUpViewModel>();
-
-    final success = await vm.signUpWithGoogle();
+    final result = await vm.signUpWithGoogle();
 
     if (!mounted) return;
 
-    if (success) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => OnboardingView()),
-      );
+    if (result != null && result is Map) {
+      final isNewUser = result['isNewUser'] as bool;
+      if (isNewUser) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => OnboardingView()),
+        );
+      } else {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => BottomNavBar()),
+          (r) => false,
+        );
+      }
     } else {
       AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
     }
@@ -65,35 +75,31 @@ class _SignUpViewState extends State<SignUpView> {
         children: [
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppFormat.primaryPadding,
-                vertical: AppFormat.secondaryPadding,
-              ),
+              padding: const EdgeInsets.all(AppFormat.primaryPadding),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Title
-                  Text("Unlock the Future of", style: t.textTheme.displayLarge),
-                  const SizedBox(height: 10),
                   Text(
-                    "Event Booking App",
-                    style: t.textTheme.displayLarge?.copyWith(
-                      color: AppColor.primary,
-                    ),
+                    "Unlock the Future of \nEvent Booking App",
+                    textAlign: TextAlign.center,
+                    style: t.textTheme.displayLarge,
                   ),
+
                   const SizedBox(height: 20),
 
                   Text(
                     "Discover, book, and experience unforgettable moments effortlessly",
                     textAlign: TextAlign.center,
-                    style: t.textTheme.titleSmall?.copyWith(
-                      color: AppColor.placeholder,
+                    style: t.textTheme.bodyLarge?.copyWith(
+                      color: AppColor.textPlaceholder,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 60),
 
                   // Text Fields
                   _buildSignUpForm(vm),
+                  SizedBox(height: 40),
 
                   ElevatedButton(
                     onPressed: vm.isActionLoading ? null : () => signUp(),
@@ -102,10 +108,10 @@ class _SignUpViewState extends State<SignUpView> {
                     ),
                     child: Text("Sign up"),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 10),
 
                   Divider(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
 
                   // Action Buttons
                   ElevatedButton(
@@ -162,27 +168,30 @@ class _SignUpViewState extends State<SignUpView> {
 
   Widget _buildSignUpForm(SignUpViewModel vm) {
     return Form(
-      key: vm.formKey,
+      key: _formKey,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          TextFormField(
+          _buildTextField(
             controller: vm.nameController,
             keyboardType: TextInputType.name,
-            decoration: InputDecoration(labelText: "Name"),
+            labelText: "Name",
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter your name';
+              }
+              if (value.length < 4) {
+                return 'Name must be at least 4 characters long';
               }
               return null;
             },
           ),
           SizedBox(height: 16),
 
-          TextFormField(
+          _buildTextField(
             controller: vm.emailController,
             keyboardType: TextInputType.emailAddress,
-            decoration: InputDecoration(labelText: "Email"),
+            labelText: "Email",
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter your email';
@@ -192,21 +201,10 @@ class _SignUpViewState extends State<SignUpView> {
           ),
           SizedBox(height: 16),
 
-          TextFormField(
+          _buildPasswordField(
             controller: vm.passwordController,
-            keyboardType: TextInputType.text,
-            obscureText: _obscurePassword,
-            decoration: InputDecoration(
-              labelText: "Password",
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                ),
-                onPressed: () {
-                  setState(() => _obscurePassword = !_obscurePassword);
-                },
-              ),
-            ),
+            labelText: "Password",
+            obscureIconState: obscurePassword,
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter your password';
@@ -216,29 +214,16 @@ class _SignUpViewState extends State<SignUpView> {
               }
               return null;
             },
+            onObscureIconTap: () {
+              setState(() => obscurePassword = !obscurePassword);
+            },
           ),
-
           SizedBox(height: 16),
 
-          TextFormField(
+          _buildPasswordField(
             controller: vm.confirmPasswordController,
-            keyboardType: TextInputType.text,
-            obscureText: _obscureConfirmPassword,
-            decoration: InputDecoration(
-              labelText: "Confirm Password",
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscureConfirmPassword
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                ),
-                onPressed: () {
-                  setState(
-                    () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                  );
-                },
-              ),
-            ),
+            labelText: "Confirm Password",
+            obscureIconState: obscureConfirmPassword,
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter your confirm password';
@@ -248,10 +233,51 @@ class _SignUpViewState extends State<SignUpView> {
               }
               return null;
             },
+            onObscureIconTap: () {
+              setState(() => obscureConfirmPassword = !obscureConfirmPassword);
+            },
           ),
-          SizedBox(height: 16),
         ],
       ),
+    );
+  }
+
+  TextFormField _buildPasswordField({
+    required TextEditingController controller,
+    required String labelText,
+    required String? Function(String?) validator,
+    required bool obscureIconState,
+    required VoidCallback onObscureIconTap,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.text,
+      obscureText: obscureIconState,
+      decoration: InputDecoration(
+        labelText: labelText,
+        suffixIcon: IconButton(
+          onPressed: onObscureIconTap,
+          icon: Icon(
+            obscureIconState ? Icons.visibility_off : Icons.visibility,
+            color: AppColor.primary,
+          ),
+        ),
+      ),
+      validator: validator,
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required TextInputType keyboardType,
+    required String labelText,
+    required String? Function(String?) validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(labelText: labelText),
+      validator: validator,
     );
   }
 }

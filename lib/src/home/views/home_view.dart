@@ -9,7 +9,7 @@ import 'package:eventee/src/booking/repo/booking_service.dart';
 import 'package:eventee/src/booking/view_models/event_details_view_model.dart';
 import 'package:eventee/src/create_event/model/event.dart';
 import 'package:eventee/src/booking/views/event_details_view.dart';
-import 'package:eventee/src/home/view_models/home_view_model.dart'; // Corrected path
+import 'package:eventee/src/home/view_models/home_view_model.dart';
 import 'package:eventee/src/home/widgets/event_list_skeleton.dart';
 import 'package:eventee/src/home/widgets/section_title.dart';
 import 'package:flutter/material.dart';

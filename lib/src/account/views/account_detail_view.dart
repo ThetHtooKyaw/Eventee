@@ -9,6 +9,7 @@ import 'package:eventee/src/account/widgets/account_menu.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:provider/provider.dart';
 
 class AccountDetailView extends StatefulWidget {
@@ -19,6 +20,8 @@ class AccountDetailView extends StatefulWidget {
 }
 
 class _AccountDetailViewState extends State<AccountDetailView> {
+  final _formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     super.initState();
@@ -37,7 +40,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
     final vm = context.read<AccountDetailViewModel>();
     final accountVM = context.read<AccountViewModel>();
 
-    if (requiresValidation && !vm.formKey.currentState!.validate()) return;
+    if (requiresValidation && !_formKey.currentState!.validate()) return;
 
     final success = await updateAction();
 
@@ -67,21 +70,21 @@ class _AccountDetailViewState extends State<AccountDetailView> {
             height: MediaQuery.of(context).size.height * 0.95,
             title: 'Profile Image',
             onTap: () async {
-              await _handleSave(updateAction: vm.updateProfileImage);
+              await _handleSave(updateAction: vm.updateProfileAvatar);
             },
             child: Column(
               children: [
                 // Image
                 Center(
                   child: GestureDetector(
-                    onTap: () => vm.pickProfileImage(),
+                    onTap: () => vm.pickProfileAvatar(),
                     child: _buildAvatar(avatarImage, radius: 140, iconSize: 60),
                   ),
                 ),
                 const SizedBox(height: 20),
 
                 // Pick Button
-                _buildActionButton('Pick Image', () => vm.pickProfileImage()),
+                _buildActionButton('Pick Image', () => vm.pickProfileAvatar()),
               ],
             ),
           ),
@@ -98,7 +101,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
       (vm) => vm.user,
     );
 
-    final avatarImage = vm.getAvatarImage(userData?.photoUrl ?? '');
+    final profileAvatar = vm.getProfileAvatar(userData?.photoUrl ?? '');
 
     return Scaffold(
       appBar: AppBar(
@@ -117,7 +120,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
         title: Text("Personal Information", style: t.textTheme.titleSmall),
       ),
       body: Form(
-        key: vm.formKey,
+        key: _formKey,
         child: Padding(
           padding: const EdgeInsets.all(AppFormat.primaryPadding),
           child: Column(
@@ -126,8 +129,8 @@ class _AccountDetailViewState extends State<AccountDetailView> {
               // Image
               Center(
                 child: GestureDetector(
-                  onTap: () => _handlePickProfileImage(vm, avatarImage),
-                  child: _buildAvatar(avatarImage),
+                  onTap: () => _handlePickProfileImage(vm, profileAvatar),
+                  child: _buildAvatar(profileAvatar),
                 ),
               ),
               const SizedBox(height: 10),
@@ -135,7 +138,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
               // Change Button
               _buildActionButton(
                 'Change',
-                () => _handlePickProfileImage(vm, avatarImage),
+                () => _handlePickProfileImage(vm, profileAvatar),
               ),
               const SizedBox(height: 20),
 
@@ -150,12 +153,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                         updateAction: vm.updateUsername,
                         requiresValidation: true,
                       ),
-                      child: _buildTextField(
-                        t,
-                        'Name',
-                        vm.nameController,
-                        'Name can\'t be empty',
-                      ),
+                      child: _buildUsernameField(t, vm),
                     ),
                     _buildCustomDivider(),
 
@@ -179,12 +177,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                         updateAction: vm.updatePhoneNumber,
                         requiresValidation: true,
                       ),
-                      child: _buildTextField(
-                        t,
-                        'Phone Number',
-                        vm.phNoController,
-                        'Phone number can\'t be empty',
-                      ),
+                      child: _buildPhoneNumberField(t, vm),
                     ),
                     _buildCustomDivider(),
 
@@ -196,7 +189,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                       ),
                       onTap: () =>
                           _handleSave(updateAction: vm.updateDateOfBirth),
-                      child: _buildDatePicker(t),
+                      child: _buildDateOfBirthPicker(t),
                     ),
                     _buildCustomDivider(),
 
@@ -205,13 +198,55 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                       title: 'Address',
                       data: userData.address,
                       onTap: () => _handleSave(updateAction: vm.updateAddress),
-                      child: _buildAddAddress(t, vm),
+                      child: _buildAddressPicker(t, vm),
                     ),
                   ],
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhoneNumberField(ThemeData theme, AccountDetailViewModel vm) {
+    return InternationalPhoneNumberInput(
+      autoValidateMode: AutovalidateMode.onUserInteraction,
+      onInputChanged: (PhoneNumber number) {
+        vm.setPhoneNo(number.phoneNumber);
+      },
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Phone number can\'t be empty';
+        }
+        return null;
+      },
+      selectorConfig: SelectorConfig(
+        selectorType: PhoneInputSelectorType.DIALOG,
+        setSelectorButtonAsPrefixIcon: true,
+        leadingPadding: 20,
+        trailingSpace: true,
+      ),
+      textStyle: theme.textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.bold,
+      ),
+      inputDecoration: InputDecoration(
+        hintText: 'Enter your phone number',
+        hintStyle: theme.textTheme.bodyLarge?.copyWith(
+          color: AppColor.textPlaceholder,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppFormat.secondaryBorderRadius),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppFormat.secondaryBorderRadius),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
         ),
       ),
     );
@@ -313,12 +348,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
     );
   }
 
-  Widget _buildTextField(
-    ThemeData theme,
-    String label,
-    TextEditingController controller,
-    String? errorMessage,
-  ) {
+  Widget _buildUsernameField(ThemeData theme, AccountDetailViewModel vm) {
     return MenuCard(
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -327,7 +357,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
         child: Row(
           children: [
             Text(
-              label,
+              'Username',
               maxLines: 1,
               style: theme.textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.bold,
@@ -337,7 +367,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
 
             Expanded(
               child: TextFormField(
-                controller: controller,
+                controller: vm.nameController,
                 keyboardType: TextInputType.text,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.bold,
@@ -348,7 +378,10 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return errorMessage;
+                    return 'Name can\'t be empty';
+                  }
+                  if (value.length < 4) {
+                    return 'Name must be at least 4 characters long';
                   }
                   return null;
                 },
@@ -360,7 +393,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
     );
   }
 
-  Widget _buildDatePicker(ThemeData theme) {
+  Widget _buildDateOfBirthPicker(ThemeData theme) {
     return Selector<AccountDetailViewModel, DateTime?>(
       selector: (_, vm) => vm.selectedBirthday,
       builder: (context, selectedBirthday, child) {
@@ -407,7 +440,11 @@ class _AccountDetailViewState extends State<AccountDetailView> {
               ),
               child: CupertinoDatePicker(
                 mode: CupertinoDatePickerMode.date,
-                initialDateTime: DateTime.now(),
+                initialDateTime: DateTime(
+                  DateTime.now().year - 18,
+                  DateTime.now().month,
+                  DateTime.now().day,
+                ),
                 minimumDate: DateTime(1900),
                 maximumDate: DateTime.now(),
                 onDateTimeChanged: (newDate) => vm.setBirthday(newDate),
@@ -419,7 +456,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
     );
   }
 
-  Widget _buildAddAddress(ThemeData theme, AccountDetailViewModel vm) {
+  Widget _buildAddressPicker(ThemeData theme, AccountDetailViewModel vm) {
     return Column(
       children: [
         MenuCard(

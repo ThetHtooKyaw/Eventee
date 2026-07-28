@@ -23,13 +23,11 @@ class CreateEventViewModel extends BaseViewModel {
   final eventDetailController = TextEditingController();
 
   // Variables
-  final _formKey = GlobalKey<FormState>();
   final List<String> categories = ['Music', 'Sport', 'Art', 'Food'];
   File? _eventImage;
   String? _selectedCategory;
 
   // Getters
-  GlobalKey<FormState> get formKey => _formKey;
   File? get eventImage => _eventImage;
   String? get selectedCategory => _selectedCategory;
 

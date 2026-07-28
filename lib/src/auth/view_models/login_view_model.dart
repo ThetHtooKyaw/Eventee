@@ -1,3 +1,4 @@
+import 'package:eventee/core/status/success.dart';
 import 'package:eventee/core/utils/base_view_model.dart';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/src/auth/repo/auth_service.dart';
@@ -11,12 +12,6 @@ class LoginViewModel extends BaseViewModel {
   // Controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-
-  // Variables
-  final _formKey = GlobalKey<FormState>();
-
-  // Getters
-  GlobalKey<FormState> get formKey => _formKey;
 
   // Use Cases
   Future<bool> loginUser() async {
@@ -38,20 +33,20 @@ class LoginViewModel extends BaseViewModel {
     return true;
   }
 
-  Future<bool> signInWithGoogle() async {
+  Future<Object?> signInWithGoogle() async {
     setActionLoading(true);
     setError(null);
 
-    final response = await _authService.signUpWithGoogle();
+    final response = await _authService.authenticateWithGoogle();
 
     if (response is Failure) {
       setError(response.response.toString());
       setActionLoading(false);
-      return false;
+      return null;
     }
 
     setActionLoading(false);
-    return true;
+    return (response as Success).response;
   }
 
   @override

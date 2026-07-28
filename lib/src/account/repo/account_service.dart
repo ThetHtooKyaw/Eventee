@@ -43,7 +43,7 @@ class AccountService {
     }
   }
 
-  Future<Object> pickProfileImage() async {
+  Future<Object> pickProfileAvatar() async {
     try {
       final XFile? pickedFile = await _imagePicker.pickImage(
         source: ImageSource.gallery,
@@ -62,16 +62,14 @@ class AccountService {
     }
   }
 
-  Future<Object> updateProfileImage({required File profileFile}) async {
+  Future<Object> updateProfileAvatar({required File profileFile}) async {
     try {
-      final userData = _currentUserId;
-
-      final ref = _storage.ref().child('profile_images/$userData.jpg');
-
+      final uid = _currentUserId;
+      final ref = _storage.ref().child('profile_images/$uid.jpg');
       final snapshot = await ref.putFile(profileFile);
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      await _usersCollection.doc(userData).update({'photoUrl': downloadUrl});
+      await _usersCollection.doc(uid).update({'photoUrl': downloadUrl});
 
       return Success(response: 'Profile image updated successfully!');
     } catch (e) {
