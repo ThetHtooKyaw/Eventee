@@ -1,7 +1,10 @@
-import 'package:eventee/src/create_event/model/event.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:eventee/src/event/model/booking.dart';
 
-class BookingModel {
-  final String id;
+class EventHistoryModel {
+  final String userId;
+  final String bookingId;
+  final String eventId;
   final String imageUrl;
   final String title;
   final String location;
@@ -13,9 +16,12 @@ class BookingModel {
   final double total;
   final int quantity;
   final String status;
+  final DateTime bookedAt;
 
-  const BookingModel({
-    required this.id,
+  const EventHistoryModel({
+    required this.userId,
+    required this.bookingId,
+    required this.eventId,
     required this.imageUrl,
     required this.location,
     required this.date,
@@ -27,11 +33,14 @@ class BookingModel {
     required this.total,
     required this.quantity,
     required this.status,
+    required this.bookedAt,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      'userId': userId,
+      'bookingId': bookingId,
+      'eventId': eventId,
       'imageUrl': imageUrl,
       'title': title,
       'location': location,
@@ -43,12 +52,15 @@ class BookingModel {
       'total': total,
       'quantity': quantity,
       'status': status,
+      'bookedAt': FieldValue.serverTimestamp(),
     };
   }
 
-  factory BookingModel.fromMap(Map<String, dynamic> map) {
-    return BookingModel(
-      id: map['id'] ?? '',
+  factory EventHistoryModel.fromMap(Map<String, dynamic> map) {
+    return EventHistoryModel(
+      userId: map['userId'],
+      bookingId: map['bookingId'] ?? '',
+      eventId: map['eventId'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
       title: map['title'] ?? 'Unnamed Event',
       location: map['location'] ?? '',
@@ -60,28 +72,32 @@ class BookingModel {
       total: double.tryParse(map['total']?.toString() ?? '0') ?? 0,
       quantity: int.tryParse(map['quantity']?.toString() ?? '0') ?? 0,
       status: map['status'] ?? 'unknown',
+      bookedAt: (map['bookedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
-  factory BookingModel.fromEvent({
-    required EventModel event,
-    required double total,
-    required int quantity,
-    required String status,
+  factory EventHistoryModel.fromBooking({
+    required String userId,
+    required String bookingId,
+    required BookingModel bookedEvent,
+    required DateTime bookedAt,
   }) {
-    return BookingModel(
-      id: event.id,
-      imageUrl: event.imageUrl,
-      title: event.title,
-      location: event.location,
-      date: event.date,
-      startTime: event.startTime,
-      endTime: event.endTime,
-      price: event.price,
-      description: event.description,
-      total: total,
-      quantity: quantity,
-      status: status,
+    return EventHistoryModel(
+      userId: userId,
+      bookingId: bookingId,
+      eventId: bookedEvent.id,
+      imageUrl: bookedEvent.imageUrl,
+      title: bookedEvent.title,
+      location: bookedEvent.location,
+      date: bookedEvent.date,
+      startTime: bookedEvent.startTime,
+      endTime: bookedEvent.endTime,
+      price: bookedEvent.price,
+      description: bookedEvent.description,
+      total: bookedEvent.total,
+      quantity: bookedEvent.quantity,
+      status: bookedEvent.status,
+      bookedAt: bookedAt,
     );
   }
 }

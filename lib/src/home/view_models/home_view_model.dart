@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
 import 'package:eventee/core/utils/base_view_model.dart';
-import 'package:eventee/src/create_event/model/event.dart';
-import 'package:eventee/src/create_event/repo/admin_service.dart';
+import 'package:eventee/src/event/model/event.dart';
+import 'package:eventee/src/event/repo/create_event_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

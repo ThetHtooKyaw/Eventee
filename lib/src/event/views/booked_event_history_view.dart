@@ -4,26 +4,26 @@ import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/widgets/app_error.dart';
 import 'package:eventee/core/widgets/skeleton_widget.dart';
-import 'package:eventee/src/booking/models/event_history.dart';
-import 'package:eventee/src/booking/view_models/booking_history_view_model.dart';
-import 'package:eventee/src/booking/widgets/custom_icon_label.dart';
+import 'package:eventee/src/event/model/event_history.dart';
+import 'package:eventee/src/event/view_models/booked_event_history_view_model.dart';
+import 'package:eventee/src/event/widgets/custom_icon_label.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
 
-class BookingHistoryView extends StatefulWidget {
-  const BookingHistoryView({super.key});
+class BookedEventHistoryView extends StatefulWidget {
+  const BookedEventHistoryView({super.key});
 
   @override
-  State<BookingHistoryView> createState() => _BookingHistoryViewState();
+  State<BookedEventHistoryView> createState() => _BookedEventHistoryViewState();
 }
 
-class _BookingHistoryViewState extends State<BookingHistoryView> {
+class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
   @override
   initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<BookingHistoryViewModel>().fetchBookingHistory();
+      context.read<BookedEventHistoryViewModel>().fetchBookingHistory();
     });
   }
 
@@ -49,14 +49,14 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
           ),
         ),
 
-        body: Selector<BookingHistoryViewModel, String?>(
+        body: Selector<BookedEventHistoryViewModel, String?>(
           selector: (_, vm) => vm.errorMessage,
           builder: (context, errorMessage, child) {
             if (errorMessage != null) {
               return AppError(errorMessage: errorMessage);
             }
 
-            return Selector<BookingHistoryViewModel, bool>(
+            return Selector<BookedEventHistoryViewModel, bool>(
               selector: (_, vm) => vm.isScreenLoading,
               builder: (context, isScreenLoading, child) {
                 if (isScreenLoading) {
@@ -64,11 +64,11 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
                     message: 'Loading booking history',
                   );
                 }
-                final vm = context.read<BookingHistoryViewModel>();
+                final vm = context.read<BookedEventHistoryViewModel>();
 
                 return TabBarView(
                   children: [
-                    Selector<BookingHistoryViewModel, List<EventHistoryModel>>(
+                    Selector<BookedEventHistoryViewModel, List<EventHistoryModel>>(
                       selector: (_, vm) => vm.activeEventList,
                       builder: (context, activeEvents, child) {
                         return _buildBookingList(
@@ -78,7 +78,7 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
                         );
                       },
                     ),
-                    Selector<BookingHistoryViewModel, List<EventHistoryModel>>(
+                    Selector<BookedEventHistoryViewModel, List<EventHistoryModel>>(
                       selector: (_, vm) => vm.completedEventList,
                       builder: (context, completedEvents, child) {
                         return _buildBookingList(
@@ -88,7 +88,7 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
                         );
                       },
                     ),
-                    Selector<BookingHistoryViewModel, List<EventHistoryModel>>(
+                    Selector<BookedEventHistoryViewModel, List<EventHistoryModel>>(
                       selector: (_, vm) => vm.cancelledEventList,
                       builder: (context, cancelledEvents, child) {
                         return _buildBookingList(
@@ -109,7 +109,7 @@ class _BookingHistoryViewState extends State<BookingHistoryView> {
   }
 
   Widget _buildBookingList(
-    BookingHistoryViewModel vm,
+    BookedEventHistoryViewModel vm,
     List<EventHistoryModel> bookings,
     String emptyMessage,
   ) {

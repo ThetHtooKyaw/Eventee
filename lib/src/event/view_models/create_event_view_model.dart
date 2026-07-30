@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
 import 'package:eventee/core/utils/base_view_model.dart';
-import 'package:eventee/src/create_event/repo/admin_service.dart';
-import 'package:eventee/src/create_event/view_models/params/upload_event_params.dart';
+import 'package:eventee/src/event/repo/create_event_service.dart';
+import 'package:eventee/src/event/view_models/params/create_event_params.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -154,7 +154,7 @@ class CreateEventViewModel extends BaseViewModel {
       baseEndTime.minute,
     );
 
-    final params = UploadEventParams(
+    final params = CreateEventParams(
       imageUrl: _eventImage!,
       title: eventNameController.text.trim(),
       location: eventLocationController.text.trim(),

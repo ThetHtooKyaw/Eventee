@@ -1,7 +1,7 @@
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/utils/base_view_model.dart';
-import 'package:eventee/src/booking/models/booking.dart';
-import 'package:eventee/src/booking/repo/booking_service.dart';
+import 'package:eventee/src/event/model/booking.dart';
+import 'package:eventee/src/event/repo/booked_event_service.dart';
 
 class EventDetailsViewModel extends BaseViewModel {
   // Dependencies

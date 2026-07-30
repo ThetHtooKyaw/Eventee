@@ -6,13 +6,13 @@ import 'package:eventee/src/account/view_models/account_detail_view_model.dart';
 import 'package:eventee/src/account/views/account_detail_view.dart';
 import 'package:eventee/src/account/widgets/account_menu.dart';
 import 'package:eventee/src/account/widgets/account_skeleton.dart';
-import 'package:eventee/src/create_event/repo/admin_service.dart';
-import 'package:eventee/src/create_event/views/create_event_view.dart';
+import 'package:eventee/src/event/repo/create_event_service.dart';
+import 'package:eventee/src/event/views/create_event_view.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
 import 'package:eventee/src/auth/views/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:eventee/src/create_event/view_models/create_event_view_model.dart';
+import 'package:eventee/src/event/view_models/create_event_view_model.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
 
 class AccountView extends StatefulWidget {

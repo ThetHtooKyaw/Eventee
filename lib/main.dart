@@ -9,12 +9,12 @@ import 'package:eventee/src/auth/view_models/signup_view_model.dart';
 import 'package:eventee/src/account/repo/account_service.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
 import 'package:eventee/src/auth/view_models/login_view_model.dart';
-import 'package:eventee/src/create_event/repo/admin_service.dart';
-import 'package:eventee/src/booking/view_models/booking_history_view_model.dart';
+import 'package:eventee/src/event/repo/create_event_service.dart';
+import 'package:eventee/src/event/view_models/booked_event_history_view_model.dart';
 import 'package:eventee/src/home/view_models/home_view_model.dart';
 import 'package:eventee/src/auth/repo/auth_service.dart';
 import 'package:eventee/src/auth/views/login_view.dart';
-import 'package:eventee/src/booking/repo/booking_service.dart';
+import 'package:eventee/src/event/repo/booked_event_service.dart';
 import 'package:eventee/src/onboarding/repo/onboarding_service.dart';
 import 'package:eventee/src/onboarding/view_models/onboarding_view_model.dart';
 import 'package:eventee/src/onboarding/views/onboarding_view.dart';
@@ -73,7 +73,7 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (context) =>
-              BookingHistoryViewModel(context.read<BookingService>()),
+              BookedEventHistoryViewModel(context.read<BookingService>()),
         ),
       ],
       child: const MainApp(),

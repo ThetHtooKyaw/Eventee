@@ -2,14 +2,14 @@ import 'dart:async';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
 import 'package:eventee/core/utils/base_view_model.dart';
-import 'package:eventee/src/booking/models/event_history.dart';
-import 'package:eventee/src/booking/repo/booking_service.dart';
+import 'package:eventee/src/event/model/event_history.dart';
+import 'package:eventee/src/event/repo/booked_event_service.dart';
 import 'package:intl/intl.dart';
 
-class BookingHistoryViewModel extends BaseViewModel {
+class BookedEventHistoryViewModel extends BaseViewModel {
   // Dependencies
   final BookingService _bookingService;
-  BookingHistoryViewModel(this._bookingService);
+  BookedEventHistoryViewModel(this._bookingService);
 
   // Variables
   StreamSubscription? _historySubscription;

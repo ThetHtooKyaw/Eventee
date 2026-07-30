@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:equatable/equatable.dart';
 
-class UploadEventParams extends Equatable {
+class CreateEventParams extends Equatable {
   final File imageUrl;
   final String title;
   final String location;
@@ -13,7 +13,7 @@ class UploadEventParams extends Equatable {
   final String description;
   final String category;
 
-  const UploadEventParams({
+  const CreateEventParams({
     required this.imageUrl,
     required this.title,
     required this.location,

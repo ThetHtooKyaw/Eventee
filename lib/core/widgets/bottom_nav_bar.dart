@@ -3,7 +3,7 @@ import 'package:eventee/core/themes/app_color.dart';
 import 'package:flutter/material.dart';
 import 'package:eventee/src/account/views/account_view.dart';
 import 'package:eventee/src/home/views/home_view.dart';
-import 'package:eventee/src/booking/views/booking_history_view.dart';
+import 'package:eventee/src/event/views/booked_event_history_view.dart';
 
 class BottomNavBar extends StatefulWidget {
   const BottomNavBar({super.key});
@@ -16,7 +16,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
   int selectedIndex = 0;
   final List<Widget> _pages = const [
     HomeView(),
-    BookingHistoryView(),
+    BookedEventHistoryView(),
     AccountView(),
   ];
 

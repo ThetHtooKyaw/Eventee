@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
-import 'package:eventee/src/create_event/model/event.dart';
-import 'package:eventee/src/create_event/view_models/params/upload_event_params.dart';
+import 'package:eventee/src/event/model/event.dart';
+import 'package:eventee/src/event/view_models/params/create_event_params.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:random_string/random_string.dart';
@@ -31,7 +31,7 @@ class AdminService {
     }
   }
 
-  Future<Object> uploadEventDetail({required UploadEventParams params}) async {
+  Future<Object> uploadEventDetail({required CreateEventParams params}) async {
     try {
       final imageResponse = await uploadEventImage(eventFile: params.imageUrl);
 

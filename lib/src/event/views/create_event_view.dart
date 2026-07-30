@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
-import 'package:eventee/src/create_event/view_models/create_event_view_model.dart';
-import 'package:eventee/src/create_event/widgets/custom_textfield.dart';
+import 'package:eventee/src/event/view_models/create_event_view_model.dart';
+import 'package:eventee/src/event/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
