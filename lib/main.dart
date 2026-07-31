@@ -11,10 +11,12 @@ import 'package:eventee/src/account/view_models/account_view_model.dart';
 import 'package:eventee/src/auth/view_models/login_view_model.dart';
 import 'package:eventee/src/event/repo/create_event_service.dart';
 import 'package:eventee/src/event/view_models/booked_event_history_view_model.dart';
+import 'package:eventee/src/event/view_models/event_list_view_model.dart';
 import 'package:eventee/src/home/view_models/home_view_model.dart';
 import 'package:eventee/src/auth/repo/auth_service.dart';
 import 'package:eventee/src/auth/views/login_view.dart';
 import 'package:eventee/src/event/repo/booked_event_service.dart';
+import 'package:eventee/src/event/repo/event_service.dart';
 import 'package:eventee/src/onboarding/repo/onboarding_service.dart';
 import 'package:eventee/src/onboarding/view_models/onboarding_view_model.dart';
 import 'package:eventee/src/onboarding/views/onboarding_view.dart';
@@ -42,12 +44,13 @@ void main() async {
     MultiProvider(
       providers: [
         // Services
-        Provider(create: (_) => AdminService()),
+        Provider(create: (_) => CreateEventService()),
         Provider(create: (_) => LocationService()),
         Provider(create: (_) => AuthService()),
         Provider(create: (_) => OnboardingService()),
         Provider(create: (_) => BookingService()),
         Provider(create: (_) => AccountService()),
+        Provider(create: (_) => EventService()),
 
         ChangeNotifierProvider(
           create: (context) => LoginViewModel(context.read<AuthService>()),
@@ -69,7 +72,12 @@ void main() async {
           create: (context) => AccountViewModel(context.read<AccountService>()),
         ),
         ChangeNotifierProvider(
-          create: (context) => HomeViewModel(context.read<AdminService>()),
+          create: (context) =>
+              EventListViewModel(context.read<EventService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) =>
+              HomeViewModel(context.read<EventListViewModel>()),
         ),
         ChangeNotifierProvider(
           create: (context) =>

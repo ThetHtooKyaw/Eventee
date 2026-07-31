@@ -2,8 +2,15 @@ import 'package:eventee/core/themes/app_format.dart';
 import 'package:flutter/material.dart';
 
 class ViewAppbar extends StatelessWidget implements PreferredSizeWidget {
-  final Widget actionIcon;
-  const ViewAppbar({super.key, required this.actionIcon});
+  final String title;
+  final bool centerTitle;
+  final Widget? actionButton;
+  const ViewAppbar({
+    super.key,
+    required this.title,
+    this.centerTitle = true,
+    this.actionButton,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -11,13 +18,22 @@ class ViewAppbar extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       elevation: 0,
       leadingWidth: 80,
+      actionsPadding: const EdgeInsets.only(right: AppFormat.primaryPadding),
+      centerTitle: centerTitle,
+      // Title
+      title: Text(
+        title,
+        style: Theme.of(
+          context,
+        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+      ),
       // Back Button
       leading: IconButton(
         onPressed: () => Navigator.pop(context),
-        icon: Icon(Icons.arrow_back_ios_new_rounded, size: 32),
+        icon: Icon(Icons.arrow_back_ios_new_rounded, size: 26),
       ),
-      actionsPadding: const EdgeInsets.only(right: AppFormat.primaryPadding),
-      actions: [actionIcon],
+      // Action Buttons
+      actions: [actionButton ?? const SizedBox.shrink()],
     );
   }
 

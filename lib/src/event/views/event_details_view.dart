@@ -6,14 +6,13 @@ import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/core/widgets/skeleton_widget.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
-import 'package:eventee/src/auth/models/app_user.dart';
 import 'package:eventee/src/event/model/event.dart';
 import 'package:eventee/src/event/model/booking.dart';
 import 'package:eventee/src/event/view_models/event_details_view_model.dart';
+import 'package:eventee/src/event/view_models/event_list_view_model.dart';
 import 'package:eventee/src/event/widgets/bottom_curve_clipper.dart';
 import 'package:eventee/src/event/widgets/info_card.dart';
 import 'package:eventee/src/event/widgets/timeline_card.dart';
-import 'package:eventee/src/home/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:eventee/core/widgets/quantity_selector.dart';
 import 'package:flutter/services.dart';
@@ -61,7 +60,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
       (vm) => vm.isActionLoading,
     );
 
-    final homeVM = context.read<HomeViewModel>();
+    final homeVM = context.read<EventListViewModel>();
     final eventDate = homeVM.formatDateMonthDay(widget.event.date);
     final eventStartTime = homeVM.formatTime(widget.event.startTime);
     final eventEndTime = homeVM.formatTime(widget.event.endTime);
@@ -174,7 +173,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                                 ),
                                 child: Text(
                                   '฿${widget.event.price}',
-                                  style: t.textTheme.titleSmall?.copyWith(
+                                  style: t.textTheme.bodyLarge?.copyWith(
                                     color: AppColor.white,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -480,6 +479,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                             ),
                           ),
 
+                          // Ticket Quantity
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

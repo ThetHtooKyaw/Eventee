@@ -8,28 +8,12 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:random_string/random_string.dart';
 
-class AdminService {
+class CreateEventService {
   final _storage = FirebaseStorage.instance;
   final _firestore = FirebaseFirestore.instance;
   final _imagePicker = ImagePicker();
 
   CollectionReference get _eventsCollection => _firestore.collection('events');
-
-  Future<Object> fetchAllEvents() async {
-    try {
-      Stream<List<EventModel>> stream = _eventsCollection.snapshots().map(
-        (snapshot) => snapshot.docs
-            .map(
-              (doc) => EventModel.fromMap(doc.data() as Map<String, dynamic>),
-            )
-            .toList(),
-      );
-
-      return Success(response: stream);
-    } catch (e) {
-      return Failure(response: 'Fails to fetch all events: $e.');
-    }
-  }
 
   Future<Object> uploadEventDetail({required CreateEventParams params}) async {
     try {

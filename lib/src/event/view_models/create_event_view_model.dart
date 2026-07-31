@@ -9,8 +9,8 @@ import 'package:intl/intl.dart';
 
 class CreateEventViewModel extends BaseViewModel {
   // Dependencies
-  final AdminService _adminService;
-  CreateEventViewModel(this._adminService);
+  final CreateEventService _createEventService;
+  CreateEventViewModel(this._createEventService);
 
   // Controllers
   final eventNameController = TextEditingController();
@@ -67,7 +67,7 @@ class CreateEventViewModel extends BaseViewModel {
     setActionLoading(true);
     setError(null);
 
-    final response = await _adminService.pickEventImage();
+    final response = await _createEventService.pickEventImage();
 
     if (response is Success) {
       _eventImage = response.response as File;
@@ -166,7 +166,7 @@ class CreateEventViewModel extends BaseViewModel {
       category: _selectedCategory!,
     );
 
-    final response = await _adminService.uploadEventDetail(params: params);
+    final response = await _createEventService.uploadEventDetail(params: params);
 
     if (response is Failure) {
       setError(response.response.toString());

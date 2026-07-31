@@ -4,13 +4,14 @@ import 'package:eventee/core/widgets/skeleton_widget.dart';
 import 'package:flutter/material.dart';
 
 class EventListSkeleton extends StatelessWidget {
-  const EventListSkeleton({super.key});
+  final double cardWidth;
+  const EventListSkeleton({super.key, this.cardWidth = 340});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppFormat.secondaryPadding),
-      width: 320,
+      width: cardWidth,
       decoration: BoxDecoration(
         color: AppColor.white,
         border: Border.all(color: AppColor.placeholder, width: 0.5),
@@ -20,7 +21,7 @@ class EventListSkeleton extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          SkeletonWidget(height: 180, width: 300),
+          SkeletonWidget(height: 180, width: cardWidth),
           const SizedBox(height: 10),
 
           Row(

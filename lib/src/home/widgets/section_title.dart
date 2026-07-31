@@ -6,35 +6,44 @@ class SectionTitle extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
 
-  const SectionTitle({
-    super.key,
-    required this.title,
-    required this.onTap,
-  });
+  const SectionTitle({super.key, required this.title, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppFormat.primaryPadding),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // Title
           Text(
             title,
             style: t.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
+
+          // Action Button
           InkWell(
             onTap: onTap,
-            child: Text(
-              'See all',
-              style: t.textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w500,
-                color: AppColor.primary,
-              ),
+            child: Row(
+              children: [
+                Text(
+                  'See all',
+                  style: t.textTheme.bodyLarge?.copyWith(
+                    color: AppColor.textPlaceholder,
+                  ),
+                ),
+                const SizedBox(width: 2),
+
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: AppColor.textPlaceholder,
+                ),
+              ],
             ),
           ),
         ],

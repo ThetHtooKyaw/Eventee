@@ -196,7 +196,7 @@ class _AccountViewState extends State<AccountView> {
                               builder: (context) =>
                                   ChangeNotifierProvider<CreateEventViewModel>(
                                     create: (context) => CreateEventViewModel(
-                                      context.read<AdminService>(),
+                                      context.read<CreateEventService>(),
                                     ),
                                     child: const CreateEventView(),
                                   ),
