@@ -214,10 +214,6 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildHeader(ThemeData t) {
-    final userData = context.select<AccountViewModel, AppUser?>(
-      (vm) => vm.user,
-    );
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -235,11 +231,19 @@ class _HomeViewState extends State<HomeView> {
                   color: AppColor.white,
                 ),
               ),
-              Text(
-                userData?.shortAddress ?? 'Unknown Location',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: t.textTheme.titleSmall?.copyWith(color: AppColor.white),
+              Selector<AccountViewModel, String>(
+                selector: (_, vm) =>
+                    vm.user?.shortAddress ?? 'Unknown Location',
+                builder: (context, shortAddress, child) {
+                  return Text(
+                    shortAddress,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: t.textTheme.titleSmall?.copyWith(
+                      color: AppColor.white,
+                    ),
+                  );
+                },
               ),
             ],
           ),

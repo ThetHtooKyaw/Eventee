@@ -96,7 +96,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final vm = context.watch<AccountDetailViewModel>();
+    final vm = context.read<AccountDetailViewModel>();
     final userData = context.select<AccountViewModel, AppUser?>(
       (vm) => vm.user,
     );

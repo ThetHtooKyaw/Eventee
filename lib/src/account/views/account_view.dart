@@ -53,9 +53,6 @@ class _AccountViewState extends State<AccountView> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final userData = context.select<AccountViewModel, AppUser?>(
-      (vm) => vm.user,
-    );
     final isScreenLoading = context.select<AccountViewModel, bool>(
       (vm) => vm.isScreenLoading,
     );
@@ -71,14 +68,22 @@ class _AccountViewState extends State<AccountView> {
       ),
       body: isScreenLoading
           ? AccountSkeleton()
-          : userData == null
-          ? Center(child: Text('No user found!', style: t.textTheme.bodyLarge))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(AppFormat.primaryPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildProfile(userData, t),
+                  // Profile
+                  Selector<AccountViewModel, AppUser?>(
+                    selector: (_, vm) => vm.user,
+                    builder: (context, userData, child) {
+                      if (userData == null) {
+                        return _buildErrorProfile(t, context);
+                      }
+
+                      return _buildProfile(userData, t);
+                    },
+                  ),
                   const SizedBox(height: 20),
 
                   Text(
@@ -216,6 +221,36 @@ class _AccountViewState extends State<AccountView> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildErrorProfile(ThemeData t, BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: AppFormat.secondaryPadding,
+        horizontal: AppFormat.primaryPadding,
+      ),
+      decoration: BoxDecoration(
+        color: AppColor.white,
+        borderRadius: BorderRadius.circular(AppFormat.primaryBorderRadius),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            "Failed to load user data",
+            style: t.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          ElevatedButton(
+            onPressed: () => context.read<AccountViewModel>().loadUser(),
+            child: const Text("Retry"),
+          ),
+        ],
+      ),
     );
   }
 

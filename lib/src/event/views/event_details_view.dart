@@ -57,9 +57,6 @@ class _EventDetailsViewState extends State<EventDetailsView> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final userData = context.select<AccountViewModel, AppUser?>(
-      (vm) => vm.user,
-    );
     final isActionLoading = context.select<EventDetailsViewModel, bool>(
       (vm) => vm.isActionLoading,
     );
@@ -83,7 +80,6 @@ class _EventDetailsViewState extends State<EventDetailsView> {
               child: ElevatedButton(
                 onPressed: () => _showTicketSheet(
                   t,
-                  userData,
                   eventDate,
                   eventStartTime,
                   eventEndTime,
@@ -382,7 +378,6 @@ class _EventDetailsViewState extends State<EventDetailsView> {
 
   Future<dynamic> _showTicketSheet(
     ThemeData t,
-    AppUser? userData,
     String eventDate,
     String eventStartTime,
     String eventEndTime,
@@ -466,14 +461,20 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                                   ),
                                 ),
 
-                                Text(
-                                  userData?.username ?? 'Unknown',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: t.textTheme.titleSmall?.copyWith(
-                                    color: AppColor.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                Selector<AccountViewModel, String>(
+                                  selector: (_, vm) =>
+                                      vm.user?.username ?? 'Unknown',
+                                  builder: (context, username, child) {
+                                    return Text(
+                                      username,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: t.textTheme.titleSmall?.copyWith(
+                                        color: AppColor.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    );
+                                  },
                                 ),
                               ],
                             ),
