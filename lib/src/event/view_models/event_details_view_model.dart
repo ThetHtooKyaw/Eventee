@@ -5,27 +5,23 @@ import 'package:eventee/src/event/repo/booked_event_service.dart';
 
 class EventDetailsViewModel extends BaseViewModel {
   // Dependencies
-  final BookingService _bookingService;
-  EventDetailsViewModel(this._bookingService);
+  final BookiedEventService _bookedEventService;
+  EventDetailsViewModel(this._bookedEventService);
 
   // Use Cases
   Future<bool> makePayment({required BookingModel bookedEvent}) async {
-    setActionLoading(true);
-    setError(null);
-    setSuccess(null);
+    startActionLoading();
 
-    final response = await _bookingService.makePayment(
+    final response = await _bookedEventService.makePayment(
       bookedEvent: bookedEvent,
     );
 
     if (response is Failure) {
-      setError(response.response.toString());
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage(response.response.toString());
       return false;
     }
 
-    setSuccess('Booking successful!');
-    setActionLoading(false);
+    stopActionLoadingWithSuccessMessage('Booking successful!');
     return true;
   }
 

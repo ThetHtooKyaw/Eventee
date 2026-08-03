@@ -25,16 +25,51 @@ class BaseViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   bool get mounted => !_isDisposed(this);
-
+  
+  // Screen Loading
   void setScreenLoading(bool value) {
     _isScreenloading = value;
     if (mounted) notifyListeners();
   }
 
+  void startScreenLoading() {
+    _isScreenloading = true;
+    _errorMessage = null;
+    _successMessage = null;
+    if (mounted) notifyListeners();
+  }
+
+  void stopScreenLoadingWithErrorMessage(String? message) {
+    _isScreenloading = false;
+    _errorMessage = message;
+    if (mounted) notifyListeners();
+  }
+  
+  // Action Loading
   void setActionLoading(bool value) {
     _isActionLoading = value;
     if (mounted) notifyListeners();
   }
+
+  void startActionLoading() {
+    _isActionLoading = true;
+    _errorMessage = null;
+    _successMessage = null;
+    if (mounted) notifyListeners();
+  }
+
+  void stopActionLoadingWithSuccessMessage(String? message) {
+    _isActionLoading = false;
+    _successMessage = message;
+    if (mounted) notifyListeners();
+  }
+
+  void stopActionLoadingWithErrorMessage(String? message) {
+    _isActionLoading = false;
+    _errorMessage = message;
+    if (mounted) notifyListeners();
+  }
+
 
   void setSuccess(String? message) {
     _successMessage = message;

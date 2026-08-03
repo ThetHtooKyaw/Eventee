@@ -12,6 +12,8 @@ import 'package:eventee/src/auth/view_models/login_view_model.dart';
 import 'package:eventee/src/event/repo/create_event_service.dart';
 import 'package:eventee/src/event/view_models/booked_event_history_view_model.dart';
 import 'package:eventee/src/event/view_models/event_list_view_model.dart';
+import 'package:eventee/src/favourite/services/favourite_service.dart';
+import 'package:eventee/src/favourite/view_models/favourite_view_model.dart';
 import 'package:eventee/src/home/view_models/home_view_model.dart';
 import 'package:eventee/src/auth/repo/auth_service.dart';
 import 'package:eventee/src/auth/views/login_view.dart';
@@ -48,9 +50,10 @@ void main() async {
         Provider(create: (_) => LocationService()),
         Provider(create: (_) => AuthService()),
         Provider(create: (_) => OnboardingService()),
-        Provider(create: (_) => BookingService()),
         Provider(create: (_) => AccountService()),
         Provider(create: (_) => EventService()),
+        Provider(create: (_) => FavouriteService()),
+        Provider(create: (_) => BookiedEventService()),
 
         ChangeNotifierProvider(
           create: (context) => LoginViewModel(context.read<AuthService>()),
@@ -72,8 +75,7 @@ void main() async {
           create: (context) => AccountViewModel(context.read<AccountService>()),
         ),
         ChangeNotifierProvider(
-          create: (context) =>
-              EventListViewModel(context.read<EventService>()),
+          create: (context) => EventListViewModel(context.read<EventService>()),
         ),
         ChangeNotifierProvider(
           create: (context) =>
@@ -81,7 +83,11 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (context) =>
-              BookedEventHistoryViewModel(context.read<BookingService>()),
+              FavouriteViewModel(context.read<FavouriteService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) =>
+              BookedEventHistoryViewModel(context.read<BookiedEventService>()),
         ),
       ],
       child: const MainApp(),

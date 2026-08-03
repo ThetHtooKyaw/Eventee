@@ -15,29 +15,24 @@ class AccountService {
 
   CollectionReference get _usersCollection => _firestore.collection('users');
 
-  String get _currentUserId {
-    final user = _auth.currentUser;
-
-    if (user == null) {
-      throw 'No authenticated user found.';
-    }
-
-    return user.uid;
-  }
+  User? get _currentUser => _auth.currentUser;
 
   Future<Object> getUser() async {
+    final user = _currentUser;
+    if (user == null) {
+      return Failure(response: 'No authenticated user found.');
+    }
+
     try {
-      DocumentSnapshot snapshot = await _usersCollection
-          .doc(_currentUserId)
-          .get();
+      DocumentSnapshot snapshot = await _usersCollection.doc(user.uid).get();
 
       if (!snapshot.exists) {
         return Failure(response: 'User data not found.');
       }
 
-      final user = AppUser.fromMap(snapshot.data() as Map<String, dynamic>);
+      final appUser = AppUser.fromMap(snapshot.data() as Map<String, dynamic>);
 
-      return Success(response: user);
+      return Success(response: appUser);
     } catch (e) {
       return Failure(response: 'Failed to fetch user data: $e.');
     }
@@ -63,13 +58,19 @@ class AccountService {
   }
 
   Future<Object> updateProfileAvatar({required File profileFile}) async {
+    final user = _currentUser;
+    if (user == null) {
+      return Failure(
+        response: 'You must be logged in to update profile avatar.',
+      );
+    }
+
     try {
-      final uid = _currentUserId;
-      final ref = _storage.ref().child('profile_images/$uid.jpg');
+      final ref = _storage.ref().child('profile_images/${user.uid}.jpg');
       final snapshot = await ref.putFile(profileFile);
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      await _usersCollection.doc(uid).update({'photoUrl': downloadUrl});
+      await _usersCollection.doc(user.uid).update({'photoUrl': downloadUrl});
 
       return Success(response: 'Profile image updated successfully!');
     } catch (e) {
@@ -78,10 +79,13 @@ class AccountService {
   }
 
   Future<Object> updateUsername({required String newUsername}) async {
+    final user = _currentUser;
+    if (user == null) {
+      return Failure(response: 'You must be logged in to update username.');
+    }
+
     try {
-      await _usersCollection.doc(_currentUserId).update({
-        'username': newUsername,
-      });
+      await _usersCollection.doc(user.uid).update({'username': newUsername});
       return Success(response: 'Username updated successfully!');
     } catch (e) {
       return Failure(response: 'Failed to update username: $e');
@@ -89,8 +93,13 @@ class AccountService {
   }
 
   Future<Object> updatePhoneNumber({required String newPhoneNumber}) async {
+    final user = _currentUser;
+    if (user == null) {
+      return Failure(response: 'You must be logged in to update phone number.');
+    }
+
     try {
-      await _usersCollection.doc(_currentUserId).update({
+      await _usersCollection.doc(user.uid).update({
         'phoneNumber': newPhoneNumber,
       });
       return Success(response: 'Phone number updated successfully!');
@@ -100,8 +109,15 @@ class AccountService {
   }
 
   Future<Object> updateDateOfBirth({required DateTime newDateOfBirth}) async {
+    final user = _currentUser;
+    if (user == null) {
+      return Failure(
+        response: 'You must be logged in to update date of birth.',
+      );
+    }
+
     try {
-      await _usersCollection.doc(_currentUserId).update({
+      await _usersCollection.doc(user.uid).update({
         'dateOfBirth': newDateOfBirth,
       });
       return Success(response: 'Date of birth updated successfully!');
@@ -111,10 +127,13 @@ class AccountService {
   }
 
   Future<Object> updateAddress({required String newAddress}) async {
+    final user = _currentUser;
+    if (user == null) {
+      return Failure(response: 'You must be logged in to update address.');
+    }
+
     try {
-      await _usersCollection.doc(_currentUserId).update({
-        'address': newAddress,
-      });
+      await _usersCollection.doc(user.uid).update({'address': newAddress});
       return Success(response: 'Address updated successfully!');
     } catch (e) {
       return Failure(response: 'Failed to update address: $e');

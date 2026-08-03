@@ -7,7 +7,9 @@ import 'package:eventee/src/auth/models/app_user.dart';
 class AccountViewModel extends BaseViewModel {
   // Dependencies
   final AccountService _accountService;
-  AccountViewModel(this._accountService);
+  AccountViewModel(this._accountService) {
+    loadUser();
+  }
 
   // Variables
   AppUser? _user;
@@ -19,29 +21,26 @@ class AccountViewModel extends BaseViewModel {
   Future<void> loadUser({bool forceRefresh = false}) async {
     if (_user != null && !forceRefresh) return;
 
-    setScreenLoading(true);
-    setError(null);
+    startScreenLoading();
 
     final response = await _accountService.getUser();
 
     if (response is Failure) {
-      setError(response.response.toString());
-    } else {
-      _user = (response as Success).response as AppUser;
+      stopScreenLoadingWithErrorMessage(response.response.toString());
+      return;
     }
 
+    _user = (response as Success).response as AppUser;
     setScreenLoading(false);
   }
 
   Future<bool> logoutUser() async {
-    setActionLoading(true);
-    setError(null);
+    startActionLoading();
 
     final response = await _accountService.logoutUser();
 
     if (response is Failure) {
-      setError(response.response.toString());
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage(response.response.toString());
       return false;
     }
 

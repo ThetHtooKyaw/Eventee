@@ -15,8 +15,7 @@ class LoginViewModel extends BaseViewModel {
 
   // Use Cases
   Future<bool> loginUser() async {
-    setActionLoading(true);
-    setError(null);
+    startActionLoading();
 
     final response = await _authService.loginUser(
       email: emailController.text.trim(),
@@ -24,8 +23,7 @@ class LoginViewModel extends BaseViewModel {
     );
 
     if (response is Failure) {
-      setError(response.response.toString());
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage(response.response.toString());
       return false;
     }
 
@@ -34,14 +32,12 @@ class LoginViewModel extends BaseViewModel {
   }
 
   Future<Object?> signInWithGoogle() async {
-    setActionLoading(true);
-    setError(null);
+    startActionLoading();
 
     final response = await _authService.authenticateWithGoogle();
 
     if (response is Failure) {
-      setError(response.response.toString());
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage(response.response.toString());
       return null;
     }
 

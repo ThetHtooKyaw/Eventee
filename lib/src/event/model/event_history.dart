@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eventee/src/event/model/booking.dart';
 
 class EventHistoryModel {
-  final String userId;
+  final String uid;
   final String bookingId;
   final String eventId;
   final String imageUrl;
@@ -19,7 +19,7 @@ class EventHistoryModel {
   final DateTime bookedAt;
 
   const EventHistoryModel({
-    required this.userId,
+    required this.uid,
     required this.bookingId,
     required this.eventId,
     required this.imageUrl,
@@ -38,7 +38,7 @@ class EventHistoryModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'userId': userId,
+      'uid': uid,
       'bookingId': bookingId,
       'eventId': eventId,
       'imageUrl': imageUrl,
@@ -58,7 +58,7 @@ class EventHistoryModel {
 
   factory EventHistoryModel.fromMap(Map<String, dynamic> map) {
     return EventHistoryModel(
-      userId: map['userId'],
+      uid: map['uid'] ?? '',
       bookingId: map['bookingId'] ?? '',
       eventId: map['eventId'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
@@ -77,15 +77,15 @@ class EventHistoryModel {
   }
 
   factory EventHistoryModel.fromBooking({
-    required String userId,
+    required String uid,
     required String bookingId,
     required BookingModel bookedEvent,
     required DateTime bookedAt,
   }) {
     return EventHistoryModel(
-      userId: userId,
+      uid: uid,
       bookingId: bookingId,
-      eventId: bookedEvent.id,
+      eventId: bookedEvent.eventId,
       imageUrl: bookedEvent.imageUrl,
       title: bookedEvent.title,
       location: bookedEvent.location,

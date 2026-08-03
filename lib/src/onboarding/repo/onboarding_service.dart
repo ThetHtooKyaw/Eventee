@@ -16,19 +16,16 @@ class OnboardingService {
 
   CollectionReference get _usersCollection => _firestore.collection('users');
 
-  String get _currentUserId {
-    final user = _auth.currentUser;
-
-    if (user == null) {
-      throw 'No authenticated user found.';
-    }
-
-    return user.uid;
-  }
+  User? get _currentUser => _auth.currentUser;
 
   Future<Object> fetchCurrentProfileAvatar() async {
+    final user = _currentUser;
+    if (user == null) {
+      return Success(response: '');
+    }
+
     try {
-      final snapshot = await _usersCollection.doc(_currentUserId).get();
+      final snapshot = await _usersCollection.doc(user.uid).get();
       final data = snapshot.data() as Map<String, dynamic>;
       final profileAvatar = data['photoUrl'] as String?;
 
@@ -64,17 +61,23 @@ class OnboardingService {
     required String phoneNumber,
     required String address,
   }) async {
+    final user = _currentUser;
+    if (user == null) {
+      return Failure(
+        response: 'You must be logged in to submit onboarding data.',
+      );
+    }
+
     try {
-      final uid = _currentUserId;
       String? downloadUrl;
 
       if (profileFile != null) {
-        final ref = _storage.ref().child('profile_images/$uid.jpg');
+        final ref = _storage.ref().child('profile_images/${user.uid}.jpg');
         final snapshot = await ref.putFile(profileFile);
         downloadUrl = await snapshot.ref.getDownloadURL();
       }
 
-      await _usersCollection.doc(uid).update({
+      await _usersCollection.doc(user.uid).update({
         'photoUrl': downloadUrl ?? existingPhotoUrl ?? '',
         'dateOfBirth': dateOfBirth,
         'phoneNumber': phoneNumber,

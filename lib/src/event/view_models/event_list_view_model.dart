@@ -13,7 +13,9 @@ enum EventSortOrder { none, priceAscending, priceDescending }
 class EventListViewModel extends BaseViewModel {
   // Dependencies
   final EventService _eventService;
-  EventListViewModel(this._eventService);
+  EventListViewModel(this._eventService) {
+    fetchAllEvents();
+  }
 
   // Controllers
   final searchController = TextEditingController();
@@ -38,6 +40,7 @@ class EventListViewModel extends BaseViewModel {
   // Getters
   List<String> get categories => _categories;
   EventSortOrder get sortOrder => _sortOrder;
+  List<EventModel> get allEvents => _events;
   List<EventModel> get events => _filteredEvents;
   String get selectedCategory => _selectedCategory;
   RangeValues get priceRange => _priceRange;
@@ -53,8 +56,7 @@ class EventListViewModel extends BaseViewModel {
   }
 
   Future<void> fetchAllEvents() async {
-    setScreenLoading(true);
-    setError(null);
+    startScreenLoading();
 
     final response = await _eventService.fetchAllEvents();
 
@@ -80,28 +82,24 @@ class EventListViewModel extends BaseViewModel {
 
           if (isScreenLoading) {
             setScreenLoading(false);
-          } else {
-            notifyListeners();
           }
         },
         onError: (error) {
-          setError(error.toString());
-          if (isScreenLoading) setScreenLoading(false);
+          stopScreenLoadingWithErrorMessage(error.toString());
         },
       );
     } else if (response is Failure) {
-      setError(response.response.toString());
-      setScreenLoading(false);
+      stopScreenLoadingWithErrorMessage(response.response.toString());
+      return;
     }
   }
 
   void applyFilters() {
-    List<EventModel> results = List.from(_events);
+    List<EventModel> currentFilteredList = List.from(_events);
 
     // Search filter
-    _filteredEvents = results;
     if (searchController.text.isNotEmpty) {
-      _filteredEvents = _filteredEvents
+      currentFilteredList = currentFilteredList
           .where(
             (event) => event.title.toLowerCase().contains(
               searchController.text.toLowerCase(),
@@ -112,7 +110,7 @@ class EventListViewModel extends BaseViewModel {
 
     // Location filter
     if (locationFilterController.text.isNotEmpty) {
-      results = results
+      currentFilteredList = currentFilteredList
           .where(
             (event) => event.location.toLowerCase().contains(
               locationFilterController.text.toLowerCase(),
@@ -123,7 +121,7 @@ class EventListViewModel extends BaseViewModel {
 
     // Category filter
     if (_selectedCategory != 'All') {
-      results = results
+      currentFilteredList = currentFilteredList
           .where(
             (event) =>
                 event.category.toLowerCase() == _selectedCategory.toLowerCase(),
@@ -133,13 +131,13 @@ class EventListViewModel extends BaseViewModel {
 
     // Apply sorting
     if (_sortOrder == EventSortOrder.priceAscending) {
-      _filteredEvents.sort((a, b) => a.price.compareTo(b.price));
+      currentFilteredList.sort((a, b) => a.price.compareTo(b.price));
     } else if (_sortOrder == EventSortOrder.priceDescending) {
-      _filteredEvents.sort((a, b) => b.price.compareTo(a.price));
+      currentFilteredList.sort((a, b) => b.price.compareTo(a.price));
     }
 
     // Price filter
-    results = results
+    currentFilteredList = currentFilteredList
         .where(
           (event) =>
               event.price >= _priceRange.start &&
@@ -147,6 +145,7 @@ class EventListViewModel extends BaseViewModel {
         )
         .toList();
 
+    _filteredEvents = currentFilteredList;
     notifyListeners();
   }
 
@@ -161,7 +160,7 @@ class EventListViewModel extends BaseViewModel {
 
   void setSortOrder(EventSortOrder order) {
     _sortOrder = order;
-    applyFilters();
+    notifyListeners();
   }
 
   void setPriceRange(RangeValues values) {
@@ -175,7 +174,6 @@ class EventListViewModel extends BaseViewModel {
     _sortOrder = EventSortOrder.none;
     _priceRange = RangeValues(0, _maxPrice);
     applyFilters();
-    notifyListeners();
   }
 
   String formatDateMonthDay(DateTime date) {

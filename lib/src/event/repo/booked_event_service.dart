@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 
-class BookingService {
+class BookiedEventService {
   final _firestore = FirebaseFirestore.instance;
   final _functions = FirebaseFunctions.instance;
   final _auth = FirebaseAuth.instance;
@@ -21,20 +21,15 @@ class BookingService {
   CollectionReference _userBookings(String uid) =>
       _usersCollection.doc(uid).collection('bookings');
 
-  User get _currentUser {
-    final user = _auth.currentUser;
-
-    if (user == null) {
-      throw 'No authenticated user found.';
-    }
-
-    return user;
-  }
+  User? get _currentUser => _auth.currentUser;
 
   Future<Object> fetchBookingHistory() async {
-    try {
-      final user = _currentUser;
+    final user = _currentUser;
+    if (user == null) {
+      return Success(response: Stream.value(<String>{}));
+    }
 
+    try {
       final stream = _userBookings(
         user.uid,
       ).orderBy('bookedAt', descending: true).snapshots();
@@ -54,24 +49,30 @@ class BookingService {
     }
   }
 
-  Future<void> updateBookingStatus(String bookingId, String newStatus) async {
-    try {
-      final user = _currentUser;
+  Future<Object> updateBookingStatus(String bookingId, String newStatus) async {
+    final user = _currentUser;
+    if (user == null) {
+      return Failure(response: 'You must be logged in to update booking status.');
+    }
 
+    try {
       await _userBookings(
         user.uid,
       ).doc(bookingId).update({'status': newStatus});
+
+      return Success(response: true);
     } catch (e) {
-      debugPrint(
-        "Background Sync Error: Failed to update booking $bookingId: $e",
-      );
+      return Failure(response: 'Failed to update booking status: $e');
     }
   }
 
   Future<Object> makePayment({required BookingModel bookedEvent}) async {
-    try {
-      final user = _currentUser;
+    final user = _currentUser;
+    if (user == null) {
+      return Failure(response: 'You must be logged in to make payments.');
+    }
 
+    try {
       // The Handshake (Cloud Function)
       final int amount = (bookedEvent.total * 100).toInt();
       final HttpsCallable callable = _functions.httpsCallable(
@@ -142,7 +143,7 @@ class BookingService {
       final newBookingRef = _userBookings(user.uid).doc();
 
       final saveBooking = EventHistoryModel.fromBooking(
-        userId: user.uid,
+        uid: user.uid,
         bookingId: newBookingRef.id,
         bookedEvent: bookedEvent,
         bookedAt: DateTime.now(),

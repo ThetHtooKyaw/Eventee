@@ -1,7 +1,7 @@
 import 'package:eventee/src/event/model/event.dart';
 
 class BookingModel {
-  final String id;
+  final String eventId;
   final String imageUrl;
   final String title;
   final String location;
@@ -15,7 +15,7 @@ class BookingModel {
   final String status;
 
   const BookingModel({
-    required this.id,
+    required this.eventId,
     required this.imageUrl,
     required this.location,
     required this.date,
@@ -31,7 +31,7 @@ class BookingModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      'eventId': eventId,
       'imageUrl': imageUrl,
       'title': title,
       'location': location,
@@ -48,7 +48,7 @@ class BookingModel {
 
   factory BookingModel.fromMap(Map<String, dynamic> map) {
     return BookingModel(
-      id: map['id'] ?? '',
+      eventId: map['eventId'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
       title: map['title'] ?? 'Unnamed Event',
       location: map['location'] ?? '',
@@ -70,7 +70,7 @@ class BookingModel {
     required String status,
   }) {
     return BookingModel(
-      id: event.id,
+      eventId: event.eventId,
       imageUrl: event.imageUrl,
       title: event.title,
       location: event.location,

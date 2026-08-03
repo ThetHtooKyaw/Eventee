@@ -23,17 +23,6 @@ class AccountView extends StatefulWidget {
 }
 
 class _AccountViewState extends State<AccountView> {
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   final vm = context.read<AccountViewModel>();
-  //   if (vm.user == null) {
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       vm.loadUser();
-  //     });
-  //   }
-  // }
-
   Future<void> _logout() async {
     final vm = context.read<AccountViewModel>();
     final success = await vm.logoutUser();

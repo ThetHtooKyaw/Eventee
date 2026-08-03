@@ -11,7 +11,10 @@ class OnboardingViewModel extends BaseViewModel {
   // Dependencies
   final LocationViewModel _locationViewModel;
   final OnboardingService _onboardingService;
-  OnboardingViewModel(this._locationViewModel, this._onboardingService);
+  OnboardingViewModel(this._locationViewModel, this._onboardingService) {
+    initializeProfileAvatar();
+    initialLocation();
+  }
 
   // Controllers
   final pageController = PageController();
@@ -81,47 +84,67 @@ class OnboardingViewModel extends BaseViewModel {
     dobCOntroller.dispose();
   }
 
-  Future<bool> initializeProfileAvatar() async {
-    setScreenLoading(true);
-    setError(null);
+  Future<void> initializeProfileAvatar() async {
+    startScreenLoading();
 
     final response = await _onboardingService.fetchCurrentProfileAvatar();
 
     if (response is Failure) {
-      setError(response.response.toString());
-      setScreenLoading(false);
-      return false;
+      stopScreenLoadingWithErrorMessage(response.response.toString());
+      return;
     }
 
     _currentProfileAvatar = (response as Success).response as String;
-    notifyListeners();
     setScreenLoading(false);
-    return true;
   }
 
-  Future<bool> initialLocation() async {
-    setScreenLoading(true);
-    setError(null);
+  Future<void> initialLocation() async {
+    startScreenLoading();
 
     final locationData = await _locationViewModel.getCurrentLocation();
 
     if (locationData == null) {
-      setError(_locationViewModel.errorMessage);
-      setScreenLoading(false);
-      return false;
+      stopScreenLoadingWithErrorMessage(_locationViewModel.errorMessage);
+      return;
     }
 
-    _country = locationData['country'];
-    _state = locationData['state'];
-    _city = locationData['city'];
-    notifyListeners();
-    setScreenLoading(false);
-    return true;
+    if (mounted) {
+      _country = locationData['country'];
+      _state = locationData['state'];
+      _city = locationData['city'];
+      setScreenLoading(false);
+    }
+  }
+
+  ImageProvider? getProfileAvatar() {
+    if (_currentProfileAvatar != null && _currentProfileAvatar!.isNotEmpty) {
+      return NetworkImage(_currentProfileAvatar!);
+    }
+
+    if (_profileAvatar != null) {
+      return FileImage(_profileAvatar!);
+    }
+
+    return null;
+  }
+
+  Future<void> pickProfileAvatar() async {
+    startActionLoading();
+
+    final response = await _onboardingService.pickProfileAvatar();
+
+    if (response is Failure) {
+      stopActionLoadingWithErrorMessage(response.response.toString());
+      return;
+    }
+
+    _profileAvatar = (response as Success).response as File?;
+    _currentProfileAvatar = null;
+    setActionLoading(false);
   }
 
   Future<bool> submitOnboardingData() async {
-    setActionLoading(true);
-    setError(null);
+    startActionLoading();
 
     final response = await _onboardingService.submitOnboardingData(
       profileFile: _profileAvatar,
@@ -132,8 +155,7 @@ class OnboardingViewModel extends BaseViewModel {
     );
 
     if (response is Failure) {
-      setError(response.response.toString());
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage(response.response.toString());
       return false;
     }
 
@@ -155,36 +177,6 @@ class OnboardingViewModel extends BaseViewModel {
         curve: Curves.easeInOut,
       );
     }
-  }
-
-  ImageProvider? getProfileAvatar() {
-    if (_currentProfileAvatar != null && _currentProfileAvatar!.isNotEmpty) {
-      return NetworkImage(_currentProfileAvatar!);
-    }
-
-    if (_profileAvatar != null) {
-      return FileImage(_profileAvatar!);
-    }
-
-    return null;
-  }
-
-  Future<bool> pickProfileAvatar() async {
-    setActionLoading(true);
-    setError(null);
-
-    final response = await _onboardingService.pickProfileAvatar();
-
-    if (response is Failure) {
-      setError(response.response.toString());
-      setActionLoading(false);
-      return false;
-    }
-
-    _profileAvatar = (response as Success).response as File?;
-    _currentProfileAvatar = null;
-    setActionLoading(false);
-    return true;
   }
 
   String formatAddress() {

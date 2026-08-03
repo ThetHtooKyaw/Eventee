@@ -89,14 +89,12 @@ class AccountDetailViewModel extends BaseViewModel {
   }
 
   Future<bool> pickProfileAvatar() async {
-    setActionLoading(true);
-    setError(null);
+    startActionLoading();
 
     final response = await _accountService.pickProfileAvatar();
 
     if (response is Failure) {
-      setError(response.response.toString());
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage(response.response.toString());
       return false;
     }
 
@@ -106,13 +104,10 @@ class AccountDetailViewModel extends BaseViewModel {
   }
 
   Future<bool> updateProfileAvatar() async {
-    setActionLoading(true);
-    setError(null);
-    setSuccess(null);
+    startActionLoading();
 
     if (profileAvatar == null) {
-      setError('Please pick an image first.');
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage('No profile avatar selected.');
       return false;
     }
 
@@ -121,44 +116,39 @@ class AccountDetailViewModel extends BaseViewModel {
     );
 
     if (response is Failure) {
-      setError(response.response.toString());
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage(response.response.toString());
       return false;
     }
 
-    setSuccess((response as Success).response.toString());
-    setActionLoading(false);
+    stopActionLoadingWithSuccessMessage(
+      (response as Success).response.toString(),
+    );
     return true;
   }
 
   Future<bool> updateUsername() async {
-    setActionLoading(true);
-    setError(null);
-    setSuccess(null);
+    startActionLoading();
 
     final response = await _accountService.updateUsername(
       newUsername: nameController.text.trim(),
     );
 
     if (response is Failure) {
-      setError(response.response.toString());
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage(response.response.toString());
       return false;
     }
 
-    setSuccess((response as Success).response.toString());
-    setActionLoading(false);
+    stopActionLoadingWithSuccessMessage(
+      (response as Success).response.toString(),
+    );
     return true;
   }
 
   Future<bool> updatePhoneNumber() async {
-    setActionLoading(true);
-    setError(null);
-    setSuccess(null);
+    startActionLoading();
 
     if (_phoneNumber == null || _phoneNumber!.isEmpty) {
-      setError('Phone number cannot be empty.');
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage('Phone number cannot be empty.');
       return false;
     }
 
@@ -167,44 +157,40 @@ class AccountDetailViewModel extends BaseViewModel {
     );
 
     if (response is Failure) {
-      setError(response.response.toString());
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage(response.response.toString());
       return false;
     }
 
-    setSuccess((response as Success).response.toString());
-    setActionLoading(false);
+    stopActionLoadingWithSuccessMessage(
+      (response as Success).response.toString(),
+    );
     return true;
   }
 
   Future<bool> updateDateOfBirth() async {
-    setActionLoading(true);
-    setError(null);
-    setSuccess(null);
+    startActionLoading();
 
     final response = await _accountService.updateDateOfBirth(
       newDateOfBirth: _selectedBirthday!,
     );
 
     if (response is Failure) {
-      setError(response.response.toString());
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage(response.response.toString());
       return false;
     }
 
-    setSuccess((response as Success).response.toString());
+    stopActionLoadingWithSuccessMessage(
+      (response as Success).response.toString(),
+    );
     setActionLoading(false);
     return true;
   }
 
   Future<bool> updateAddress() async {
-    setActionLoading(true);
-    setError(null);
-    setSuccess(null);
+    startActionLoading();
 
     if (formatAddress().isEmpty) {
-      setError('Address cannot be empty.');
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage('Address cannot be empty.');
       return false;
     }
 
@@ -213,13 +199,13 @@ class AccountDetailViewModel extends BaseViewModel {
     );
 
     if (response is Failure) {
-      setError(response.response.toString());
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage(response.response.toString());
       return false;
     }
 
-    setSuccess((response as Success).response.toString());
-    setActionLoading(false);
+    stopActionLoadingWithSuccessMessage(
+      (response as Success).response.toString(),
+    );
     return true;
   }
 

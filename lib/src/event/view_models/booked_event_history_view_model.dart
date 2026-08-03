@@ -8,8 +8,10 @@ import 'package:intl/intl.dart';
 
 class BookedEventHistoryViewModel extends BaseViewModel {
   // Dependencies
-  final BookingService _bookingService;
-  BookedEventHistoryViewModel(this._bookingService);
+  final BookiedEventService _bookedEventService;
+  BookedEventHistoryViewModel(this._bookedEventService) {
+    fetchBookingHistory();
+  }
 
   // Variables
   StreamSubscription? _historySubscription;
@@ -48,10 +50,9 @@ class BookedEventHistoryViewModel extends BaseViewModel {
   }
 
   Future<void> fetchBookingHistory() async {
-    setScreenLoading(true);
-    setError(null);
+    startScreenLoading();
 
-    final response = await _bookingService.fetchBookingHistory();
+    final response = await _bookedEventService.fetchBookingHistory();
 
     if (response is Success) {
       final stream = response.response as Stream<List<EventHistoryModel>>;
@@ -62,16 +63,14 @@ class BookedEventHistoryViewModel extends BaseViewModel {
           _eventHistory = eventList;
           checkCompletedEvents();
           setScreenLoading(false);
-          notifyListeners();
         },
         onError: (error) {
-          setError(error.toString());
-          if (isScreenLoading) setScreenLoading(false);
+          stopScreenLoadingWithErrorMessage(error.toString());
         },
       );
     } else if (response is Failure) {
-      setError(response.response.toString());
-      setScreenLoading(false);
+      stopScreenLoadingWithErrorMessage(response.response.toString());
+      return;
     }
   }
 
@@ -80,7 +79,10 @@ class BookedEventHistoryViewModel extends BaseViewModel {
     for (var event in _eventHistory) {
       if (event.status.toLowerCase() == 'active' &&
           event.endTime.isBefore(now)) {
-        await _bookingService.updateBookingStatus(event.bookingId, 'completed');
+        await _bookedEventService.updateBookingStatus(
+          event.bookingId,
+          'completed',
+        );
       }
     }
   }

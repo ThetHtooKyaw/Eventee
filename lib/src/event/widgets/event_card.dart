@@ -3,6 +3,7 @@ import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/widgets/skeleton_widget.dart';
 import 'package:eventee/src/event/model/event.dart';
+import 'package:eventee/src/favourite/view_models/favourite_view_model.dart';
 import 'package:eventee/src/event/view_models/event_list_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -83,6 +84,26 @@ class EventCard extends StatelessWidget {
                     color: AppColor.primary,
                     fontWeight: FontWeight.bold,
                   ),
+                ),
+              ),
+
+              // Favourite Button
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Selector<FavouriteViewModel, bool>(
+                  selector: (context, vm) =>
+                      vm.favouritedEventIds.contains(event.eventId),
+                  builder: (context, isFavourited, child) {
+                    return IconButton(
+                      onPressed: () => context
+                          .read<FavouriteViewModel>()
+                          .toggleFavourite(event),
+                      icon: Icon(
+                        isFavourited ? Icons.bookmark : Icons.bookmark_border,
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

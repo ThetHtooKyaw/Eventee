@@ -20,14 +20,6 @@ class BookedEventHistoryView extends StatefulWidget {
 
 class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
   @override
-  initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<BookedEventHistoryViewModel>().fetchBookingHistory();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
 
@@ -68,7 +60,10 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
 
                 return TabBarView(
                   children: [
-                    Selector<BookedEventHistoryViewModel, List<EventHistoryModel>>(
+                    Selector<
+                      BookedEventHistoryViewModel,
+                      List<EventHistoryModel>
+                    >(
                       selector: (_, vm) => vm.activeEventList,
                       builder: (context, activeEvents, child) {
                         return _buildBookingList(
@@ -78,7 +73,10 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
                         );
                       },
                     ),
-                    Selector<BookedEventHistoryViewModel, List<EventHistoryModel>>(
+                    Selector<
+                      BookedEventHistoryViewModel,
+                      List<EventHistoryModel>
+                    >(
                       selector: (_, vm) => vm.completedEventList,
                       builder: (context, completedEvents, child) {
                         return _buildBookingList(
@@ -88,7 +86,10 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
                         );
                       },
                     ),
-                    Selector<BookedEventHistoryViewModel, List<EventHistoryModel>>(
+                    Selector<
+                      BookedEventHistoryViewModel,
+                      List<EventHistoryModel>
+                    >(
                       selector: (_, vm) => vm.cancelledEventList,
                       builder: (context, cancelledEvents, child) {
                         return _buildBookingList(

@@ -1,6 +1,6 @@
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
-import 'package:eventee/core/widgets/app_error.dart';
+import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
 import 'package:eventee/src/event/repo/booked_event_service.dart';
 import 'package:eventee/src/event/view_models/event_details_view_model.dart';
@@ -23,114 +23,98 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-
-      context.read<AccountViewModel>().loadUser();
-      context
-          .read<EventListViewModel>()
-          .fetchAllEvents(); // Trigger fetch from central VM
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final eventListVM = context.watch<EventListViewModel>();
+    final vm = context.watch<EventListViewModel>();
 
-    return Scaffold(
-      backgroundColor: AppColor.background,
-      body: CustomScrollView(
-        slivers: [
-          // AppBar
-          SliverAppBar(
-            expandedHeight: 120,
-            floating: false,
-            pinned: false,
-            elevation: 0,
-            backgroundColor: Colors.transparent,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                children: [
-                  // Background Color
-                  Container(
-                    height: 120,
-                    width: double.infinity,
-                    color: AppColor.primary,
-                  ),
+    return Selector<EventListViewModel, String?>(
+      selector: (_, vm) => vm.errorMessage,
+      builder: (context, errorMessage, child) {
+        if (errorMessage != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppSnackbars.showErrorSnackbar(context, errorMessage);
+            vm.setError(null);
+          });
+        }
 
-                  // Header
-                  SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppFormat.secondaryPadding,
-                        horizontal: AppFormat.primaryPadding,
+        return Scaffold(
+          backgroundColor: AppColor.background,
+          body: CustomScrollView(
+            slivers: [
+              // AppBar
+              SliverAppBar(
+                expandedHeight: 120,
+                floating: false,
+                pinned: false,
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Stack(
+                    children: [
+                      // Background Color
+                      Container(
+                        height: 120,
+                        width: double.infinity,
+                        color: AppColor.primary,
                       ),
-                      child: _buildHeader(t),
-                    ),
-                  ),
 
-                  // Search Bar
-                  Positioned(
-                    bottom: 1,
-                    right: AppFormat.primaryPadding,
-                    left: AppFormat.primaryPadding,
-                    child: _buildSearchBar(
-                      context,
-                      eventListVM,
-                    ), // Pass EventListViewModel
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: AppFormat.primaryPadding,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Event Title
-                  SectionTitle(
-                    title: 'Upcoming Events',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const EventListView(),
+                      // Header
+                      SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppFormat.secondaryPadding,
+                            horizontal: AppFormat.primaryPadding,
+                          ),
+                          child: _buildHeader(t),
+                        ),
                       ),
-                    ),
+
+                      // Search Bar
+                      Positioned(
+                        bottom: 1,
+                        right: AppFormat.primaryPadding,
+                        left: AppFormat.primaryPadding,
+                        child: _buildSearchBar(
+                          context,
+                          vm,
+                        ), // Pass EventListViewModel
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
+                ),
+              ),
 
-                  // Event List
-                  SizedBox(
-                    height: 310,
-                    child: Selector<EventListViewModel, String?>(
-                      // Watch EventListViewModel for errors
-                      selector: (_, vm) =>
-                          vm.errorMessage, // Use EventListViewModel's error
-                      builder: (context, errorMessage, child) {
-                        if (errorMessage != null) {
-                          return AppError(errorMessage: errorMessage);
-                        }
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppFormat.primaryPadding,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Event Title
+                      SectionTitle(
+                        title: 'Upcoming Events',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const EventListView(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
 
-                        return Selector<EventListViewModel, bool>(
-                          // Watch EventListViewModel for loading
-                          selector: (_, vm) => vm
-                              .isScreenLoading, // Use EventListViewModel's loading state
+                      // Event List
+                      SizedBox(
+                        height: 310,
+                        child: Selector<EventListViewModel, bool>(
+                          selector: (_, vm) => vm.isScreenLoading,
                           builder: (context, isScreenLoading, child) {
                             return Selector<
                               EventListViewModel,
                               List<EventModel>
                             >(
-                              // Watch EventListViewModel for events
-                              selector: (_, vm) => vm
-                                  .events, // Use EventListViewModel's filtered events
+                              selector: (_, vm) => vm.events,
                               builder: (context, events, child) {
                                 if (events.isEmpty && !isScreenLoading) {
                                   return Center(
@@ -170,7 +154,7 @@ class _HomeViewState extends State<HomeView> {
                                                     EventDetailsViewModel(
                                                       context
                                                           .read<
-                                                            BookingService
+                                                            BookiedEventService
                                                           >(),
                                                     ),
                                                 child: EventDetailsView(
@@ -186,16 +170,16 @@ class _HomeViewState extends State<HomeView> {
                               },
                             );
                           },
-                        );
-                      },
-                    ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -245,11 +229,11 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context, EventListViewModel eventListVM) {
+  Widget _buildSearchBar(BuildContext context, EventListViewModel vm) {
     return TextField(
-      controller: eventListVM.searchController,
+      controller: vm.searchController,
       onSubmitted: (value) {
-        eventListVM.filterEvents(value);
+        vm.filterEvents(value);
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const EventListView()),

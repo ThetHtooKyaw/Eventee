@@ -12,14 +12,9 @@ import 'package:eventee/src/event/widgets/event_list_skeleton.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EventListView extends StatefulWidget {
+class EventListView extends StatelessWidget {
   const EventListView({super.key});
 
-  @override
-  State<EventListView> createState() => _EventListViewState();
-}
-
-class _EventListViewState extends State<EventListView> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
@@ -52,9 +47,9 @@ class _EventListViewState extends State<EventListView> {
                       vertical: AppFormat.secondaryPadding,
                       horizontal: AppFormat.primaryPadding,
                     ),
-                    itemCount: isScreenLoading ? 6 : events.length,
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 20),
+                    itemCount: isScreenLoading ? 6 : events.length,
                     itemBuilder: (context, index) {
                       if (isScreenLoading) {
                         return EventListSkeleton(cardWidth: double.infinity);
@@ -69,7 +64,7 @@ class _EventListViewState extends State<EventListView> {
                             builder: (context) =>
                                 ChangeNotifierProvider<EventDetailsViewModel>(
                                   create: (context) => EventDetailsViewModel(
-                                    context.read<BookingService>(),
+                                    context.read<BookiedEventService>(),
                                   ),
                                   child: EventDetailsView(event: event),
                                 ),

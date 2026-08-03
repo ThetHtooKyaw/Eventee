@@ -64,17 +64,16 @@ class CreateEventViewModel extends BaseViewModel {
   }
 
   Future<void> pickImage() async {
-    setActionLoading(true);
-    setError(null);
+    startActionLoading();
 
     final response = await _createEventService.pickEventImage();
 
-    if (response is Success) {
-      _eventImage = response.response as File;
-    } else if (response is Failure) {
-      setError(response.response.toString());
+    if (response is Failure) {
+      stopActionLoadingWithErrorMessage(response.response.toString());
+      return;
     }
 
+    _eventImage = (response as Success).response as File;
     setActionLoading(false);
   }
 
@@ -88,7 +87,6 @@ class CreateEventViewModel extends BaseViewModel {
 
     if (pickedDate != null) {
       String formattedDate = DateFormat('dd MMM, yyyy').format(pickedDate);
-
       eventDateController.text = formattedDate;
       notifyListeners();
     }
@@ -102,9 +100,7 @@ class CreateEventViewModel extends BaseViewModel {
 
     if (pickedTime != null) {
       final dt = DateTime(0, 0, 0, pickedTime.hour, pickedTime.minute);
-
       String formattedTime = DateFormat('hh:mm a').format(dt);
-
       eventStartTimeController.text = formattedTime;
       notifyListeners();
     }
@@ -118,17 +114,14 @@ class CreateEventViewModel extends BaseViewModel {
 
     if (pickedTime != null) {
       final dt = DateTime(0, 0, 0, pickedTime.hour, pickedTime.minute);
-
       String formattedTime = DateFormat('hh:mm a').format(dt);
-
       eventEndTimeController.text = formattedTime;
       notifyListeners();
     }
   }
 
   Future<void> uploadEventDetail() async {
-    setActionLoading(true);
-    setError(null);
+    startActionLoading();
 
     final baseDate = DateFormat('dd MMM, yyyy').parse(eventDateController.text);
     final baseStartTime = DateFormat(
@@ -166,10 +159,13 @@ class CreateEventViewModel extends BaseViewModel {
       category: _selectedCategory!,
     );
 
-    final response = await _createEventService.uploadEventDetail(params: params);
+    final response = await _createEventService.uploadEventDetail(
+      params: params,
+    );
 
     if (response is Failure) {
-      setError(response.response.toString());
+      stopActionLoadingWithErrorMessage(response.response.toString());
+      return;
     }
 
     setActionLoading(false);

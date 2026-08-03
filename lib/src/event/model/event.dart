@@ -1,5 +1,5 @@
 class EventModel {
-  final String id;
+  final String eventId;
   final String imageUrl;
   final String title;
   final String location;
@@ -11,7 +11,7 @@ class EventModel {
   final String category;
 
   const EventModel({
-    required this.id,
+    required this.eventId,
     required this.imageUrl,
     required this.location,
     required this.date,
@@ -25,7 +25,7 @@ class EventModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      'eventId': eventId,
       'imageUrl': imageUrl,
       'title': title,
       'location': location,
@@ -40,7 +40,7 @@ class EventModel {
 
   factory EventModel.fromMap(Map<String, dynamic> map) {
     return EventModel(
-      id: map['id'] ?? '',
+      eventId: map['eventId'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
       title: map['title'] ?? 'Unnamed Event',
       location: map['location'] ?? '',

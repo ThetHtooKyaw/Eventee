@@ -3,66 +3,21 @@ import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/widgets/bottom_nav_bar.dart';
-import 'package:eventee/core/widgets/skeleton_widget.dart';
 import 'package:eventee/src/onboarding/view_models/onboarding_view_model.dart';
+import 'package:eventee/src/onboarding/widgets/address_textfields_skeletion.dart';
+import 'package:eventee/src/onboarding/widgets/onboarding_step_widget.dart';
+import 'package:eventee/src/onboarding/widgets/profile_avatar_skeleton.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:provider/provider.dart';
 
-class OnboardingView extends StatefulWidget {
+class OnboardingView extends StatelessWidget {
   const OnboardingView({super.key});
 
-  @override
-  State<OnboardingView> createState() => _OnboardingViewState();
-}
-
-class _OnboardingViewState extends State<OnboardingView> {
-  final _formKey = GlobalKey<FormState>();
-  List<Widget>? _pages;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _getCurrentProfileAvatar();
-      _getCurrentLocation();
-    });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _pages ??= _buildPages();
-  }
-
-  Future<void> _getCurrentProfileAvatar() async {
-    final vm = context.read<OnboardingViewModel>();
-    final success = await vm.initializeProfileAvatar();
-
-    if (!mounted) return;
-
-    if (!success) {
-      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
-    }
-  }
-
-  Future<void> _getCurrentLocation() async {
-    final vm = context.read<OnboardingViewModel>();
-    final success = await vm.initialLocation();
-
-    if (!mounted) return;
-
-    if (!success) {
-      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
-    }
-  }
-
-  Future<void> _submit() async {
+  Future<void> _submit(BuildContext context) async {
     final vm = context.read<OnboardingViewModel>();
     final success = await vm.submitOnboardingData();
-
-    if (!mounted) return;
 
     if (success) {
       Navigator.pushAndRemoveUntil(
@@ -70,38 +25,36 @@ class _OnboardingViewState extends State<OnboardingView> {
         MaterialPageRoute(builder: (context) => const BottomNavBar()),
         (route) => false,
       );
-    } else {
-      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
     }
   }
 
-  void _nextPage() {
+  void _nextPage(BuildContext context, GlobalKey<FormState> formKey) {
     final vm = context.read<OnboardingViewModel>();
-    if (_formKey.currentState!.validate()) {
+    if (formKey.currentState!.validate()) {
       vm.nextPage();
     }
   }
 
-  List<Widget> _buildPages() {
+  List<Widget> _buildPages(BuildContext context) {
     return [
-      _OnboardingStep(
+      OnboardingStepWidget(
         title: 'Show us your concert smile',
         description: 'Upload a profile picture to personalize your experience.',
         child: _ProfileImagePicker(),
       ),
-      _OnboardingStep(
+      OnboardingStepWidget(
         title: 'What\'s Your Birthday?',
         description:
             'Some nightlife events, comedy clubs, and festivals have strict age limits. \nConfirm your birthday to view them.',
         child: _DateOfBirthPicker(),
       ),
-      _OnboardingStep(
+      OnboardingStepWidget(
         title: 'Stay Connected',
         description:
             'Never miss an event with our timely notifications and updates.',
         child: _PhoneNumberField(),
       ),
-      _OnboardingStep(
+      OnboardingStepWidget(
         title: 'Find Events Near You',
         description:
             'We will customize your dashboard with concerts and shows in this area.',
@@ -112,117 +65,143 @@ class _OnboardingViewState extends State<OnboardingView> {
 
   @override
   Widget build(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
+    final pages = _buildPages(context);
     final t = Theme.of(context);
-    final vm = context.watch<OnboardingViewModel>();
+    final vm = context.read<OnboardingViewModel>();
 
-    return Scaffold(
-      backgroundColor: AppColor.background,
-      body: Form(
-        key: _formKey,
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: AppFormat.secondaryPadding,
-              horizontal: AppFormat.primaryPadding,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Selector<OnboardingViewModel, int>(
-                  selector: (_, vm) => vm.currentPage,
-                  builder: (context, currentPage, child) {
-                    final totalPages = context
-                        .read<OnboardingViewModel>()
-                        .totalPages;
-                    return Column(
-                      children: [
-                        // Progress Indicator
-                        LinearProgressIndicator(
-                          value: (currentPage + 1) / totalPages,
-                          backgroundColor: AppColor.textPlaceholder,
-                          color: AppColor.secondary,
-                          borderRadius: BorderRadius.circular(
-                            AppFormat.secondaryBorderRadius,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
+    return Selector<OnboardingViewModel, String?>(
+      selector: (_, vm) => vm.errorMessage,
+      builder: (context, errorMessage, child) {
+        if (errorMessage != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppSnackbars.showErrorSnackbar(context, errorMessage);
+            vm.setError(null);
+          });
+        }
 
-                        // Step Counter
-                        Text(
-                          'Step ${currentPage + 1} of $totalPages',
-                          style: t.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColor.primary,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+        return Scaffold(
+          backgroundColor: AppColor.background,
+          body: Form(
+            key: formKey,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppFormat.secondaryPadding,
+                  horizontal: AppFormat.primaryPadding,
                 ),
-                const SizedBox(height: 40),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Selector<OnboardingViewModel, int>(
+                      selector: (_, vm) => vm.currentPage,
+                      builder: (context, currentPage, child) {
+                        final totalPages = pages.length;
 
-                // Content
-                Expanded(
-                  child: PageView(
-                    controller: vm.pageController,
-                    physics: const NeverScrollableScrollPhysics(),
-                    onPageChanged: vm.setCurrentPage,
-                    children: _pages!,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Action Button
-                Selector<OnboardingViewModel, int>(
-                  selector: (_, vm) => vm.currentPage,
-                  builder: (context, currentPage, child) {
-                    return Column(
-                      children: [
-                        // Next Button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColor.primary,
-                            ),
-                            onPressed: currentPage == vm.totalPages - 1
-                                ? _submit
-                                : _nextPage,
-                            child: Text(
-                              currentPage == vm.totalPages - 1
-                                  ? 'Submit'
-                                  : 'Next',
-                            ),
-                          ),
-                        ),
-
-                        // Back Button
-                        if (currentPage > 0)
-                          Column(
-                            children: [
-                              const SizedBox(height: 10),
-                              TextButton(
-                                onPressed: vm.previousPage,
-                                child: Text(
-                                  'Back',
-                                  style: t.textTheme.titleSmall?.copyWith(
-                                    color: AppColor.primary,
-                                  ),
-                                ),
+                        return Column(
+                          children: [
+                            // Progress Indicator
+                            LinearProgressIndicator(
+                              value: (currentPage + 1) / totalPages,
+                              backgroundColor: AppColor.textPlaceholder,
+                              color: AppColor.secondary,
+                              borderRadius: BorderRadius.circular(
+                                AppFormat.secondaryBorderRadius,
                               ),
-                            ],
-                          )
-                        else
-                          const SizedBox.shrink(),
-                      ],
-                    );
-                  },
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Step Counter
+                            Text(
+                              'Step ${currentPage + 1} of $totalPages',
+                              style: t.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColor.primary,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 40),
+
+                    // Content
+                    Expanded(
+                      child: PageView(
+                        controller: vm.pageController,
+                        physics: const NeverScrollableScrollPhysics(),
+                        onPageChanged: vm.setCurrentPage,
+                        children: pages,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Action Button
+                    Selector<OnboardingViewModel, int>(
+                      selector: (_, vm) => vm.currentPage,
+                      builder: (context, currentPage, child) {
+                        return Column(
+                          children: [
+                            // Next Button
+                            Selector<OnboardingViewModel, bool>(
+                              selector: (_, vm) => vm.isActionLoading,
+                              builder: (context, isActionLoading, child) {
+                                return SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColor.primary,
+                                    ),
+                                    onPressed: currentPage == pages.length - 1
+                                        ? (isActionLoading
+                                              ? null
+                                              : () => _submit(context))
+                                        : () => _nextPage(context, formKey),
+                                    child:
+                                        isActionLoading &&
+                                            currentPage == pages.length - 1
+                                        ? const CircularProgressIndicator(
+                                            color: AppColor.white,
+                                          )
+                                        : Text(
+                                            currentPage == pages.length - 1
+                                                ? 'Submit'
+                                                : 'Next',
+                                          ),
+                                  ),
+                                );
+                              },
+                            ),
+
+                            // Back Button
+                            if (currentPage > 0)
+                              Column(
+                                children: [
+                                  const SizedBox(height: 10),
+                                  TextButton(
+                                    onPressed: vm.previousPage,
+                                    child: Text(
+                                      'Back',
+                                      style: t.textTheme.titleSmall?.copyWith(
+                                        color: AppColor.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            else
+                              const SizedBox.shrink(),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -232,35 +211,56 @@ class _ProfileImagePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Selector<OnboardingViewModel, ImageProvider?>(
-      selector: (_, vm) => vm.getProfileAvatar(),
-      builder: (context, profileAvatar, child) {
-        final vm = context.read<OnboardingViewModel>();
-        return Column(
-          children: [
-            CircleAvatar(
-              radius: 80,
-              backgroundImage: profileAvatar,
-              backgroundColor: AppColor.placeholder.withOpacity(0.4),
-              child:
-                  profileAvatar ==
-                      null // Check if any image is present
-                  ? const Icon(Icons.person, color: Colors.black, size: 40)
-                  : null,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => vm.pickProfileAvatar(),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(70, 40),
-                backgroundColor: AppColor.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppFormat.primaryPadding),
+    return Selector<OnboardingViewModel, bool>(
+      selector: (_, vm) => vm.isScreenLoading,
+      builder: (context, isScreenLoading, child) {
+        if (isScreenLoading) {
+          return ProfileAvatarSkeleton();
+        }
+
+        return Selector<OnboardingViewModel, ImageProvider?>(
+          key: const ValueKey('content'),
+          selector: (_, vm) => vm.getProfileAvatar(),
+          builder: (context, profileAvatar, child) {
+            final vm = context.read<OnboardingViewModel>();
+
+            return Column(
+              children: [
+                CircleAvatar(
+                  radius: 80,
+                  backgroundImage: profileAvatar,
+                  backgroundColor: AppColor.placeholder.withOpacity(0.4),
+                  child: profileAvatar == null
+                      ? const Icon(Icons.person, color: Colors.black, size: 40)
+                      : null,
                 ),
-              ),
-              child: const Text('Pick Image'),
-            ),
-          ],
+                const SizedBox(height: 20),
+
+                Selector<OnboardingViewModel, bool>(
+                  selector: (_, vm) => vm.isActionLoading,
+                  builder: (context, isActionLoading, child) {
+                    return ElevatedButton(
+                      onPressed: isActionLoading ? null : vm.pickProfileAvatar,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(120, 40),
+                        backgroundColor: AppColor.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppFormat.primaryPadding,
+                          ),
+                        ),
+                      ),
+                      child: isActionLoading
+                          ? const CircularProgressIndicator(
+                              color: AppColor.white,
+                            )
+                          : const Text('Pick Image'),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -356,16 +356,7 @@ class _AddressPicker extends StatelessWidget {
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           child: isScreenLoading
-              ? Column(
-                  key: const ValueKey('loading'),
-                  children: [
-                    SkeletonWidget(height: 50, width: double.infinity),
-                    const SizedBox(height: 20),
-                    SkeletonWidget(height: 50, width: double.infinity),
-                    const SizedBox(height: 20),
-                    SkeletonWidget(height: 50, width: double.infinity),
-                  ],
-                )
+              ? AddressTextfieldsSkeletion()
               : SelectState(
                   key: ValueKey('${vm.country}-${vm.state}-${vm.city}'),
                   defaultValue: vm.country,
@@ -394,47 +385,6 @@ class _AddressPicker extends StatelessWidget {
                 ),
         );
       },
-    );
-  }
-}
-
-class _OnboardingStep extends StatelessWidget {
-  const _OnboardingStep({
-    required this.title,
-    required this.description,
-    required this.child,
-  });
-
-  final String title;
-  final String description;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      children: [
-        // Title
-        Text(
-          title,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: AppColor.primary,
-          ),
-        ),
-        const SizedBox(height: 10),
-
-        // Description
-        Text(
-          description,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodyLarge?.copyWith(color: AppColor.primary),
-        ),
-        const SizedBox(height: 40),
-
-        child,
-      ],
     );
   }
 }

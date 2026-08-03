@@ -17,8 +17,7 @@ class SignUpViewModel extends BaseViewModel {
 
   // Use Cases
   Future<bool> createUser() async {
-    setActionLoading(true);
-    setError(null);
+    startActionLoading();
 
     final response = await _authService.signUpUser(
       username: nameController.text.trim(),
@@ -27,8 +26,7 @@ class SignUpViewModel extends BaseViewModel {
     );
 
     if (response is Failure) {
-      setError(response.response.toString());
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage(response.response.toString());
       return false;
     }
 
@@ -37,14 +35,12 @@ class SignUpViewModel extends BaseViewModel {
   }
 
   Future<Object?> signUpWithGoogle() async {
-    setActionLoading(true);
-    setError(null);
+    startActionLoading();
 
     final response = await _authService.authenticateWithGoogle();
 
     if (response is Failure) {
-      setError(response.response.toString());
-      setActionLoading(false);
+      stopActionLoadingWithErrorMessage(response.response.toString());
       return null;
     }
 
