@@ -168,6 +168,8 @@ class CreateEventViewModel extends BaseViewModel {
       return;
     }
 
-    setActionLoading(false);
+    stopActionLoadingWithSuccessMessage(
+      (response as Success).response.toString(),
+    );
   }
 }

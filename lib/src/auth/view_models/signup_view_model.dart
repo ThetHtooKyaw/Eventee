@@ -16,6 +16,15 @@ class SignUpViewModel extends BaseViewModel {
   final confirmPasswordController = TextEditingController();
 
   // Use Cases
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
   Future<bool> createUser() async {
     startActionLoading();
 
@@ -46,14 +55,5 @@ class SignUpViewModel extends BaseViewModel {
 
     setActionLoading(false);
     return (response as Success).response;
-  }
-
-  @override
-  void dispose() {
-    nameController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    super.dispose();
   }
 }

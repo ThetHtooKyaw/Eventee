@@ -42,174 +42,203 @@ class _AccountViewState extends State<AccountView> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final isScreenLoading = context.select<AccountViewModel, bool>(
-      (vm) => vm.isScreenLoading,
-    );
-    final isActionLoading = context.select<AccountViewModel, bool>(
-      (vm) => vm.isActionLoading,
-    );
 
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: AppColor.white,
-        title: Text("Eventee Account", style: t.textTheme.titleSmall),
-      ),
-      body: isScreenLoading
-          ? AccountSkeleton()
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(AppFormat.primaryPadding),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Profile
-                  Selector<AccountViewModel, AppUser?>(
-                    selector: (_, vm) => vm.user,
-                    builder: (context, userData, child) {
-                      if (userData == null) {
-                        return _buildErrorProfile(t, context);
-                      }
+    return Selector<AccountViewModel, String?>(
+      selector: (_, vm) => vm.errorMessage,
+      builder: (context, errorMessage, child) {
+        if (errorMessage != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppSnackbars.showErrorSnackbar(context, errorMessage);
+            context.read<AccountViewModel>().setError(null);
+          });
+        }
 
-                      return _buildProfile(userData, t);
-                    },
-                  ),
-                  const SizedBox(height: 20),
+        return Scaffold(
+          appBar: AppBar(
+            centerTitle: true,
+            backgroundColor: AppColor.white,
+            title: Text("Eventee Account", style: t.textTheme.titleSmall),
+          ),
+          body: Selector<AccountViewModel, bool>(
+            selector: (_, vm) => vm.isScreenLoading,
+            builder: (context, isScreenLoading, child) {
+              if (isScreenLoading) {
+                return AccountSkeleton();
+              }
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(AppFormat.primaryPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Profile
+                    Selector<AccountViewModel, AppUser?>(
+                      selector: (_, vm) => vm.user,
+                      builder: (context, userData, child) {
+                        if (userData == null) {
+                          return _buildErrorProfile(t, context);
+                        }
 
-                  Text(
-                    'PERSONALIZE',
-                    style: t.textTheme.bodyMedium?.copyWith(
-                      color: AppColor.textPlaceholder,
-                      fontWeight: FontWeight.bold,
+                        return _buildProfile(userData, t);
+                      },
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 10),
+                    const SizedBox(height: 20),
 
-                  MenuCard(
-                    child: Column(
-                      children: [
-                        // Personal Information
-                        MenuItem(
-                          icon: Icons.person,
-                          title: 'Personal Information',
-                          onTap: () async {
-                            Navigator.push(
+                    Text(
+                      'PERSONALIZE',
+                      style: t.textTheme.bodyMedium?.copyWith(
+                        color: AppColor.textPlaceholder,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 10),
+
+                    MenuCard(
+                      child: Column(
+                        children: [
+                          // Personal Information
+                          MenuItem(
+                            icon: Icons.person,
+                            title: 'Personal Information',
+                            onTap: () async {
+                              final user = context
+                                  .read<AccountViewModel>()
+                                  .user;
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (newContext) =>
+                                      ChangeNotifierProvider<
+                                        AccountDetailViewModel
+                                      >(
+                                        create: (context) =>
+                                            AccountDetailViewModel(
+                                              context.read<AccountService>(),
+                                              user,
+                                            ),
+                                        child: const AccountDetailView(),
+                                      ),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildCustomDivider(),
+
+                          // Settings
+                          MenuItem(
+                            icon: Icons.settings,
+                            title: 'Settings',
+                            onTap: () {},
+                          ),
+                          _buildCustomDivider(),
+
+                          // Billing
+                          MenuItem(
+                            icon: Icons.wallet,
+                            title: 'Billing',
+                            onTap: () {},
+                          ),
+                          _buildCustomDivider(),
+
+                          // Favorites
+                          MenuItem(
+                            icon: Icons.bookmark,
+                            title: 'Favorites',
+                            onTap: () {},
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    Text(
+                      'GENERAL',
+                      style: t.textTheme.bodyMedium?.copyWith(
+                        color: AppColor.textPlaceholder,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 10),
+
+                    MenuCard(
+                      child: Column(
+                        children: [
+                          // Notifications
+                          MenuItem(
+                            icon: Icons.notifications,
+                            title: 'Notifications',
+                            onTap: () {},
+                          ),
+                          _buildCustomDivider(),
+
+                          // Language
+                          MenuItem(
+                            icon: Icons.language,
+                            title: 'Language',
+                            onTap: () {},
+                          ),
+                          _buildCustomDivider(),
+
+                          // Theme Mode
+                          MenuItem(
+                            icon: Icons.wb_sunny,
+                            title: 'Light/Dark Mode',
+                            onTap: () {},
+                          ),
+                          _buildCustomDivider(),
+
+                          // Add Event
+                          MenuItem(
+                            icon: Icons.add,
+                            title: 'Add Event',
+                            onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
                                     ChangeNotifierProvider<
-                                      AccountDetailViewModel
+                                      CreateEventViewModel
                                     >(
-                                      create: (ctx) => AccountDetailViewModel(
-                                        ctx.read<AccountService>(),
+                                      create: (context) => CreateEventViewModel(
+                                        context.read<CreateEventService>(),
                                       ),
-                                      child: const AccountDetailView(),
+                                      child: const CreateEventView(),
                                     ),
                               ),
-                            );
-                          },
-                        ),
-                        _buildCustomDivider(),
-
-                        // Settings
-                        MenuItem(
-                          icon: Icons.settings,
-                          title: 'Settings',
-                          onTap: () {},
-                        ),
-                        _buildCustomDivider(),
-
-                        // Billing
-                        MenuItem(
-                          icon: Icons.wallet,
-                          title: 'Billing',
-                          onTap: () {},
-                        ),
-                        _buildCustomDivider(),
-
-                        // Favorites
-                        MenuItem(
-                          icon: Icons.bookmark,
-                          title: 'Favorites',
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  Text(
-                    'GENERAL',
-                    style: t.textTheme.bodyMedium?.copyWith(
-                      color: AppColor.textPlaceholder,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 10),
-
-                  MenuCard(
-                    child: Column(
-                      children: [
-                        // Notifications
-                        MenuItem(
-                          icon: Icons.notifications,
-                          title: 'Notifications',
-                          onTap: () {},
-                        ),
-                        _buildCustomDivider(),
-
-                        // Language
-                        MenuItem(
-                          icon: Icons.language,
-                          title: 'Language',
-                          onTap: () {},
-                        ),
-                        _buildCustomDivider(),
-
-                        // Theme Mode
-                        MenuItem(
-                          icon: Icons.wb_sunny,
-                          title: 'Light/Dark Mode',
-                          onTap: () {},
-                        ),
-                        _buildCustomDivider(),
-
-                        // Add Event
-                        MenuItem(
-                          icon: Icons.add,
-                          title: 'Add Event',
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  ChangeNotifierProvider<CreateEventViewModel>(
-                                    create: (context) => CreateEventViewModel(
-                                      context.read<CreateEventService>(),
-                                    ),
-                                    child: const CreateEventView(),
-                                  ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                        ],
                       ),
-                      onPressed: isActionLoading ? null : _logout,
-                      child: const Text('Logout'),
                     ),
-                  ),
-                ],
-              ),
-            ),
+                    const SizedBox(height: 20),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: Selector<AccountViewModel, bool>(
+                        selector: (_, vm) => vm.isActionLoading,
+                        builder: (context, isActionLoading, child) {
+                          return ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                            ),
+                            onPressed: isActionLoading ? null : _logout,
+                            child: isActionLoading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : const Text('Logout'),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

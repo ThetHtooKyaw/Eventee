@@ -1,4 +1,5 @@
 import 'package:eventee/core/status/failure.dart';
+import 'package:eventee/core/status/success.dart';
 import 'package:eventee/core/utils/base_view_model.dart';
 import 'package:eventee/src/event/model/booking.dart';
 import 'package:eventee/src/event/repo/booked_event_service.dart';
@@ -21,7 +22,9 @@ class EventDetailsViewModel extends BaseViewModel {
       return false;
     }
 
-    stopActionLoadingWithSuccessMessage('Booking successful!');
+    stopActionLoadingWithSuccessMessage(
+      (response as Success).response.toString(),
+    );
     return true;
   }
 

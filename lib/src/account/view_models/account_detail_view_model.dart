@@ -10,7 +10,10 @@ import 'package:intl/intl.dart';
 class AccountDetailViewModel extends BaseViewModel {
   // Dependencies
   final AccountService _accountService;
-  AccountDetailViewModel(this._accountService);
+  final AppUser? _user;
+  AccountDetailViewModel(this._accountService, this._user) {
+    if (_user != null) initialize(_user);
+  }
 
   // Controllers
   final nameController = TextEditingController();

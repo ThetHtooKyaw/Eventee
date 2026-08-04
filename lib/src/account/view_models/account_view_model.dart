@@ -20,7 +20,6 @@ class AccountViewModel extends BaseViewModel {
   // Use Cases
   Future<void> loadUser({bool forceRefresh = false}) async {
     if (_user != null && !forceRefresh) return;
-
     startScreenLoading();
 
     final response = await _accountService.getUser();

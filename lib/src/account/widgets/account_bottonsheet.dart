@@ -55,8 +55,9 @@ class _AccountBottonsheetState extends State<AccountBottonsheet> {
               Text(widget.title, style: Theme.of(context).textTheme.titleSmall),
 
               // Save Button
-              Consumer<AccountDetailViewModel>(
-                builder: (context, vm, child) {
+              Selector<AccountDetailViewModel, bool>(
+                selector: (_, vm) => vm.isActionLoading,
+                builder: (context, isActionLoading, child) {
                   return IconButton(
                     onPressed: widget.onTap,
                     style: IconButton.styleFrom(
@@ -65,7 +66,7 @@ class _AccountBottonsheetState extends State<AccountBottonsheet> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    icon: vm.isActionLoading
+                    icon: isActionLoading
                         ? CircularProgressIndicator(color: AppColor.primary)
                         : Icon(Icons.check, color: AppColor.primary, size: 32),
                   );

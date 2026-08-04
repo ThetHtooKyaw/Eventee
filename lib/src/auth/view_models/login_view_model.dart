@@ -14,6 +14,13 @@ class LoginViewModel extends BaseViewModel {
   final passwordController = TextEditingController();
 
   // Use Cases
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   Future<bool> loginUser() async {
     startActionLoading();
 
@@ -43,12 +50,5 @@ class LoginViewModel extends BaseViewModel {
 
     setActionLoading(false);
     return (response as Success).response;
-  }
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
   }
 }

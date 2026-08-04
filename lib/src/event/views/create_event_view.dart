@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
+import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/src/event/view_models/create_event_view_model.dart';
 import 'package:eventee/src/event/widgets/custom_textfield.dart';
@@ -20,207 +21,201 @@ class _CreateEventViewState extends State<CreateEventView> {
   Future<void> _handleUpload() async {
     final vm = context.read<CreateEventViewModel>();
 
-    if (vm.eventImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please select an event image.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    if (!_formKey.currentState!.validate()) return;
+
+    if (vm.eventImage == null && mounted) {
+      AppSnackbars.showErrorSnackbar(context, 'Please select an event image.');
       return;
     }
 
-    if (_formKey.currentState!.validate()) {
-      await vm.uploadEventDetail();
-
-      if (vm.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(vm.errorMessage!),
-            backgroundColor: Colors.red,
-          ),
-        );
-        vm.setError(null);
-      } else {
-        vm.resetForm();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Event uploaded successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    }
+    await vm.uploadEventDetail();
   }
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final vm = context.watch<CreateEventViewModel>();
+    final vm = context.read<CreateEventViewModel>();
 
-    return Stack(
-      children: [
-        Scaffold(
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppFormat.primaryPadding,
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: AppFormat.secondaryPadding),
+    return Consumer<CreateEventViewModel>(
+      builder: (context, vm, child) {
+        if (vm.errorMessage != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
+            vm.setError(null);
+          });
+        }
 
-                    // Upload Image
-                    _buildImagePicker(),
-                    const SizedBox(height: 20),
+        if (vm.successMessage != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppSnackbars.showSuccessSnackbar(context, vm.successMessage!);
+            vm.setSuccess(null);
+            vm.resetForm();
+          });
+        }
 
-                    // Event Title
-                    Row(children: []),
-                    Text(
-                      'Event Title',
-                      style: t.textTheme.bodyMedium?.copyWith(
-                        color: AppColor.textPlaceholder,
-                        fontWeight: FontWeight.bold,
+        return Stack(
+          children: [
+            child!,
+            if (vm.isActionLoading)
+              const LoadingOverlayColumn(message: 'Uploading event...'),
+          ],
+        );
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppFormat.primaryPadding,
+            ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: AppFormat.secondaryPadding),
+
+                  // Upload Image
+                  _buildImagePicker(),
+                  const SizedBox(height: 20),
+
+                  // Event Title
+                  Row(children: []),
+                  Text(
+                    'Event Title',
+                    style: t.textTheme.bodyMedium?.copyWith(
+                      color: AppColor.textPlaceholder,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: vm.eventNameController,
+                    keyboardType: TextInputType.text,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Event title is required';
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(labelText: 'Enter Title'),
+                  ),
+                  const SizedBox(height: 20),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Date
+                      CustomTextfield(
+                        controller: vm.eventDateController,
+                        label: 'Date',
+                        hintText: 'dd MMM, yyyy',
+                        icon: Icons.calendar_month,
+                        onTap: () => vm.pickDate(context),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextFormField(
-                      controller: vm.eventNameController,
-                      keyboardType: TextInputType.text,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Event title is required';
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(labelText: 'Enter Title'),
-                    ),
-                    const SizedBox(height: 20),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Date
-                        CustomTextfield(
-                          controller: vm.eventDateController,
-                          label: 'Date',
-                          hintText: 'dd MMM, yyyy',
-                          icon: Icons.calendar_month,
-                          onTap: () => vm.pickDate(context),
-                        ),
+                      // Category Dropdown
+                      _buildCategoryDropDown(t),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
 
-                        // Category Dropdown
-                        _buildCategoryDropDown(t),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Start Time
-                        CustomTextfield(
-                          controller: vm.eventStartTimeController,
-                          label: 'Start Time',
-                          hintText: 'hh:mm',
-                          icon: Icons.timer_outlined,
-                          onTap: () => vm.pickStartTime(context),
-                        ),
-
-                        // End Time
-                        CustomTextfield(
-                          controller: vm.eventEndTimeController,
-                          label: 'End Time',
-                          hintText: 'hh:mm',
-                          icon: Icons.timer_outlined,
-                          onTap: () => vm.pickEndTime(context),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Location TextField
-                    _buildTextField(
-                      t,
-                      vm.eventLocationController,
-                      TextInputType.text,
-                      'Enter Location',
-                      (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Event location is required';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Price TextField
-                    _buildTextField(
-                      t,
-                      vm.ticketPriceController,
-                      TextInputType.number,
-                      'Enter Price',
-                      (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Ticket price is required';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Description TextField
-                    Text(
-                      'Additional Information',
-                      style: t.textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: vm.eventDetailController,
-                      maxLines: 6,
-                      decoration: InputDecoration(
-                        hintText: 'What will be on that event...',
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Start Time
+                      CustomTextfield(
+                        controller: vm.eventStartTimeController,
+                        label: 'Start Time',
+                        hintText: 'hh:mm',
+                        icon: Icons.timer_outlined,
+                        onTap: () => vm.pickStartTime(context),
                       ),
-                    ),
-                    const SizedBox(height: 20),
 
-                    // Action Button
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: vm.isActionLoading
-                            ? null
-                            : () => _handleUpload(),
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: Size(double.infinity, 60),
-                        ),
-                        child: Text('Upload'),
+                      // End Time
+                      CustomTextfield(
+                        controller: vm.eventEndTimeController,
+                        label: 'End Time',
+                        hintText: 'hh:mm',
+                        icon: Icons.timer_outlined,
+                        onTap: () => vm.pickEndTime(context),
                       ),
-                    ),
-                    const SizedBox(height: 10),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
 
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: Size(double.infinity, 60),
-                        ),
-                        child: Text('Back'),
-                      ),
+                  // Location TextField
+                  _buildTextField(
+                    t,
+                    vm.eventLocationController,
+                    TextInputType.text,
+                    'Enter Location',
+                    (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Event location is required';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Price TextField
+                  _buildTextField(
+                    t,
+                    vm.ticketPriceController,
+                    TextInputType.number,
+                    'Enter Price',
+                    (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Ticket price is required';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Description TextField
+                  Text(
+                    'Additional Information',
+                    style: t.textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: vm.eventDetailController,
+                    maxLines: 6,
+                    decoration: InputDecoration(
+                      hintText: 'What will be on that event...',
                     ),
-                    const SizedBox(height: 10),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Action Button
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: _handleUpload,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 60),
+                      ),
+                      child: const Text('Upload'),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(double.infinity, 60),
+                      ),
+                      child: Text('Back'),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
               ),
             ),
           ),
         ),
-
-        if (vm.isActionLoading)
-          LoadingOverlayColumn(message: 'Uploading event'),
-      ],
+      ),
     );
   }
 

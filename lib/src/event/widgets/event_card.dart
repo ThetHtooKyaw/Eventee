@@ -95,12 +95,17 @@ class EventCard extends StatelessWidget {
                   selector: (context, vm) =>
                       vm.favouritedEventIds.contains(event.eventId),
                   builder: (context, isFavourited, child) {
-                    return IconButton(
-                      onPressed: () => context
+                    return GestureDetector(
+                      onTap: () => context
                           .read<FavouriteViewModel>()
                           .toggleFavourite(event),
-                      icon: Icon(
-                        isFavourited ? Icons.bookmark : Icons.bookmark_border,
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: AppColor.white,
+                        child: Icon(
+                          isFavourited ? Icons.bookmark : Icons.bookmark_border,
+                          size: 20,
+                        ),
                       ),
                     );
                   },

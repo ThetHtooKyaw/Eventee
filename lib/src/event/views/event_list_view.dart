@@ -1,5 +1,6 @@
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
+import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/widgets/app_error.dart';
 import 'package:eventee/src/event/model/event.dart';
 import 'package:eventee/src/event/repo/booked_event_service.dart';
@@ -20,15 +21,19 @@ class EventListView extends StatelessWidget {
     final t = Theme.of(context);
     final vm = context.watch<EventListViewModel>();
 
-    return Scaffold(
-      appBar: _buildAppBar(context, vm),
-      body: Selector<EventListViewModel, String?>(
-        selector: (_, vm) => vm.errorMessage,
-        builder: (context, errorMessage, child) {
-          if (errorMessage != null) {
-            return AppError(errorMessage: errorMessage);
-          }
-          return Selector<EventListViewModel, bool>(
+    return Selector<EventListViewModel, String?>(
+      selector: (_, vm) => vm.errorMessage,
+      builder: (context, errorMessage, child) {
+        if (errorMessage != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppSnackbars.showErrorSnackbar(context, errorMessage);
+            vm.setError(null);
+          });
+        }
+
+        return Scaffold(
+          appBar: _buildAppBar(context, vm),
+          body: Selector<EventListViewModel, bool>(
             selector: (_, vm) => vm.isScreenLoading,
             builder: (context, isScreenLoading, child) {
               return Selector<EventListViewModel, List<EventModel>>(
@@ -80,9 +85,9 @@ class EventListView extends StatelessWidget {
                 },
               );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 

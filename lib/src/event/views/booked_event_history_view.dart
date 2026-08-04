@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:coupon_uikit/coupon_uikit.dart';
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
-import 'package:eventee/core/widgets/app_error.dart';
+import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/widgets/skeleton_widget.dart';
 import 'package:eventee/src/event/model/event_history.dart';
 import 'package:eventee/src/event/view_models/booked_event_history_view_model.dart';
@@ -23,32 +23,35 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
   Widget build(BuildContext context) {
     final t = Theme.of(context);
 
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          title: Text('Bookings', style: t.textTheme.titleSmall),
-          bottom: TabBar(
-            labelColor: AppColor.primary,
-            unselectedLabelColor: AppColor.textPlaceholder,
-            indicatorColor: AppColor.primary,
-            tabs: [
-              Tab(text: 'Active'),
-              Tab(text: 'Completed'),
-              Tab(text: 'Cancelled'),
-            ],
-          ),
-        ),
+    return Selector<BookedEventHistoryViewModel, String?>(
+      selector: (_, vm) => vm.errorMessage,
+      builder: (context, errorMessage, child) {
+        if (errorMessage != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppSnackbars.showErrorSnackbar(context, errorMessage);
+            context.read<BookedEventHistoryViewModel>().setError(null);
+          });
+        }
 
-        body: Selector<BookedEventHistoryViewModel, String?>(
-          selector: (_, vm) => vm.errorMessage,
-          builder: (context, errorMessage, child) {
-            if (errorMessage != null) {
-              return AppError(errorMessage: errorMessage);
-            }
+        return DefaultTabController(
+          length: 3,
+          child: Scaffold(
+            appBar: AppBar(
+              centerTitle: true,
+              title: Text('Bookings', style: t.textTheme.titleSmall),
+              bottom: TabBar(
+                labelColor: AppColor.primary,
+                unselectedLabelColor: AppColor.textPlaceholder,
+                indicatorColor: AppColor.primary,
+                tabs: [
+                  Tab(text: 'Active'),
+                  Tab(text: 'Completed'),
+                  Tab(text: 'Cancelled'),
+                ],
+              ),
+            ),
 
-            return Selector<BookedEventHistoryViewModel, bool>(
+            body: Selector<BookedEventHistoryViewModel, bool>(
               selector: (_, vm) => vm.isScreenLoading,
               builder: (context, isScreenLoading, child) {
                 if (isScreenLoading) {
@@ -102,10 +105,10 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
                   ],
                 );
               },
-            );
-          },
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -135,7 +138,7 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
         final eventStartTime = vm.formatTime(event.startTime);
         final eventEndTime = vm.formatTime(event.endTime);
 
-        return _buildBookingCard(
+        return _buildBookedEventHistoryCard(
           event,
           eventDate,
           eventStartTime,
@@ -145,7 +148,7 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
     );
   }
 
-  Widget _buildBookingCard(
+  Widget _buildBookedEventHistoryCard(
     EventHistoryModel event,
     String eventDate,
     String eventStartTime,

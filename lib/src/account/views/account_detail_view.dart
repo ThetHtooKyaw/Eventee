@@ -6,6 +6,7 @@ import 'package:eventee/src/account/view_models/account_detail_view_model.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
 import 'package:eventee/src/account/widgets/account_bottonsheet.dart';
 import 'package:eventee/src/account/widgets/account_menu.dart';
+import 'package:eventee/src/account/widgets/personal_information_card.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -22,22 +23,10 @@ class AccountDetailView extends StatefulWidget {
 class _AccountDetailViewState extends State<AccountDetailView> {
   final _formKey = GlobalKey<FormState>();
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final accountVM = context.read<AccountViewModel>();
-      if (accountVM.user != null) {
-        context.read<AccountDetailViewModel>().initialize(accountVM.user!);
-      }
-    });
-  }
-
   Future<void> _handleSave({
     required Future<bool> Function() updateAction,
     bool requiresValidation = false,
   }) async {
-    final vm = context.read<AccountDetailViewModel>();
     final accountVM = context.read<AccountViewModel>();
 
     if (requiresValidation && !_formKey.currentState!.validate()) return;
@@ -47,11 +36,8 @@ class _AccountDetailViewState extends State<AccountDetailView> {
     if (!mounted) return;
 
     if (success) {
-      AppSnackbars.showSuccessSnackbar(context, vm.successMessage!);
       await accountVM.loadUser(forceRefresh: true);
       Navigator.pop(context);
-    } else {
-      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
     }
   }
 
@@ -100,110 +86,127 @@ class _AccountDetailViewState extends State<AccountDetailView> {
     final userData = context.select<AccountViewModel, AppUser?>(
       (vm) => vm.user,
     );
-
     final profileAvatar = vm.getProfileAvatar(userData?.photoUrl ?? '');
 
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        leadingWidth: 80,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          style: IconButton.styleFrom(
-            backgroundColor: AppColor.placeholder.withOpacity(0.4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
+    return Consumer<AccountDetailViewModel>(
+      builder: (context, vm, child) {
+        if (vm.successMessage != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppSnackbars.showSuccessSnackbar(context, vm.successMessage!);
+            vm.setSuccess(null);
+          });
+        }
+        if (vm.errorMessage != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
+            vm.setError(null);
+          });
+        }
+        return child!;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          leadingWidth: 80,
+          leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColor.placeholder.withOpacity(0.4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
             ),
+            icon: Icon(Icons.arrow_back_ios_new_rounded, size: 32),
           ),
-          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 32),
+          title: Text("Personal Information", style: t.textTheme.titleSmall),
         ),
-        title: Text("Personal Information", style: t.textTheme.titleSmall),
-      ),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.all(AppFormat.primaryPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Image
-              Center(
-                child: GestureDetector(
-                  onTap: () => _handlePickProfileImage(vm, profileAvatar),
-                  child: _buildAvatar(profileAvatar),
+        body: Form(
+          key: _formKey,
+          child: Padding(
+            padding: const EdgeInsets.all(AppFormat.primaryPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Image
+                Center(
+                  child: GestureDetector(
+                    onTap: () => _handlePickProfileImage(vm, profileAvatar),
+                    child: _buildAvatar(profileAvatar),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-              // Change Button
-              _buildActionButton(
-                'Change',
-                () => _handlePickProfileImage(vm, profileAvatar),
-              ),
-              const SizedBox(height: 20),
-
-              MenuCard(
-                child: Column(
-                  children: [
-                    // Name
-                    _buildPICard(
-                      title: 'Name',
-                      data: userData!.username,
-                      onTap: () => _handleSave(
-                        updateAction: vm.updateUsername,
-                        requiresValidation: true,
-                      ),
-                      child: _buildUsernameField(t, vm),
-                    ),
-                    _buildCustomDivider(),
-
-                    // Email
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: _buildPICard(
-                        title: 'Email',
-                        data: userData.email,
-                        isReadOnly: true,
-                        child: SizedBox(),
-                      ),
-                    ),
-                    _buildCustomDivider(),
-
-                    // Phone Number
-                    _buildPICard(
-                      title: 'Phone Number',
-                      data: userData.phoneNumber,
-                      onTap: () => _handleSave(
-                        updateAction: vm.updatePhoneNumber,
-                        requiresValidation: true,
-                      ),
-                      child: _buildPhoneNumberField(t, vm),
-                    ),
-                    _buildCustomDivider(),
-
-                    // Birthday
-                    _buildPICard(
-                      title: 'Birthday',
-                      data: vm.formatBirthday(
-                        userData.dateOfBirth ?? DateTime.now(),
-                      ),
-                      onTap: () =>
-                          _handleSave(updateAction: vm.updateDateOfBirth),
-                      child: _buildDateOfBirthPicker(t),
-                    ),
-                    _buildCustomDivider(),
-
-                    // Address
-                    _buildPICard(
-                      title: 'Address',
-                      data: userData.address,
-                      onTap: () => _handleSave(updateAction: vm.updateAddress),
-                      child: _buildAddressPicker(t, vm),
-                    ),
-                  ],
+                // Change Button
+                _buildActionButton(
+                  'Change',
+                  () => _handlePickProfileImage(vm, profileAvatar),
                 ),
-              ),
-            ],
+                const SizedBox(height: 20),
+
+                MenuCard(
+                  child: Column(
+                    children: [
+                      // Name
+                      PersonalInformationCard(
+                        title: 'Name',
+                        data: userData!.username,
+                        onTap: () => _handleSave(
+                          updateAction: vm.updateUsername,
+                          requiresValidation: true,
+                        ),
+                        child: _buildUsernameField(t, vm),
+                      ),
+                      _buildCustomDivider(),
+
+                      // Email
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: PersonalInformationCard(
+                          title: 'Email',
+                          data: userData.email,
+                          isReadOnly: true,
+                          child: SizedBox(),
+                        ),
+                      ),
+                      _buildCustomDivider(),
+
+                      // Phone Number
+                      PersonalInformationCard(
+                        title: 'Phone Number',
+                        data: userData.phoneNumber,
+                        onTap: () => _handleSave(
+                          updateAction: vm.updatePhoneNumber,
+                          requiresValidation: true,
+                        ),
+                        child: _buildPhoneNumberField(t, vm),
+                      ),
+                      _buildCustomDivider(),
+
+                      // Birthday
+                      PersonalInformationCard(
+                        title: 'Birthday',
+                        data: vm.formatBirthday(
+                          userData.dateOfBirth ?? DateTime.now(),
+                        ),
+                        onTap: () =>
+                            _handleSave(updateAction: vm.updateDateOfBirth),
+                        child: _buildDateOfBirthPicker(t),
+                      ),
+                      _buildCustomDivider(),
+
+                      // Address
+                      PersonalInformationCard(
+                        title: 'Address',
+                        data: userData.address,
+                        onTap: () =>
+                            _handleSave(updateAction: vm.updateAddress),
+                        child: _buildAddressPicker(t, vm),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -268,83 +271,23 @@ class _AccountDetailViewState extends State<AccountDetailView> {
   }
 
   Widget _buildActionButton(String label, VoidCallback? onPressed) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size(70, 40),
-        backgroundColor: AppColor.primary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppFormat.primaryPadding),
-        ),
-      ),
-      child: Text(label),
-    );
-  }
-
-  Widget _buildPICard({
-    required String title,
-    required String data,
-    bool isReadOnly = false,
-    Future<void> Function()? onTap,
-    required Widget child,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        splashColor: AppColor.placeholder.withOpacity(0.4),
-        highlightColor: AppColor.placeholder.withOpacity(0.4),
-        onTap: isReadOnly
-            ? null
-            : () => showModalBottomSheet(
-                isScrollControlled: true,
-                context: context,
-                builder: (sheetContext) {
-                  return ChangeNotifierProvider.value(
-                    value: context.read<AccountDetailViewModel>(),
-                    child: AccountBottonsheet(
-                      height: MediaQuery.of(sheetContext).size.height * 0.7,
-                      title: title,
-                      onTap: onTap,
-                      child: child,
-                    ),
-                  );
-                },
-              ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 14,
-            horizontal: AppFormat.primaryPadding,
+    return Selector<AccountDetailViewModel, bool>(
+      selector: (_, vm) => vm.isActionLoading,
+      builder: (context, isActionLoading, child) {
+        return ElevatedButton(
+          onPressed: isActionLoading ? null : onPressed,
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(70, 40),
+            backgroundColor: AppColor.primary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppFormat.primaryPadding),
+            ),
           ),
-          child: Row(
-            children: [
-              Text(
-                title,
-                maxLines: 1,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(width: 10),
-
-              Expanded(
-                child: Text(
-                  data,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColor.textPlaceholder,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              isReadOnly
-                  ? const SizedBox.shrink()
-                  : Icon(Icons.chevron_right, color: AppColor.textPrimary),
-            ],
-          ),
-        ),
-      ),
+          child: isActionLoading
+              ? CircularProgressIndicator(color: AppColor.white)
+              : Text(label),
+        );
+      },
     );
   }
 
