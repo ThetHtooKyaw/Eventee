@@ -1,4 +1,3 @@
-import 'package:eventee/core/themes/app_color.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingStepWidget extends StatelessWidget {
@@ -24,7 +23,7 @@ class OnboardingStepWidget extends StatelessWidget {
           title,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: AppColor.primary,
+            color: theme.colorScheme.primary,
           ),
         ),
         const SizedBox(height: 10),
@@ -33,7 +32,9 @@ class OnboardingStepWidget extends StatelessWidget {
         Text(
           description,
           textAlign: TextAlign.center,
-          style: theme.textTheme.bodyLarge?.copyWith(color: AppColor.primary),
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.primary,
+          ),
         ),
         const SizedBox(height: 40),
 

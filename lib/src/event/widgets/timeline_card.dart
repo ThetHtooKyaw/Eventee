@@ -15,7 +15,7 @@ class TimelineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppFormat.primaryPadding),
@@ -30,7 +30,7 @@ class TimelineCard extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: t.textTheme.bodyLarge?.copyWith(
+              style: theme.textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -40,8 +40,8 @@ class TimelineCard extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             '$eventDate, $eventTime',
-            style: t.textTheme.bodyMedium?.copyWith(
-              color: AppColor.textPlaceholder,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.secondary,
               fontWeight: FontWeight.bold,
             ),
           ),

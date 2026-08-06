@@ -15,7 +15,7 @@ class EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
     final vm = context.read<EventListViewModel>();
     final eventDate = vm.formatDateMonthDay(event.date);
     final eventTime = vm.formatTime(event.startTime);
@@ -24,8 +24,7 @@ class EventCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppFormat.secondaryPadding),
       width: cardWidth,
       decoration: BoxDecoration(
-        color: AppColor.white,
-        border: Border.all(color: AppColor.placeholder, width: 0.5),
+        color: theme.colorScheme.primary,
         borderRadius: BorderRadius.circular(AppFormat.primaryBorderRadius),
       ),
       child: Column(
@@ -72,7 +71,7 @@ class EventCard extends StatelessWidget {
                   horizontal: AppFormat.secondaryPadding,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColor.white,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(
                     AppFormat.secondaryBorderRadius - 6,
                   ),
@@ -80,8 +79,8 @@ class EventCard extends StatelessWidget {
                 child: Text(
                   event.category,
                   textAlign: TextAlign.center,
-                  style: t.textTheme.bodyLarge?.copyWith(
-                    color: AppColor.primary,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -101,7 +100,8 @@ class EventCard extends StatelessWidget {
                           .toggleFavourite(event),
                       child: CircleAvatar(
                         radius: 20,
-                        backgroundColor: AppColor.white,
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
                         child: Icon(
                           isFavourited ? Icons.bookmark : Icons.bookmark_border,
                           size: 20,
@@ -120,7 +120,8 @@ class EventCard extends StatelessWidget {
             event.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: t.textTheme.titleSmall?.copyWith(
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: theme.colorScheme.onPrimary,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -129,27 +130,33 @@ class EventCard extends StatelessWidget {
           // Event Location, Date & Time
           Row(
             children: [
-              Icon(Icons.location_on_rounded, size: 20),
+              Icon(
+                Icons.location_on_rounded,
+                color: theme.colorScheme.onPrimary,
+                size: 20,
+              ),
               const SizedBox(width: 6),
+
               Expanded(
                 child: Text(
                   event.location,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: t.textTheme.bodyMedium?.copyWith(
-                    color: AppColor.textPlaceholder,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSecondary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               const SizedBox(width: 20),
 
-              Icon(Icons.timer, size: 20),
+              Icon(Icons.timer, color: theme.colorScheme.onPrimary, size: 20),
               const SizedBox(width: 6),
+
               Text(
                 '$eventDate - $eventTime',
-                style: t.textTheme.bodyMedium?.copyWith(
-                  color: AppColor.textPlaceholder,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSecondary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -159,18 +166,20 @@ class EventCard extends StatelessWidget {
 
           // Event Price
           Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 '฿${event.price}',
-                style: t.textTheme.titleSmall?.copyWith(
-                  color: AppColor.primary,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onPrimary,
                 ),
               ),
               const SizedBox(width: 6),
+
               Text(
                 '/Person',
-                style: t.textTheme.bodyMedium?.copyWith(
-                  color: AppColor.textPlaceholder,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSecondary,
                 ),
               ),
             ],

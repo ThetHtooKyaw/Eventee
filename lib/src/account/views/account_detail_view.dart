@@ -81,7 +81,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
     final vm = context.read<AccountDetailViewModel>();
     final userData = context.select<AccountViewModel, AppUser?>(
       (vm) => vm.user,
@@ -118,7 +118,10 @@ class _AccountDetailViewState extends State<AccountDetailView> {
             ),
             icon: Icon(Icons.arrow_back_ios_new_rounded, size: 32),
           ),
-          title: Text("Personal Information", style: t.textTheme.titleSmall),
+          title: Text(
+            "Personal Information",
+            style: theme.textTheme.titleSmall,
+          ),
         ),
         body: Form(
           key: _formKey,
@@ -144,24 +147,25 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                 const SizedBox(height: 20),
 
                 MenuCard(
+                  color: theme.colorScheme.primary,
                   child: Column(
                     children: [
                       // Name
-                      PersonalInformationCard(
+                      PersonalInformationItem(
                         title: 'Name',
                         data: userData!.username,
                         onTap: () => _handleSave(
                           updateAction: vm.updateUsername,
                           requiresValidation: true,
                         ),
-                        child: _buildUsernameField(t, vm),
+                        child: _buildUsernameField(theme, vm),
                       ),
                       _buildCustomDivider(),
 
                       // Email
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: PersonalInformationCard(
+                        child: PersonalInformationItem(
                           title: 'Email',
                           data: userData.email,
                           isReadOnly: true,
@@ -171,36 +175,36 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                       _buildCustomDivider(),
 
                       // Phone Number
-                      PersonalInformationCard(
+                      PersonalInformationItem(
                         title: 'Phone Number',
                         data: userData.phoneNumber,
                         onTap: () => _handleSave(
                           updateAction: vm.updatePhoneNumber,
                           requiresValidation: true,
                         ),
-                        child: _buildPhoneNumberField(t, vm),
+                        child: _buildPhoneNumberField(theme, vm),
                       ),
                       _buildCustomDivider(),
 
                       // Birthday
-                      PersonalInformationCard(
+                      PersonalInformationItem(
                         title: 'Birthday',
                         data: vm.formatBirthday(
                           userData.dateOfBirth ?? DateTime.now(),
                         ),
                         onTap: () =>
                             _handleSave(updateAction: vm.updateDateOfBirth),
-                        child: _buildDateOfBirthPicker(t),
+                        child: _buildDateOfBirthPicker(theme),
                       ),
                       _buildCustomDivider(),
 
                       // Address
-                      PersonalInformationCard(
+                      PersonalInformationItem(
                         title: 'Address',
                         data: userData.address,
                         onTap: () =>
                             _handleSave(updateAction: vm.updateAddress),
-                        child: _buildAddressPicker(t, vm),
+                        child: _buildAddressPicker(theme, vm),
                       ),
                     ],
                   ),
@@ -276,15 +280,9 @@ class _AccountDetailViewState extends State<AccountDetailView> {
       builder: (context, isActionLoading, child) {
         return ElevatedButton(
           onPressed: isActionLoading ? null : onPressed,
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(70, 40),
-            backgroundColor: AppColor.primary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppFormat.primaryPadding),
-            ),
-          ),
+          style: ElevatedButton.styleFrom(minimumSize: const Size(70, 40)),
           child: isActionLoading
-              ? CircularProgressIndicator(color: AppColor.white)
+              ? const CircularProgressIndicator()
               : Text(label),
         );
       },
@@ -292,7 +290,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
   }
 
   Widget _buildUsernameField(ThemeData theme, AccountDetailViewModel vm) {
-    return MenuCard(
+    return PersonalInformationCard(
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppFormat.primaryPadding,
@@ -303,6 +301,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
               'Username',
               maxLines: 1,
               style: theme.textTheme.bodyLarge?.copyWith(
+                color: Colors.black,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -313,6 +312,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                 controller: vm.nameController,
                 keyboardType: TextInputType.text,
                 style: theme.textTheme.bodyLarge?.copyWith(
+                  color: Colors.black,
                   fontWeight: FontWeight.bold,
                 ),
                 decoration: InputDecoration(
@@ -344,7 +344,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
 
         return Column(
           children: [
-            MenuCard(
+            PersonalInformationCard(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   vertical: AppFormat.secondaryPadding,
@@ -356,6 +356,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                     Text(
                       'Birthday',
                       style: theme.textTheme.bodyLarge?.copyWith(
+                        color: Colors.black,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -376,21 +377,33 @@ class _AccountDetailViewState extends State<AccountDetailView> {
             Container(
               height: 250,
               decoration: BoxDecoration(
-                color: AppColor.white,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(
                   AppFormat.primaryBorderRadius,
                 ),
               ),
-              child: CupertinoDatePicker(
-                mode: CupertinoDatePickerMode.date,
-                initialDateTime: DateTime(
-                  DateTime.now().year - 18,
-                  DateTime.now().month,
-                  DateTime.now().day,
+              child: CupertinoTheme(
+                data: CupertinoThemeData(
+                  textTheme: CupertinoTextThemeData(
+                    dateTimePickerTextStyle: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                    ),
+                  ),
                 ),
-                minimumDate: DateTime(1900),
-                maximumDate: DateTime.now(),
-                onDateTimeChanged: (newDate) => vm.setBirthday(newDate),
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.date,
+                  initialDateTime:
+                      selectedBirthday ??
+                      DateTime(
+                        DateTime.now().year - 18,
+                        DateTime.now().month,
+                        DateTime.now().day,
+                      ),
+                  minimumDate: DateTime(1900),
+                  maximumDate: DateTime.now(),
+                  onDateTimeChanged: (newDate) => vm.setBirthday(newDate),
+                ),
               ),
             ),
           ],
@@ -402,7 +415,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
   Widget _buildAddressPicker(ThemeData theme, AccountDetailViewModel vm) {
     return Column(
       children: [
-        MenuCard(
+        PersonalInformationCard(
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppFormat.primaryPadding,
@@ -413,6 +426,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                   'Address',
                   maxLines: 1,
                   style: theme.textTheme.bodyLarge?.copyWith(
+                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -423,6 +437,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                     controller: vm.addressController,
                     keyboardType: TextInputType.text,
                     style: theme.textTheme.bodyLarge?.copyWith(
+                      color: Colors.black,
                       fontWeight: FontWeight.bold,
                     ),
                     decoration: InputDecoration(
@@ -446,10 +461,10 @@ class _AccountDetailViewState extends State<AccountDetailView> {
           onStateChanged: (value) => vm.setState(value),
           onCityChanged: (value) => vm.setCity(value),
           spacing: 20,
-          style: theme.textTheme.bodyLarge?.copyWith(color: AppColor.primary),
+          style: theme.textTheme.bodyLarge?.copyWith(color: Colors.black),
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppColor.white,
+            fillColor: Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(
                 AppFormat.secondaryBorderRadius,
@@ -463,6 +478,12 @@ class _AccountDetailViewState extends State<AccountDetailView> {
   }
 
   Widget _buildCustomDivider() {
-    return const Divider(height: 0, thickness: 0.8, indent: 20, endIndent: 20);
+    return Divider(
+      height: 0,
+      thickness: 0.8,
+      indent: 20,
+      endIndent: 20,
+      color: Theme.of(context).colorScheme.onPrimary,
+    );
   }
 }

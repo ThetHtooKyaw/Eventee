@@ -12,6 +12,7 @@ import 'package:eventee/src/event/widgets/event_card.dart';
 import 'package:eventee/src/event/widgets/event_list_skeleton.dart';
 import 'package:eventee/src/home/widgets/section_title.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class HomeView extends StatefulWidget {
@@ -24,7 +25,7 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
     final vm = context.watch<EventListViewModel>();
 
     return Selector<EventListViewModel, String?>(
@@ -38,7 +39,6 @@ class _HomeViewState extends State<HomeView> {
         }
 
         return Scaffold(
-          backgroundColor: AppColor.background,
           body: CustomScrollView(
             slivers: [
               // AppBar
@@ -48,14 +48,23 @@ class _HomeViewState extends State<HomeView> {
                 pinned: false,
                 elevation: 0,
                 backgroundColor: Colors.transparent,
+                systemOverlayStyle: theme.brightness == Brightness.light
+                    ? const SystemUiOverlayStyle(
+                        statusBarIconBrightness: Brightness.light,
+                        statusBarBrightness: Brightness.dark,
+                      )
+                    : const SystemUiOverlayStyle(
+                        statusBarIconBrightness: Brightness.dark,
+                        statusBarBrightness: Brightness.light,
+                      ),
                 flexibleSpace: FlexibleSpaceBar(
                   background: Stack(
                     children: [
                       // Background Color
                       Container(
-                        height: 120,
+                        height: 140,
                         width: double.infinity,
-                        color: AppColor.primary,
+                        color: theme.colorScheme.primary,
                       ),
 
                       // Header
@@ -65,7 +74,7 @@ class _HomeViewState extends State<HomeView> {
                             vertical: AppFormat.secondaryPadding,
                             horizontal: AppFormat.primaryPadding,
                           ),
-                          child: _buildHeader(t),
+                          child: _buildHeader(theme),
                         ),
                       ),
 
@@ -120,7 +129,7 @@ class _HomeViewState extends State<HomeView> {
                                   return Center(
                                     child: Text(
                                       'No upcoming events!',
-                                      style: t.textTheme.bodyLarge,
+                                      style: theme.textTheme.bodyLarge,
                                     ),
                                   );
                                 }
@@ -183,7 +192,7 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildHeader(ThemeData t) {
+  Widget _buildHeader(ThemeData theme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -196,9 +205,9 @@ class _HomeViewState extends State<HomeView> {
             children: [
               Text(
                 'Location',
-                style: t.textTheme.bodyMedium?.copyWith(
+                style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: AppColor.white,
+                  color: theme.colorScheme.onPrimary,
                 ),
               ),
               Selector<AccountViewModel, String>(
@@ -209,8 +218,8 @@ class _HomeViewState extends State<HomeView> {
                     shortAddress,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: t.textTheme.titleSmall?.copyWith(
-                      color: AppColor.white,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onPrimary,
                     ),
                   );
                 },
@@ -241,16 +250,14 @@ class _HomeViewState extends State<HomeView> {
       },
       readOnly: true,
       decoration: InputDecoration(
-        filled: true,
-        fillColor: AppColor.white,
         hintText: 'Search...',
-        prefixIcon: Icon(Icons.search, color: AppColor.primary),
+        prefixIcon: Icon(Icons.search, color: AppColor.lightPrimary),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: AppColor.primary, width: 1.5),
+          borderSide: BorderSide(color: AppColor.lightPrimary, width: 1.5),
           borderRadius: BorderRadius.circular(30),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: AppColor.primary, width: 1.5),
+          borderSide: BorderSide(color: AppColor.lightPrimary, width: 1.5),
           borderRadius: BorderRadius.circular(30),
         ),
       ),

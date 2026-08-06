@@ -1,7 +1,7 @@
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
-import 'package:eventee/core/widgets/bottom_nav_bar.dart';
+import 'package:eventee/core/utils/bottom_nav_bar.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/src/onboarding/views/onboarding_view.dart';
 import 'package:flutter/gestures.dart';
@@ -113,9 +113,6 @@ class _LoginViewState extends State<LoginView> {
                             onPressed: isActionLoading ? null : () => login(),
                             style: ElevatedButton.styleFrom(
                               minimumSize: Size(double.infinity, 48),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
                             ),
                             child: Text("Login"),
                           ),
@@ -218,7 +215,7 @@ class _LoginViewState extends State<LoginView> {
                 },
                 icon: Icon(
                   _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: AppColor.primary,
+                  color: AppColor.lightPrimary,
                 ),
               ),
             ),

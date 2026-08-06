@@ -25,7 +25,7 @@ class ViewAppbar extends StatelessWidget implements PreferredSizeWidget {
         title,
         style: Theme.of(
           context,
-        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
       ),
       // Back Button
       leading: IconButton(

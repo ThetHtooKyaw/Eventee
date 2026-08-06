@@ -1,4 +1,3 @@
-import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +14,7 @@ class InfoCard extends StatelessWidget {
       ),
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColor.white,
+        color: Theme.of(context).colorScheme.onPrimary,
         borderRadius: BorderRadius.circular(AppFormat.primaryPadding),
       ),
       child: child,

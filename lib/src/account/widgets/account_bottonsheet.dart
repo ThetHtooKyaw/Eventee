@@ -24,12 +24,14 @@ class AccountBottonsheet extends StatefulWidget {
 class _AccountBottonsheetState extends State<AccountBottonsheet> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.all(AppFormat.primaryPadding),
       height: widget.height,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColor.background,
+        color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: Column(
@@ -48,11 +50,11 @@ class _AccountBottonsheetState extends State<AccountBottonsheet> {
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
-                icon: Icon(Icons.close, color: AppColor.primary, size: 32),
+                icon: const Icon(Icons.close, size: 32),
               ),
 
               // Title
-              Text(widget.title, style: Theme.of(context).textTheme.titleSmall),
+              Text(widget.title, style: theme.textTheme.titleSmall),
 
               // Save Button
               Selector<AccountDetailViewModel, bool>(
@@ -67,8 +69,8 @@ class _AccountBottonsheetState extends State<AccountBottonsheet> {
                       ),
                     ),
                     icon: isActionLoading
-                        ? CircularProgressIndicator(color: AppColor.primary)
-                        : Icon(Icons.check, color: AppColor.primary, size: 32),
+                        ? const CircularProgressIndicator()
+                        : const Icon(Icons.check, size: 32),
                   );
                 },
               ),

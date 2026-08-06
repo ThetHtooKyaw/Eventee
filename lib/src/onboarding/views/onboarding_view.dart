@@ -2,7 +2,7 @@ import 'package:country_state_city_picker/country_state_city_picker.dart';
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
-import 'package:eventee/core/widgets/bottom_nav_bar.dart';
+import 'package:eventee/core/utils/bottom_nav_bar.dart';
 import 'package:eventee/src/onboarding/view_models/onboarding_view_model.dart';
 import 'package:eventee/src/onboarding/widgets/address_textfields_skeletion.dart';
 import 'package:eventee/src/onboarding/widgets/onboarding_step_widget.dart';
@@ -67,7 +67,7 @@ class OnboardingView extends StatelessWidget {
   Widget build(BuildContext context) {
     final formKey = GlobalKey<FormState>();
     final pages = _buildPages(context);
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
     final vm = context.read<OnboardingViewModel>();
 
     return Selector<OnboardingViewModel, String?>(
@@ -81,7 +81,6 @@ class OnboardingView extends StatelessWidget {
         }
 
         return Scaffold(
-          backgroundColor: AppColor.background,
           body: Form(
             key: formKey,
             child: SafeArea(
@@ -104,7 +103,7 @@ class OnboardingView extends StatelessWidget {
                             LinearProgressIndicator(
                               value: (currentPage + 1) / totalPages,
                               backgroundColor: AppColor.textPlaceholder,
-                              color: AppColor.secondary,
+                              color: AppColor.placeholder,
                               borderRadius: BorderRadius.circular(
                                 AppFormat.secondaryBorderRadius,
                               ),
@@ -114,9 +113,9 @@ class OnboardingView extends StatelessWidget {
                             // Step Counter
                             Text(
                               'Step ${currentPage + 1} of $totalPages',
-                              style: t.textTheme.bodyMedium?.copyWith(
+                              style: theme.textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: AppColor.primary,
+                                color: theme.colorScheme.primary,
                               ),
                             ),
                           ],
@@ -149,9 +148,6 @@ class OnboardingView extends StatelessWidget {
                                 return SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColor.primary,
-                                    ),
                                     onPressed: currentPage == pages.length - 1
                                         ? (isActionLoading
                                               ? null
@@ -160,9 +156,7 @@ class OnboardingView extends StatelessWidget {
                                     child:
                                         isActionLoading &&
                                             currentPage == pages.length - 1
-                                        ? const CircularProgressIndicator(
-                                            color: AppColor.white,
-                                          )
+                                        ? const CircularProgressIndicator()
                                         : Text(
                                             currentPage == pages.length - 1
                                                 ? 'Submit'
@@ -182,9 +176,7 @@ class OnboardingView extends StatelessWidget {
                                     onPressed: vm.previousPage,
                                     child: Text(
                                       'Back',
-                                      style: t.textTheme.titleSmall?.copyWith(
-                                        color: AppColor.primary,
-                                      ),
+                                      style: theme.textTheme.titleSmall,
                                     ),
                                   ),
                                 ],
@@ -243,17 +235,9 @@ class _ProfileImagePicker extends StatelessWidget {
                       onPressed: isActionLoading ? null : vm.pickProfileAvatar,
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(120, 40),
-                        backgroundColor: AppColor.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppFormat.primaryPadding,
-                          ),
-                        ),
                       ),
                       child: isActionLoading
-                          ? const CircularProgressIndicator(
-                              color: AppColor.white,
-                            )
+                          ? const CircularProgressIndicator()
                           : const Text('Pick Image'),
                     );
                   },
@@ -277,19 +261,29 @@ class _DateOfBirthPicker extends StatelessWidget {
     return Container(
       height: 250,
       decoration: BoxDecoration(
-        color: AppColor.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(AppFormat.primaryBorderRadius),
       ),
-      child: CupertinoDatePicker(
-        mode: CupertinoDatePickerMode.date,
-        initialDateTime: DateTime(
-          DateTime.now().year - 18,
-          DateTime.now().month,
-          DateTime.now().day,
+      child: CupertinoTheme(
+        data: CupertinoThemeData(
+          textTheme: CupertinoTextThemeData(
+            dateTimePickerTextStyle: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+            ),
+          ),
         ),
-        minimumDate: DateTime(1900),
-        maximumDate: DateTime.now(),
-        onDateTimeChanged: (newDate) => vm.setBirthday(newDate),
+        child: CupertinoDatePicker(
+          mode: CupertinoDatePickerMode.date,
+          initialDateTime: DateTime(
+            DateTime.now().year - 18,
+            DateTime.now().month,
+            DateTime.now().day,
+          ),
+          minimumDate: DateTime(1900),
+          maximumDate: DateTime.now(),
+          onDateTimeChanged: (newDate) => vm.setBirthday(newDate),
+        ),
       ),
     );
   }
@@ -310,7 +304,7 @@ class _PhoneNumberField extends StatelessWidget {
       },
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
-          return 'Phone number can\'t be empty';
+          return 'Phone number can\'theme be empty';
         }
         return null;
       },
@@ -368,13 +362,13 @@ class _AddressPicker extends StatelessWidget {
                   spacing: 20,
                   style: Theme.of(
                     context,
-                  ).textTheme.bodyLarge?.copyWith(color: AppColor.primary),
+                  ).textTheme.bodyLarge?.copyWith(color: Colors.black),
                   hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: AppColor.textPlaceholder,
                   ),
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: AppColor.white,
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(
                         AppFormat.secondaryBorderRadius,

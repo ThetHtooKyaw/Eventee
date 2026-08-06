@@ -47,7 +47,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
 
     final homeVM = context.read<EventListViewModel>();
     final eventDate = homeVM.formatDateMonthDay(widget.event.date);
@@ -55,7 +55,9 @@ class _EventDetailsViewState extends State<EventDetailsView> {
     final eventEndTime = homeVM.formatTime(widget.event.endTime);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      value: theme.brightness == Brightness.dark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Consumer<EventDetailsViewModel>(
         builder: (context, vm, child) {
           if (vm.errorMessage != null) {
@@ -88,8 +90,12 @@ class _EventDetailsViewState extends State<EventDetailsView> {
               vertical: AppFormat.secondaryPadding,
             ),
             child: ElevatedButton(
-              onPressed: () =>
-                  _showTicketSheet(t, eventDate, eventStartTime, eventEndTime),
+              onPressed: () => _showTicketSheet(
+                theme,
+                eventDate,
+                eventStartTime,
+                eventEndTime,
+              ),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 shape: RoundedRectangleBorder(
@@ -109,7 +115,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                 children: [
                   const SizedBox(height: AppFormat.secondaryPadding),
                   // Image
-                  _buildImageContainer(t, eventDate),
+                  _buildImageContainer(theme, eventDate),
 
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -123,7 +129,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                           widget.event.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: t.textTheme.titleLarge?.copyWith(
+                          style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -134,18 +140,18 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                           children: [
                             Text(
                               'By',
-                              style: t.textTheme.bodyLarge?.copyWith(
+                              style: theme.textTheme.bodyLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(width: 10),
                             CircleAvatar(
                               radius: 16,
-                              backgroundColor: AppColor.primary,
+                              backgroundColor: theme.colorScheme.primary,
                               child: Text(
                                 'W',
-                                style: t.textTheme.bodyLarge?.copyWith(
-                                  color: AppColor.white,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: theme.colorScheme.onPrimary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -159,7 +165,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                                 'Organizer Name',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: t.textTheme.bodyLarge?.copyWith(
+                                style: theme.textTheme.bodyLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -172,15 +178,15 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                                 horizontal: AppFormat.secondaryBorderRadius,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColor.primary,
+                                color: theme.colorScheme.primary,
                                 borderRadius: BorderRadius.circular(
                                   AppFormat.primaryBorderRadius,
                                 ),
                               ),
                               child: Text(
                                 '฿${widget.event.price}',
-                                style: t.textTheme.bodyLarge?.copyWith(
-                                  color: AppColor.white,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: theme.colorScheme.onPrimary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -195,7 +201,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                           children: [
                             Text(
                               'Number of Tickets',
-                              style: t.textTheme.titleSmall?.copyWith(
+                              style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -211,7 +217,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                         // Timeline
                         Text(
                           'Timeline Event',
-                          style: t.textTheme.titleSmall?.copyWith(
+                          style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -234,7 +240,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                         // Description
                         Text(
                           'About',
-                          style: t.textTheme.titleSmall?.copyWith(
+                          style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -246,15 +252,15 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                           trimMode: TrimMode.Line,
                           trimCollapsedText: 'Read More',
                           trimExpandedText: 'Read Less',
-                          style: t.textTheme.bodyLarge?.copyWith(
+                          style: theme.textTheme.bodyLarge?.copyWith(
                             color: AppColor.textPlaceholder,
                           ),
-                          moreStyle: t.textTheme.bodyLarge?.copyWith(
-                            color: AppColor.primary,
+                          moreStyle: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
-                          lessStyle: t.textTheme.bodyLarge?.copyWith(
-                            color: AppColor.primary,
+                          lessStyle: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -270,7 +276,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
     );
   }
 
-  Widget _buildImageContainer(ThemeData t, String eventDate) {
+  Widget _buildImageContainer(ThemeData theme, String eventDate) {
     return SizedBox(
       height: 320,
       child: Stack(
@@ -297,13 +303,13 @@ class _EventDetailsViewState extends State<EventDetailsView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CircleAvatar(
-                  radius: 20,
-                  backgroundColor: AppColor.white,
+                  radius: 25,
+                  backgroundColor: Colors.white,
                   child: IconButton(
                     icon: Icon(
                       Icons.arrow_back_ios_new_rounded,
-                      size: 20,
-                      color: AppColor.primary,
+                      color: Colors.black,
+                      size: 25,
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
@@ -325,7 +331,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                 //       const SizedBox(width: 10),
                 //       Text(
                 //         widget.event.location,
-                //         style: t.textTheme.bodyLarge?.copyWith(
+                //         style: theme.textTheme.bodyLarge?.copyWith(
                 //           fontWeight: FontWeight.bold,
                 //         ),
                 //       ),
@@ -338,16 +344,17 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                   selector: (_, vm) =>
                       vm.favouritedEventIds.contains(widget.event.eventId),
                   builder: (context, isFavourited, child) {
-                    return GestureDetector(
-                      onTap: () => context
-                          .read<FavouriteViewModel>()
-                          .toggleFavourite(widget.event),
-                      child: CircleAvatar(
-                        radius: 20,
-                        backgroundColor: AppColor.white,
-                        child: Icon(
+                    return CircleAvatar(
+                      radius: 25,
+                      backgroundColor: Colors.white,
+                      child: IconButton(
+                        onPressed: () => context
+                            .read<FavouriteViewModel>()
+                            .toggleFavourite(widget.event),
+                        icon: Icon(
                           isFavourited ? Icons.bookmark : Icons.bookmark_border,
-                          size: 20,
+                          color: Colors.black,
+                          size: 25,
                         ),
                       ),
                     );
@@ -366,14 +373,14 @@ class _EventDetailsViewState extends State<EventDetailsView> {
               height: 40,
               width: 100,
               decoration: BoxDecoration(
-                color: AppColor.primary,
+                color: theme.colorScheme.primary,
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Center(
                 child: Text(
                   eventDate,
-                  style: t.textTheme.bodyLarge?.copyWith(
-                    color: AppColor.white,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -386,7 +393,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
   }
 
   Future<dynamic> _showTicketSheet(
-    ThemeData t,
+    ThemeData theme,
     String eventDate,
     String eventStartTime,
     String eventEndTime,
@@ -408,14 +415,14 @@ class _EventDetailsViewState extends State<EventDetailsView> {
           height: MediaQuery.of(context).size.height * 0.7,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: AppColor.background,
+            color: theme.colorScheme.onPrimary,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           ),
 
           child: Column(
             children: [
-              const Divider(
-                color: AppColor.primary,
+              Divider(
+                color: theme.colorScheme.primary,
                 thickness: 6,
                 indent: 130,
                 endIndent: 130,
@@ -429,7 +436,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
               CouponCard(
                 height: 460,
                 curveAxis: Axis.horizontal,
-                backgroundColor: AppColor.primary,
+                backgroundColor: theme.colorScheme.primary,
                 borderRadius: AppFormat.primaryPadding,
                 curveRadius: AppFormat.primaryPadding,
                 curvePosition: 240,
@@ -445,8 +452,8 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: t.textTheme.titleLarge?.copyWith(
-                            color: AppColor.white,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: theme.colorScheme.onPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -463,8 +470,8 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                               children: [
                                 Text(
                                   'Name',
-                                  style: t.textTheme.bodyMedium?.copyWith(
-                                    color: AppColor.placeholder,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.secondary,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -477,10 +484,11 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                                       username,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: t.textTheme.titleSmall?.copyWith(
-                                        color: AppColor.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: theme.textTheme.titleSmall
+                                          ?.copyWith(
+                                            color: theme.colorScheme.onPrimary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     );
                                   },
                                 ),
@@ -495,8 +503,8 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                               children: [
                                 Text(
                                   'Quantity',
-                                  style: t.textTheme.bodyMedium?.copyWith(
-                                    color: AppColor.placeholder,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.secondary,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -505,8 +513,8 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                                   quantity.toString(),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: t.textTheme.titleSmall?.copyWith(
-                                    color: AppColor.white,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: theme.colorScheme.onPrimary,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -520,8 +528,8 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                       // Event Location
                       Text(
                         'Location',
-                        style: t.textTheme.bodyMedium?.copyWith(
-                          color: AppColor.placeholder,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.secondary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -530,8 +538,8 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                         widget.event.location,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: t.textTheme.titleSmall?.copyWith(
-                          color: AppColor.white,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -544,8 +552,9 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                     children: [
                       Text(
                         'Ticket will be active from',
-                        style: t.textTheme.bodyMedium?.copyWith(
-                          color: AppColor.placeholder,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.secondary,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -560,13 +569,13 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                               children: [
                                 Text(
                                   eventStartTime,
-                                  style: t.textTheme.titleSmall?.copyWith(
+                                  style: theme.textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 Text(
                                   eventDate,
-                                  style: t.textTheme.bodyMedium?.copyWith(
+                                  style: theme.textTheme.bodyMedium?.copyWith(
                                     color: AppColor.textPlaceholder,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -579,13 +588,13 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                               children: [
                                 Text(
                                   eventEndTime,
-                                  style: t.textTheme.titleSmall?.copyWith(
+                                  style: theme.textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 Text(
                                   eventDate,
-                                  style: t.textTheme.bodyMedium?.copyWith(
+                                  style: theme.textTheme.bodyMedium?.copyWith(
                                     color: AppColor.textPlaceholder,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -604,13 +613,13 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                           children: [
                             Text(
                               'Total Amount',
-                              style: t.textTheme.bodyLarge?.copyWith(
+                              style: theme.textTheme.bodyLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
                               '฿${total.toStringAsFixed(2)}',
-                              style: t.textTheme.titleSmall?.copyWith(
+                              style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

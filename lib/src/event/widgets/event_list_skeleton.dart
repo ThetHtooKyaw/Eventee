@@ -13,7 +13,7 @@ class EventListSkeleton extends StatelessWidget {
       padding: const EdgeInsets.all(AppFormat.secondaryPadding),
       width: cardWidth,
       decoration: BoxDecoration(
-        color: AppColor.white,
+        color: Theme.of(context).colorScheme.onPrimary,
         border: Border.all(color: AppColor.placeholder, width: 0.5),
         borderRadius: BorderRadius.circular(AppFormat.primaryBorderRadius),
       ),

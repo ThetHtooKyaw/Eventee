@@ -6,13 +6,33 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class PersonalInformationCard extends StatelessWidget {
+  final Widget child;
+  const PersonalInformationCard({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppFormat.primaryBorderRadius),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppFormat.primaryBorderRadius),
+        ),
+        child: child,
+      ),
+    );
+  }
+}
+
+class PersonalInformationItem extends StatelessWidget {
   final String title;
   final String data;
   final bool isReadOnly;
   final Future<void> Function()? onTap;
   final Widget child;
 
-  const PersonalInformationCard({
+  const PersonalInformationItem({
     super.key,
     required this.title,
     required this.data,
@@ -23,6 +43,8 @@ class PersonalInformationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     // Material widget is used to provide the InkWell effect on tap. It allows the ripple effect to be visible when the card is tapped.
     return Material(
       color: Colors.transparent,
@@ -56,9 +78,11 @@ class PersonalInformationCard extends StatelessWidget {
               Text(
                 title,
                 maxLines: 1,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onPrimary,
+
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(width: 10),
 
@@ -68,15 +92,18 @@ class PersonalInformationCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.end,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColor.textPlaceholder,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSecondary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               isReadOnly
                   ? const SizedBox.shrink()
-                  : Icon(Icons.chevron_right, color: AppColor.textPrimary),
+                  : Icon(
+                      Icons.chevron_right,
+                      color: theme.colorScheme.onPrimary,
+                    ),
             ],
           ),
         ),

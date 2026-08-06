@@ -1,7 +1,6 @@
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
-import 'package:eventee/core/widgets/app_error.dart';
 import 'package:eventee/src/event/model/event.dart';
 import 'package:eventee/src/event/repo/booked_event_service.dart';
 import 'package:eventee/src/event/view_models/event_details_view_model.dart';
@@ -112,7 +111,7 @@ class EventListView extends StatelessWidget {
         onChanged: (value) => vm.filterEvents(value),
         decoration: InputDecoration(
           hintText: 'Search events...',
-          prefixIcon: Icon(Icons.search, color: AppColor.primary),
+          prefixIcon: Icon(Icons.search, color: AppColor.lightPrimary),
           suffixIcon: IconButton(
             onPressed: () {
               showModalBottomSheet(
@@ -127,14 +126,14 @@ class EventListView extends StatelessWidget {
                 },
               );
             },
-            icon: Icon(Icons.filter_list, color: AppColor.primary),
+            icon: Icon(Icons.filter_list, color: AppColor.lightPrimary),
           ),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: AppColor.primary, width: 1.5),
+            borderSide: BorderSide(color: AppColor.lightPrimary, width: 1.5),
             borderRadius: BorderRadius.circular(30),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: AppColor.primary, width: 1.5),
+            borderSide: BorderSide(color: AppColor.lightPrimary, width: 1.5),
             borderRadius: BorderRadius.circular(30),
           ),
         ),

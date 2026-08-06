@@ -9,21 +9,21 @@ class EventFilterSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
     final vm = context.watch<EventListViewModel>();
 
     return Container(
       padding: const EdgeInsets.all(AppFormat.primaryPadding),
       decoration: BoxDecoration(
-        color: AppColor.background,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Divider(
-            color: AppColor.primary,
+          Divider(
+            color: Theme.of(context).colorScheme.primary,
             thickness: 6,
             indent: 130,
             endIndent: 130,
@@ -36,7 +36,7 @@ class EventFilterSheet extends StatelessWidget {
           // Location Title
           Text(
             'Location',
-            style: t.textTheme.titleSmall?.copyWith(
+            style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -45,22 +45,14 @@ class EventFilterSheet extends StatelessWidget {
           // Location TextField
           TextField(
             controller: vm.locationFilterController,
-            decoration: InputDecoration(
-              hintText: 'Enter a city or location',
-              filled: true,
-              fillColor: AppColor.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide.none,
-              ),
-            ),
+            decoration: InputDecoration(hintText: 'Enter a city or location'),
           ),
           const SizedBox(height: 20),
 
           // Category Title
           Text(
             'Category',
-            style: t.textTheme.titleSmall?.copyWith(
+            style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -72,7 +64,7 @@ class EventFilterSheet extends StatelessWidget {
             runSpacing: 4.0,
             children: vm.categories.map((category) {
               return _buildChoiceChip(
-                theme: t,
+                theme: theme,
                 isSelected: vm.selectedCategory == category,
                 label: category,
                 onSelected: (isSelected) {
@@ -88,7 +80,7 @@ class EventFilterSheet extends StatelessWidget {
           // Sort Title
           Text(
             'Sort By Price',
-            style: t.textTheme.titleSmall?.copyWith(
+            style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -98,7 +90,7 @@ class EventFilterSheet extends StatelessWidget {
           Row(
             children: [
               _buildChoiceChip(
-                theme: t,
+                theme: theme,
                 isSelected: vm.sortOrder == EventSortOrder.priceAscending,
                 label: 'Low to High',
                 onSelected: (isSelected) {
@@ -112,7 +104,7 @@ class EventFilterSheet extends StatelessWidget {
               const SizedBox(width: 10),
 
               _buildChoiceChip(
-                theme: t,
+                theme: theme,
                 isSelected: vm.sortOrder == EventSortOrder.priceDescending,
                 label: 'High to Low',
                 onSelected: (isSelected) {
@@ -133,13 +125,13 @@ class EventFilterSheet extends StatelessWidget {
             children: [
               Text(
                 'Price Range',
-                style: t.textTheme.titleSmall?.copyWith(
+                style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
                 '฿${vm.priceRange.start.round()} - ฿${vm.priceRange.end.round()}',
-                style: t.textTheme.bodyLarge,
+                style: theme.textTheme.bodyLarge,
               ),
             ],
           ),
@@ -168,12 +160,7 @@ class EventFilterSheet extends StatelessWidget {
                   onPressed: () {
                     vm.resetFilters();
                   },
-                  child: Text(
-                    'Reset',
-                    style: t.textTheme.titleSmall?.copyWith(
-                      color: AppColor.primary,
-                    ),
-                  ),
+                  child: Text('Reset', style: theme.textTheme.titleSmall),
                 ),
               ),
               const SizedBox(width: 16),
@@ -204,12 +191,14 @@ class EventFilterSheet extends StatelessWidget {
     return ChoiceChip(
       selected: isSelected,
       onSelected: onSelected,
-      selectedColor: AppColor.primary,
-      checkmarkColor: AppColor.white,
+      selectedColor: theme.colorScheme.primary,
+      checkmarkColor: theme.colorScheme.onPrimary,
       label: Text(
         label,
         style: theme.textTheme.bodyMedium?.copyWith(
-          color: isSelected ? AppColor.white : AppColor.textPrimary,
+          color: isSelected
+              ? theme.colorScheme.onPrimary
+              : theme.colorScheme.primary,
         ),
       ),
       shape: RoundedRectangleBorder(

@@ -6,6 +6,7 @@ import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/src/event/view_models/create_event_view_model.dart';
 import 'package:eventee/src/event/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class CreateEventView extends StatefulWidget {
@@ -33,7 +34,7 @@ class _CreateEventViewState extends State<CreateEventView> {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
     final vm = context.read<CreateEventViewModel>();
 
     return Consumer<CreateEventViewModel>(
@@ -55,7 +56,13 @@ class _CreateEventViewState extends State<CreateEventView> {
 
         return Stack(
           children: [
-            child!,
+            // Device Status Bar Color
+            AnnotatedRegion<SystemUiOverlayStyle>(
+              value: theme.brightness == Brightness.light
+                  ? SystemUiOverlayStyle.dark
+                  : SystemUiOverlayStyle.light,
+              child: child!,
+            ),
             if (vm.isActionLoading)
               const LoadingOverlayColumn(message: 'Uploading event...'),
           ],
@@ -79,15 +86,15 @@ class _CreateEventViewState extends State<CreateEventView> {
                   const SizedBox(height: 20),
 
                   // Event Title
-                  Row(children: []),
                   Text(
                     'Event Title',
-                    style: t.textTheme.bodyMedium?.copyWith(
+                    style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppColor.textPlaceholder,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 10),
+
                   TextFormField(
                     controller: vm.eventNameController,
                     keyboardType: TextInputType.text,
@@ -114,7 +121,7 @@ class _CreateEventViewState extends State<CreateEventView> {
                       ),
 
                       // Category Dropdown
-                      _buildCategoryDropDown(t),
+                      _buildCategoryDropDown(theme),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -145,7 +152,7 @@ class _CreateEventViewState extends State<CreateEventView> {
 
                   // Location TextField
                   _buildTextField(
-                    t,
+                    theme,
                     vm.eventLocationController,
                     TextInputType.text,
                     'Enter Location',
@@ -160,7 +167,7 @@ class _CreateEventViewState extends State<CreateEventView> {
 
                   // Price TextField
                   _buildTextField(
-                    t,
+                    theme,
                     vm.ticketPriceController,
                     TextInputType.number,
                     'Enter Price',
@@ -176,7 +183,7 @@ class _CreateEventViewState extends State<CreateEventView> {
                   // Description TextField
                   Text(
                     'Additional Information',
-                    style: t.textTheme.titleMedium,
+                    style: theme.textTheme.titleMedium,
                   ),
                   const SizedBox(height: 10),
                   TextField(
@@ -229,7 +236,7 @@ class _CreateEventViewState extends State<CreateEventView> {
             height: 250,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: AppColor.white,
+              color: Theme.of(context).colorScheme.onPrimary,
               border: Border.all(color: AppColor.placeholder, width: 1),
               borderRadius: BorderRadius.circular(30),
             ),
@@ -249,13 +256,13 @@ class _CreateEventViewState extends State<CreateEventView> {
     );
   }
 
-  Widget _buildCategoryDropDown(ThemeData t) {
+  Widget _buildCategoryDropDown(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Category',
-          style: t.textTheme.bodyMedium?.copyWith(
+          style: theme.textTheme.bodyMedium?.copyWith(
             color: AppColor.textPlaceholder,
             fontWeight: FontWeight.bold,
           ),
@@ -282,7 +289,7 @@ class _CreateEventViewState extends State<CreateEventView> {
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       width: 174,
                       decoration: BoxDecoration(
-                        color: AppColor.white,
+                        color: Colors.white,
                         border: state.hasError
                             ? Border.all(color: Colors.red, width: 1.0)
                             : null,
@@ -304,25 +311,25 @@ class _CreateEventViewState extends State<CreateEventView> {
                                   value: category,
                                   child: Text(
                                     category,
-                                    style: t.textTheme.bodyLarge,
+                                    style: theme.textTheme.bodyLarge,
                                   ),
                                 ),
                               )
                               .toList(),
-                          dropdownColor: AppColor.white,
+                          dropdownColor: theme.colorScheme.onPrimary,
                           icon: Icon(
                             Icons.arrow_drop_down,
                             color: Colors.black,
                             size: 40,
                           ),
-                          style: t.textTheme.bodyLarge?.copyWith(
+                          style: theme.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                           hint: Text(
                             'Select Category',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: t.textTheme.bodyLarge?.copyWith(
+                            style: theme.textTheme.bodyLarge?.copyWith(
                               color: AppColor.textPlaceholder,
                             ),
                           ),
@@ -335,7 +342,7 @@ class _CreateEventViewState extends State<CreateEventView> {
                         padding: const EdgeInsetsGeometry.only(top: 10),
                         child: Text(
                           state.errorText!,
-                          style: t.textTheme.bodyLarge?.copyWith(
+                          style: theme.textTheme.bodyLarge?.copyWith(
                             color: Colors.red,
                           ),
                         ),
@@ -351,7 +358,7 @@ class _CreateEventViewState extends State<CreateEventView> {
   }
 
   Widget _buildTextField(
-    ThemeData t,
+    ThemeData theme,
     TextEditingController controller,
     TextInputType keyboardType,
     String label,
@@ -362,7 +369,7 @@ class _CreateEventViewState extends State<CreateEventView> {
       children: [
         Text(
           label,
-          style: t.textTheme.bodyMedium?.copyWith(
+          style: theme.textTheme.bodyMedium?.copyWith(
             color: AppColor.textPlaceholder,
             fontWeight: FontWeight.bold,
           ),

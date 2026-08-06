@@ -1,6 +1,5 @@
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
-import 'package:eventee/core/widgets/view_appbar.dart';
 import 'package:eventee/src/event/repo/booked_event_service.dart';
 import 'package:eventee/src/event/view_models/event_list_view_model.dart';
 import 'package:eventee/src/event/view_models/event_details_view_model.dart';
@@ -21,7 +20,7 @@ class FavouriteView extends StatefulWidget {
 class _FavouriteViewState extends State<FavouriteView> {
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
 
     return Selector<FavouriteViewModel, String?>(
       selector: (_, vm) => vm.errorMessage,
@@ -32,9 +31,14 @@ class _FavouriteViewState extends State<FavouriteView> {
             context.read<FavouriteViewModel>().setError(null);
           });
         }
-        
+
         return Scaffold(
-          appBar: ViewAppbar(title: 'Favourite'),
+          appBar: AppBar(
+            centerTitle: true,
+            backgroundColor: theme.colorScheme.onPrimary,
+            title: Text('Favourite', style: theme.textTheme.titleSmall),
+          ),
+
           body: Consumer2<FavouriteViewModel, EventListViewModel>(
             builder: (context, favouriteVm, eventListVm, child) {
               final isScreenLoading = favouriteVm.isScreenLoading;
@@ -49,7 +53,7 @@ class _FavouriteViewState extends State<FavouriteView> {
                 return Center(
                   child: Text(
                     'No favourited events found!',
-                    style: t.textTheme.bodyLarge,
+                    style: theme.textTheme.bodyLarge,
                   ),
                 );
               }

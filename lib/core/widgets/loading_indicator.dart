@@ -1,4 +1,3 @@
-import 'package:eventee/core/themes/app_color.dart';
 import 'package:flutter/material.dart';
 
 class LoadingIndicator extends StatelessWidget {
@@ -7,8 +6,8 @@ class LoadingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColor.background,
-      body: Center(child: CircularProgressIndicator(color: AppColor.primary)),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }

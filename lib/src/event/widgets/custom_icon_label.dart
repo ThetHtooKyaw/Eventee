@@ -1,4 +1,3 @@
-import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:flutter/material.dart';
 
@@ -9,19 +8,21 @@ class CustomIconLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Row(
       children: [
         Container(
           padding: EdgeInsets.all(AppFormat.secondaryPadding),
           decoration: BoxDecoration(
-            color: AppColor.white,
+            color: theme.colorScheme.onPrimary,
             borderRadius: BorderRadius.circular(
               AppFormat.secondaryBorderRadius,
             ),
           ),
-          child: Icon(icon, color: AppColor.primary, size: 20),
+          child: Icon(icon, size: 20),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 8),
 
         child,
       ],

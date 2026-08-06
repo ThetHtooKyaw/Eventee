@@ -1,27 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:eventee/core/services/location_service.dart';
+import 'package:eventee/core/utils/bottom_nav_bar.dart';
 import 'package:eventee/core/themes/app_theme.dart';
-import 'package:eventee/core/view_models/location_view_model.dart';
-import 'package:eventee/core/widgets/bottom_nav_bar.dart';
+import 'package:eventee/core/utils/core_providers.dart';
 import 'package:eventee/core/widgets/loading_indicator.dart';
 import 'package:eventee/firebase_options_loader.dart';
-import 'package:eventee/src/auth/view_models/signup_view_model.dart';
-import 'package:eventee/src/account/repo/account_service.dart';
-import 'package:eventee/src/account/view_models/account_view_model.dart';
-import 'package:eventee/src/auth/view_models/login_view_model.dart';
-import 'package:eventee/src/event/repo/create_event_service.dart';
-import 'package:eventee/src/event/view_models/booked_event_history_view_model.dart';
-import 'package:eventee/src/event/view_models/event_list_view_model.dart';
-import 'package:eventee/src/favourite/services/favourite_service.dart';
-import 'package:eventee/src/favourite/view_models/favourite_view_model.dart';
-import 'package:eventee/src/home/view_models/home_view_model.dart';
-import 'package:eventee/src/auth/repo/auth_service.dart';
 import 'package:eventee/src/auth/views/login_view.dart';
-import 'package:eventee/src/event/repo/booked_event_service.dart';
-import 'package:eventee/src/event/repo/event_service.dart';
-import 'package:eventee/src/onboarding/repo/onboarding_service.dart';
-import 'package:eventee/src/onboarding/view_models/onboarding_view_model.dart';
 import 'package:eventee/src/onboarding/views/onboarding_view.dart';
+import 'package:eventee/src/settings/view_models/theme_view_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -45,50 +30,8 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        // Services
-        Provider(create: (_) => CreateEventService()),
-        Provider(create: (_) => LocationService()),
-        Provider(create: (_) => AuthService()),
-        Provider(create: (_) => OnboardingService()),
-        Provider(create: (_) => AccountService()),
-        Provider(create: (_) => EventService()),
-        Provider(create: (_) => FavouriteService()),
-        Provider(create: (_) => BookiedEventService()),
-
-        ChangeNotifierProvider(
-          create: (context) => LoginViewModel(context.read<AuthService>()),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => SignUpViewModel(context.read<AuthService>()),
-        ),
-        ChangeNotifierProvider(
-          create: (context) =>
-              LocationViewModel(context.read<LocationService>()),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => OnboardingViewModel(
-            context.read<LocationViewModel>(),
-            context.read<OnboardingService>(),
-          ),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => AccountViewModel(context.read<AccountService>()),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => EventListViewModel(context.read<EventService>()),
-        ),
-        ChangeNotifierProvider(
-          create: (context) =>
-              HomeViewModel(context.read<EventListViewModel>()),
-        ),
-        ChangeNotifierProvider(
-          create: (context) =>
-              FavouriteViewModel(context.read<FavouriteService>()),
-        ),
-        ChangeNotifierProvider(
-          create: (context) =>
-              BookedEventHistoryViewModel(context.read<BookiedEventService>()),
-        ),
+        ...CoreProviders.providers,
+        ChangeNotifierProvider(create: (_) => ThemeViewModel()),
       ],
       child: const MainApp(),
     ),
@@ -100,10 +43,17 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      home: const AuthGate(),
+    return Selector<ThemeViewModel, bool>(
+      selector: (context, vm) => vm.isDarkMode,
+      builder: (context, isDarkMode, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          home: const AuthGate(),
+        );
+      },
     );
   }
 }

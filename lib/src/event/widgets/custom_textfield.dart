@@ -34,13 +34,14 @@ class CustomTextfield extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
+
           TextFormField(
             onTap: onTap,
             controller: controller,
             readOnly: true,
             decoration: InputDecoration(
               hintText: hintText,
-              suffixIcon: Icon(icon, color: AppColor.primary),
+              suffixIcon: Icon(icon, color: AppColor.lightPrimary),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide.none,
                 borderRadius: BorderRadius.circular(

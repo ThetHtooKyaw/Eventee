@@ -21,7 +21,7 @@ class BookedEventHistoryView extends StatefulWidget {
 class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
 
     return Selector<BookedEventHistoryViewModel, String?>(
       selector: (_, vm) => vm.errorMessage,
@@ -38,11 +38,15 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
           child: Scaffold(
             appBar: AppBar(
               centerTitle: true,
-              title: Text('Bookings', style: t.textTheme.titleSmall),
+              title: Text('Bookings', style: theme.textTheme.titleSmall),
               bottom: TabBar(
-                labelColor: AppColor.primary,
+                labelColor: theme.colorScheme.primary,
+                indicatorColor: theme.colorScheme.primary,
                 unselectedLabelColor: AppColor.textPlaceholder,
-                indicatorColor: AppColor.primary,
+                labelStyle: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                unselectedLabelStyle: theme.textTheme.titleSmall,
                 tabs: [
                   Tab(text: 'Active'),
                   Tab(text: 'Completed'),
@@ -124,13 +128,10 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
     }
 
     return ListView.separated(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppFormat.primaryPadding,
-        vertical: AppFormat.secondaryPadding,
-      ),
+      padding: EdgeInsets.all(AppFormat.primaryPadding),
       shrinkWrap: true,
       itemCount: bookings.length,
-      separatorBuilder: (context, index) => SizedBox(height: 10),
+      separatorBuilder: (context, index) => SizedBox(height: 20),
       itemBuilder: (context, index) {
         EventHistoryModel event = bookings[index];
 
@@ -154,12 +155,12 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
     String eventStartTime,
     String eventEndTime,
   ) {
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
 
     return CouponCard(
       height: 200,
       curveAxis: Axis.vertical,
-      backgroundColor: AppColor.primary,
+      backgroundColor: theme.colorScheme.primary,
       borderRadius: AppFormat.primaryPadding,
       curveRadius: AppFormat.primaryPadding,
       curvePosition: 240,
@@ -177,7 +178,9 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
               event.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: t.textTheme.titleSmall?.copyWith(color: AppColor.white),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.onPrimary,
+              ),
             ),
             const SizedBox(height: 10),
 
@@ -188,8 +191,8 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
                 event.location,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: t.textTheme.bodyMedium?.copyWith(
-                  color: AppColor.white,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onPrimary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -205,8 +208,8 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
                   // Time
                   Text(
                     '$eventStartTime - $eventEndTime',
-                    style: t.textTheme.bodyMedium?.copyWith(
-                      color: AppColor.white,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -214,8 +217,8 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
                   // Date
                   Text(
                     eventDate,
-                    style: t.textTheme.bodyMedium?.copyWith(
-                      color: AppColor.textPlaceholder,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -230,8 +233,8 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
                 // Quantity
                 Text(
                   'Quantity:',
-                  style: t.textTheme.bodyMedium?.copyWith(
-                    color: AppColor.white,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -242,13 +245,13 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
                     horizontal: AppFormat.secondaryPadding,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColor.white,
+                    color: theme.colorScheme.onPrimary,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     event.quantity.toString(),
-                    style: t.textTheme.bodyMedium?.copyWith(
-                      color: AppColor.primary,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -264,13 +267,13 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
                   decoration: BoxDecoration(
                     color: event.status == 'active'
                         ? Colors.green
-                        : AppColor.white,
+                        : theme.colorScheme.onPrimary,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     event.status.toUpperCase(),
-                    style: t.textTheme.bodyMedium?.copyWith(
-                      color: AppColor.primary,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColor.lightTextPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -310,7 +313,7 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
               ),
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColor.white,
+                color: theme.colorScheme.onPrimary,
                 borderRadius: BorderRadius.circular(
                   AppFormat.secondaryBorderRadius,
                 ),
@@ -320,8 +323,8 @@ class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: t.textTheme.bodyLarge?.copyWith(
-                  color: AppColor.primary,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.primary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
