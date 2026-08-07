@@ -1,6 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, kIsWeb, TargetPlatform;
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class FirebaseOptionsLoader {
@@ -15,9 +15,6 @@ class FirebaseOptionsLoader {
   }
 
   static FirebaseOptions get currentPlatform {
-    if (kIsWeb) {
-      return web;
-    }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
@@ -29,15 +26,6 @@ class FirebaseOptionsLoader {
         );
     }
   }
-
-  static FirebaseOptions get web => FirebaseOptions(
-    apiKey: _getEnv('FIREBASE_API_KEY_WEB'),
-    appId: _getEnv('FIREBASE_APP_ID_WEB'),
-    messagingSenderId: _getEnv('FIREBASE_MESSAGING_SENDER_ID'),
-    projectId: _getEnv('FIREBASE_PROJECT_ID'),
-    authDomain: _getEnv('FIREBASE_AUTH_DOMAIN'),
-    storageBucket: _getEnv('FIREBASE_STORAGE_BUCKET'),
-  );
 
   static FirebaseOptions get android => FirebaseOptions(
     apiKey: _getEnv('FIREBASE_API_KEY_ANDROID'),

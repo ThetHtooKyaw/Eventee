@@ -2,6 +2,8 @@ import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/widgets/view_appbar.dart';
 import 'package:eventee/src/account/widgets/account_menu.dart';
 import 'package:eventee/src/settings/view_models/theme_view_model.dart';
+import 'package:eventee/src/settings/views/privacy_policy_view.dart';
+import 'package:eventee/src/settings/views/terms_of_service_view.dart';
 import 'package:eventee/src/settings/widgets/settings_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -52,7 +54,12 @@ class SettingsView extends StatelessWidget {
                 icon: Icons.privacy_tip,
                 title: 'Privacy Policy',
                 onTap: () {
-                  // Handle privacy policy tap
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PrivacyPolicyView(),
+                    ),
+                  );
                 },
               ),
               _buildCustomDivider(context),
@@ -62,7 +69,12 @@ class SettingsView extends StatelessWidget {
                 icon: Icons.description,
                 title: 'Terms of Service',
                 onTap: () {
-                  // Handle terms of service tap
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TermsOfServiceView(),
+                    ),
+                  );
                 },
               ),
             ],
