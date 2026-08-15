@@ -3,7 +3,7 @@ import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
 import 'package:flutter/foundation.dart';
 
-class BillingService {
+class PayoutStepupService {
   final _functions = FirebaseFunctions.instanceFor(region: 'asia-southeast1');
 
   Future<Object> createStripeAccount() async {

@@ -91,7 +91,7 @@ class _EventListViewState extends State<EventListView> {
                       builder: (context) =>
                           ChangeNotifierProvider<EventDetailsViewModel>(
                             create: (context) => EventDetailsViewModel(
-                              context.read<BookiedEventService>(),
+                              context.read<BookedEventService>(),
                             ),
                             child: EventDetailsView(event: event),
                           ),

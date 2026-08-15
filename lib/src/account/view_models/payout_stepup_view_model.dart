@@ -1,19 +1,19 @@
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
 import 'package:eventee/core/view_models/base_view_model.dart';
-import 'package:eventee/src/account/repo/billing_service.dart';
+import 'package:eventee/src/account/repo/payout_stepup_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class BillingViewModel extends BaseViewModel {
+class PayoutStepupViewModel extends BaseViewModel {
   // Dependencies
-  final BillingService _billingService;
-  BillingViewModel(this._billingService);
+  final PayoutStepupService _payoutStepupService;
+  PayoutStepupViewModel(this._payoutStepupService);
 
   // Use Cases
   Future<void> connectWithStripe() async {
     startActionLoading();
 
-    final response = await _billingService.createStripeAccount();
+    final response = await _payoutStepupService.createStripeAccount();
 
     if (response is Failure) {
       stopActionLoadingWithErrorMessage(response.response.toString());

@@ -1,6 +1,7 @@
 import 'package:eventee/core/services/location_service.dart';
 import 'package:eventee/core/view_models/location_view_model.dart';
 import 'package:eventee/src/account/repo/account_service.dart';
+import 'package:eventee/src/account/repo/payout_stepup_service.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
 import 'package:eventee/src/auth/repo/auth_service.dart';
 import 'package:eventee/src/auth/view_models/login_view_model.dart';
@@ -26,9 +27,10 @@ class CoreProviders {
     Provider(create: (_) => AuthService()),
     Provider(create: (_) => OnboardingService()),
     Provider(create: (_) => AccountService()),
+    Provider(create: (_) => PayoutStepupService()),
     Provider(create: (_) => EventService()),
     Provider(create: (_) => FavouriteService()),
-    Provider(create: (_) => BookiedEventService()),
+    Provider(create: (_) => BookedEventService()),
 
     // View Models
     ChangeNotifierProvider(
@@ -50,14 +52,17 @@ class CoreProviders {
       create: (context) => AccountViewModel(context.read<AccountService>()),
     ),
     ChangeNotifierProvider(
-        create: (context) => EventListViewModel(context.read<EventService>())),
+      create: (context) => EventListViewModel(context.read<EventService>()),
+    ),
     ChangeNotifierProvider(
-        create: (context) => HomeViewModel(context.read<EventListViewModel>())),
+      create: (context) => HomeViewModel(context.read<EventListViewModel>()),
+    ),
     ChangeNotifierProvider(
-        create: (context) => FavouriteViewModel(context.read<FavouriteService>())),
+      create: (context) => FavouriteViewModel(context.read<FavouriteService>()),
+    ),
     ChangeNotifierProvider(
       create: (context) =>
-          BookedEventHistoryViewModel(context.read<BookiedEventService>()),
+          BookedEventHistoryViewModel(context.read<BookedEventService>()),
     ),
   ];
 }

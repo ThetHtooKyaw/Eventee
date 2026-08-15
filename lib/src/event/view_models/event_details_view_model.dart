@@ -6,11 +6,11 @@ import 'package:eventee/src/event/repo/booked_event_service.dart';
 
 class EventDetailsViewModel extends BaseViewModel {
   // Dependencies
-  final BookiedEventService _bookedEventService;
+  final BookedEventService _bookedEventService;
   EventDetailsViewModel(this._bookedEventService);
 
   // Use Cases
-  Future<void> makePayment({required BookingModel bookedEvent}) async {
+  Future<bool> makePayment({required BookingModel bookedEvent}) async {
     startActionLoading();
 
     final response = await _bookedEventService.makePayment(
@@ -19,12 +19,13 @@ class EventDetailsViewModel extends BaseViewModel {
 
     if (response is Failure) {
       stopActionLoadingWithErrorMessage(response.response.toString());
-      return;
+      return false;
     }
 
     stopActionLoadingWithSuccessMessage(
       (response as Success).response.toString(),
     );
+    return true;
   }
 
   int formatPrice(String ticketPrice) {

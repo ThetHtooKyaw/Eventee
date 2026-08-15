@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 
 class BookedEventHistoryViewModel extends BaseViewModel {
   // Dependencies
-  final BookiedEventService _bookedEventService;
+  final BookedEventService _bookedEventService;
   BookedEventHistoryViewModel(this._bookedEventService);
 
   // Variables

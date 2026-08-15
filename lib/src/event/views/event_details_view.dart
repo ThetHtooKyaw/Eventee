@@ -56,7 +56,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
   }
 
   Future<void> _bookEvent(EventDetailsViewModel vm, double total) async {
-    await vm.makePayment(
+    final success = await vm.makePayment(
       bookedEvent: BookingModel.fromEvent(
         event: widget.event,
         total: total,
@@ -64,6 +64,10 @@ class _EventDetailsViewState extends State<EventDetailsView> {
         status: 'active',
       ),
     );
+
+    if (success && mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
   @override
@@ -129,7 +133,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                         widget.event.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleLarge?.copyWith(
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),

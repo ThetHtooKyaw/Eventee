@@ -2,11 +2,11 @@ import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/src/account/repo/account_service.dart';
-import 'package:eventee/src/account/repo/billing_service.dart';
+import 'package:eventee/src/account/repo/payout_stepup_service.dart';
 import 'package:eventee/src/account/view_models/account_detail_view_model.dart';
-import 'package:eventee/src/account/view_models/billing_view_model.dart';
+import 'package:eventee/src/account/view_models/payout_stepup_view_model.dart';
 import 'package:eventee/src/account/views/account_detail_view.dart';
-import 'package:eventee/src/account/views/billing_view.dart';
+import 'package:eventee/src/account/views/payout_stepup_view.dart';
 import 'package:eventee/src/account/widgets/account_menu.dart';
 import 'package:eventee/src/account/widgets/account_skeleton.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
@@ -167,17 +167,17 @@ class _AccountViewState extends State<AccountView> {
                         // Billing
                         MenuItem(
                           icon: Icons.wallet,
-                          title: 'Billing',
+                          title: 'Payout Setup',
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (naviContext) =>
-                                    ChangeNotifierProvider<BillingViewModel>(
-                                      create: (context) => BillingViewModel(
-                                        context.read<BillingService>(),
+                                    ChangeNotifierProvider<PayoutStepupViewModel>(
+                                      create: (context) => PayoutStepupViewModel(
+                                        context.read<PayoutStepupService>(),
                                       ),
-                                      child: const BillingView(),
+                                      child: const PayoutStepupView(),
                                     ),
                               ),
                             );

@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 
-class BookiedEventService {
+class BookedEventService {
   final _firestore = FirebaseFirestore.instance;
   final _functions = FirebaseFunctions.instanceFor(region: 'asia-southeast1');
   final _auth = FirebaseAuth.instance;
@@ -124,6 +124,7 @@ class BookiedEventService {
 
       return Success(response: 'Ticket purchased successfully!');
     } on FirebaseFunctionsException catch (e) {
+      debugPrint('Cloud function error: ${e.message}');
       return Failure(response: 'Cloud function error: ${e.message}');
     } on StripeException catch (e) {
       if (e.error.code == FailureCode.Canceled) {

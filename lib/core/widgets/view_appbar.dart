@@ -23,6 +23,9 @@ class ViewAppbar extends StatelessWidget implements PreferredSizeWidget {
       // Title
       title: Text(
         title,
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: Theme.of(
           context,
         ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),

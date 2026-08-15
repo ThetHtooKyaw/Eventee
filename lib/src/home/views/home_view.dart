@@ -162,6 +162,7 @@ class _HomeViewState extends State<HomeView> {
                           }
 
                           return ListView.separated(
+                            clipBehavior: Clip.none,
                             padding: EdgeInsets.symmetric(
                               horizontal: AppFormat.primaryPadding,
                             ),
@@ -182,9 +183,7 @@ class _HomeViewState extends State<HomeView> {
                                           create: (context) =>
                                               EventDetailsViewModel(
                                                 context
-                                                    .read<
-                                                      BookiedEventService
-                                                    >(),
+                                                    .read<BookedEventService>(),
                                               ),
                                           child: EventDetailsView(event: event),
                                         ),

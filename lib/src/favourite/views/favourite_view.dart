@@ -104,7 +104,7 @@ class _FavouriteViewState extends State<FavouriteView> {
                       MaterialPageRoute(
                         builder: (context) => ChangeNotifierProvider(
                           create: (context) => EventDetailsViewModel(
-                            context.read<BookiedEventService>(),
+                            context.read<BookedEventService>(),
                           ),
                           child: EventDetailsView(event: favouritedEvent),
                         ),

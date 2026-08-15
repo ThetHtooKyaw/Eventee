@@ -59,16 +59,22 @@ exports.createPaymentIntent = onCall(
         );
       }
 
+      // Calculate the platform profit and Stripe processing fee
       const applicationFeeAmount = Math.floor(amount * 0.07);
+      const stripeProcessingFee = Math.floor(amount * 0.0365 + 10) * 1.07;
+      const amountToSendToOrganizer =
+        totalAmount - applicationFeeAmount - stripeProcessingFee;
 
       const paymentIntent = await stripe.paymentIntents.create({
         receipt_email: email,
         amount: amount,
         currency: currency,
+        // on_behalf_of: stripeAccountId,
+        application_fee_amount: applicationFeeAmount,
         automatic_payment_methods: { enabled: true },
         transfer_data: {
           destination: stripeAccountId,
-          amount: amount - applicationFeeAmount,
+          amount: amountToSendToOrganizer,
         },
       });
 
@@ -88,8 +94,6 @@ exports.createStripeAccount = onCall(
     invoker: "public",
   },
   async (request) => {
-    const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-
     const userId = request.auth.uid;
     if (!userId) {
       throw new HttpsError(
@@ -99,6 +103,8 @@ exports.createStripeAccount = onCall(
     }
 
     try {
+      const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
       const userRef = db.collection("users").doc(userId);
       const userDoc = await userRef.get();
 
@@ -113,10 +119,6 @@ exports.createStripeAccount = onCall(
         const account = await stripe.accounts.create({
           email: userData.email,
           type: "standard",
-          capabilities: {
-            card_payments: { requested: true },
-            transfers: { requested: true },
-          },
         });
         accountId = account.id;
         await userRef.update({ stripeAccountId: accountId });

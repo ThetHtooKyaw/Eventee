@@ -74,7 +74,7 @@ class _CreateEventViewState extends State<CreateEventView> {
               child: child!,
             ),
             if (isActionLoading)
-              const LoadingOverlayColumn(message: 'Uploading event...'),
+              const LoadingOverlayColumn(message: 'Uploading event'),
           ],
         );
       },
