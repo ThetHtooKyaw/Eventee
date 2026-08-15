@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AppUser {
   final String uid;
+  final String stripeAccountId;
   final String photoUrl;
   final String username;
   final String email;
@@ -11,6 +12,7 @@ class AppUser {
 
   const AppUser({
     required this.uid,
+    required this.stripeAccountId,
     required this.photoUrl,
     required this.username,
     required this.email,
@@ -22,6 +24,7 @@ class AppUser {
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
+      'stripeAccountId': stripeAccountId,
       'photoUrl': photoUrl,
       'username': username,
       'email': email,
@@ -36,6 +39,7 @@ class AppUser {
   factory AppUser.fromMap(Map<String, dynamic> map) {
     return AppUser(
       uid: map['uid'],
+      stripeAccountId: map['stripeAccountId'],
       photoUrl: map['photoUrl'],
       username: map['username'],
       email: map['email'],

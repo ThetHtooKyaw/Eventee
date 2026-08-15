@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
-import 'package:eventee/core/utils/base_view_model.dart';
+import 'package:eventee/core/view_models/base_view_model.dart';
 import 'package:eventee/core/view_models/location_view_model.dart';
 import 'package:eventee/src/onboarding/repo/onboarding_service.dart';
 import 'package:flutter/material.dart';
@@ -11,10 +11,7 @@ class OnboardingViewModel extends BaseViewModel {
   // Dependencies
   final LocationViewModel _locationViewModel;
   final OnboardingService _onboardingService;
-  OnboardingViewModel(this._locationViewModel, this._onboardingService) {
-    initializeProfileAvatar();
-    initialLocation();
-  }
+  OnboardingViewModel(this._locationViewModel, this._onboardingService);
 
   // Controllers
   final pageController = PageController();
@@ -84,7 +81,11 @@ class OnboardingViewModel extends BaseViewModel {
     dobCOntroller.dispose();
   }
 
-  Future<void> initializeProfileAvatar() async {
+  Future<void> fetchInitialData() async {
+    await Future.wait([_initializeProfileAvatar(), _initialLocation()]);
+  }
+
+  Future<void> _initializeProfileAvatar() async {
     startScreenLoading();
 
     final response = await _onboardingService.fetchCurrentProfileAvatar();
@@ -98,7 +99,7 @@ class OnboardingViewModel extends BaseViewModel {
     setScreenLoading(false);
   }
 
-  Future<void> initialLocation() async {
+  Future<void> _initialLocation() async {
     startScreenLoading();
 
     final locationData = await _locationViewModel.getCurrentLocation();
@@ -108,12 +109,10 @@ class OnboardingViewModel extends BaseViewModel {
       return;
     }
 
-    if (mounted) {
-      _country = locationData['country'];
-      _state = locationData['state'];
-      _city = locationData['city'];
-      setScreenLoading(false);
-    }
+    _country = locationData['country'];
+    _state = locationData['state'];
+    _city = locationData['city'];
+    setScreenLoading(false);
   }
 
   ImageProvider? getProfileAvatar() {

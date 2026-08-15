@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
-import 'package:eventee/core/utils/base_view_model.dart';
+import 'package:eventee/core/view_models/base_view_model.dart';
 import 'package:eventee/src/account/repo/account_service.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +11,7 @@ class AccountDetailViewModel extends BaseViewModel {
   // Dependencies
   final AccountService _accountService;
   final AppUser? _user;
-  AccountDetailViewModel(this._accountService, this._user) {
-    if (_user != null) initialize(_user);
-  }
+  AccountDetailViewModel(this._accountService, this._user);
 
   // Controllers
   final nameController = TextEditingController();
@@ -73,11 +71,12 @@ class AccountDetailViewModel extends BaseViewModel {
     super.dispose();
   }
 
-  void initialize(AppUser user) {
-    nameController.text = user.username;
-    addressController.text = user.address;
-    _selectedBirthday = user.dateOfBirth;
-    notifyListeners();
+  void initialize() {
+    if (_user == null) return;
+    nameController.text = _user.username;
+    addressController.text = _user.address;
+    _selectedBirthday = _user.dateOfBirth;
+    safeNotifyListeners();
   }
 
   ImageProvider? getProfileAvatar(String photoUrl) {

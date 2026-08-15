@@ -19,100 +19,101 @@ class BookedEventHistoryView extends StatefulWidget {
 }
 
 class _BookedEventHistoryViewState extends State<BookedEventHistoryView> {
+  late final BookedEventHistoryViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = context.read<BookedEventHistoryViewModel>();
+    _viewModel.addListener(_onViewModelChanged);
+    _viewModel.fetchBookingHistory();
+  }
+
+  @override
+  void dispose() {
+    _viewModel.removeListener(_onViewModelChanged);
+    super.dispose();
+  }
+
+  void _onViewModelChanged() {
+    if (_viewModel.errorMessage != null && mounted) {
+      AppSnackbars.showErrorSnackbar(context, _viewModel.errorMessage!);
+      _viewModel.setError(null);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final vm = context.read<BookedEventHistoryViewModel>();
 
-    return Selector<BookedEventHistoryViewModel, String?>(
-      selector: (_, vm) => vm.errorMessage,
-      builder: (context, errorMessage, child) {
-        if (errorMessage != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            AppSnackbars.showErrorSnackbar(context, errorMessage);
-            context.read<BookedEventHistoryViewModel>().setError(null);
-          });
-        }
-
-        return DefaultTabController(
-          length: 3,
-          child: Scaffold(
-            appBar: AppBar(
-              centerTitle: true,
-              title: Text('Bookings', style: theme.textTheme.titleSmall),
-              bottom: TabBar(
-                labelColor: theme.colorScheme.primary,
-                indicatorColor: theme.colorScheme.primary,
-                unselectedLabelColor: AppColor.textPlaceholder,
-                labelStyle: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                unselectedLabelStyle: theme.textTheme.titleSmall,
-                tabs: [
-                  Tab(text: 'Active'),
-                  Tab(text: 'Completed'),
-                  Tab(text: 'Cancelled'),
-                ],
-              ),
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text('Bookings', style: theme.textTheme.titleSmall),
+          bottom: TabBar(
+            labelColor: theme.colorScheme.primary,
+            indicatorColor: theme.colorScheme.primary,
+            unselectedLabelColor: AppColor.textPlaceholder,
+            labelStyle: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
             ),
-
-            body: Selector<BookedEventHistoryViewModel, bool>(
-              selector: (_, vm) => vm.isScreenLoading,
-              builder: (context, isScreenLoading, child) {
-                if (isScreenLoading) {
-                  return const LoadingColumn(
-                    message: 'Loading booking history',
-                  );
-                }
-                final vm = context.read<BookedEventHistoryViewModel>();
-
-                return TabBarView(
-                  children: [
-                    Selector<
-                      BookedEventHistoryViewModel,
-                      List<EventHistoryModel>
-                    >(
-                      selector: (_, vm) => vm.activeEventList,
-                      builder: (context, activeEvents, child) {
-                        return _buildBookingList(
-                          vm,
-                          activeEvents,
-                          'No active bookings found!',
-                        );
-                      },
-                    ),
-                    Selector<
-                      BookedEventHistoryViewModel,
-                      List<EventHistoryModel>
-                    >(
-                      selector: (_, vm) => vm.completedEventList,
-                      builder: (context, completedEvents, child) {
-                        return _buildBookingList(
-                          vm,
-                          completedEvents,
-                          'No completed bookings found!',
-                        );
-                      },
-                    ),
-                    Selector<
-                      BookedEventHistoryViewModel,
-                      List<EventHistoryModel>
-                    >(
-                      selector: (_, vm) => vm.cancelledEventList,
-                      builder: (context, cancelledEvents, child) {
-                        return _buildBookingList(
-                          vm,
-                          cancelledEvents,
-                          'No cancelled bookings found!',
-                        );
-                      },
-                    ),
-                  ],
-                );
-              },
-            ),
+            unselectedLabelStyle: theme.textTheme.titleSmall,
+            tabs: [
+              Tab(text: 'Active'),
+              Tab(text: 'Completed'),
+              Tab(text: 'Cancelled'),
+            ],
           ),
-        );
-      },
+        ),
+
+        body: Selector<BookedEventHistoryViewModel, bool>(
+          selector: (_, vm) => vm.isScreenLoading,
+          builder: (context, isScreenLoading, child) {
+            if (isScreenLoading) {
+              return const LoadingColumn(message: 'Loading booking history');
+            }
+
+            return child!;
+          },
+          child: TabBarView(
+            children: [
+              Selector<BookedEventHistoryViewModel, List<EventHistoryModel>>(
+                selector: (_, vm) => vm.activeEventList,
+                builder: (context, activeEvents, child) {
+                  return _buildBookingList(
+                    vm,
+                    activeEvents,
+                    'No active bookings found!',
+                  );
+                },
+              ),
+              Selector<BookedEventHistoryViewModel, List<EventHistoryModel>>(
+                selector: (_, vm) => vm.completedEventList,
+                builder: (context, completedEvents, child) {
+                  return _buildBookingList(
+                    vm,
+                    completedEvents,
+                    'No completed bookings found!',
+                  );
+                },
+              ),
+              Selector<BookedEventHistoryViewModel, List<EventHistoryModel>>(
+                selector: (_, vm) => vm.cancelledEventList,
+                builder: (context, cancelledEvents, child) {
+                  return _buildBookingList(
+                    vm,
+                    cancelledEvents,
+                    'No cancelled bookings found!',
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

@@ -18,8 +18,29 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
+  late final LoginViewModel _viewModel;
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = context.read<LoginViewModel>();
+    _viewModel.addListener(_onViewModelChanged);
+  }
+
+  @override
+  void dispose() {
+    _viewModel.removeListener(_onViewModelChanged);
+    super.dispose();
+  }
+
+  void _onViewModelChanged() {
+    if (_viewModel.errorMessage != null && mounted) {
+      AppSnackbars.showErrorSnackbar(context, _viewModel.errorMessage!);
+      _viewModel.setError(null);
+    }
+  }
 
   Future<void> login() async {
     final vm = context.read<LoginViewModel>();
@@ -34,8 +55,6 @@ class _LoginViewState extends State<LoginView> {
           context,
           MaterialPageRoute(builder: (context) => const BottomNavBar()),
         );
-      } else {
-        AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
       }
     }
   }
@@ -60,8 +79,6 @@ class _LoginViewState extends State<LoginView> {
           (route) => false,
         );
       }
-    } else {
-      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
     }
   }
 
@@ -69,116 +86,100 @@ class _LoginViewState extends State<LoginView> {
   Widget build(BuildContext context) {
     final vm = context.read<LoginViewModel>();
 
-    return Selector<LoginViewModel, String?>(
-      selector: (_, vm) => vm.errorMessage,
-      builder: (context, errorMessage, child) {
-        if (errorMessage != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            AppSnackbars.showErrorSnackbar(context, errorMessage);
-            vm.setError(null);
-          });
-        }
-
-        return Scaffold(
-          body: Selector<LoginViewModel, bool>(
-            selector: (_, vm) => vm.isActionLoading,
-            builder: (context, isActionLoading, child) {
-              return Stack(
-                children: [
-                  Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppFormat.primaryPadding,
-                        vertical: AppFormat.secondaryPadding,
-                      ),
-                      child: Column(
-                        children: [
-                          // Title
-                          Text(
-                            "Eventee",
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          SizedBox(height: 24),
-
-                          // TextFields
-                          _buildLoginForm(vm),
-                          SizedBox(height: 40),
-
-                          // Action Buttons
-                          ElevatedButton(
-                            onPressed: isActionLoading ? null : () => login(),
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: Size(double.infinity, 48),
-                            ),
-                            child: Text("Login"),
-                          ),
-                          SizedBox(height: 10),
-
-                          Divider(),
-                          const SizedBox(height: 10),
-
-                          ElevatedButton(
-                            onPressed: isActionLoading
-                                ? null
-                                : () => loginWithGoogle(),
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: Size(double.infinity, 60),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.asset(
-                                  'assets/icons/google.png',
-                                  height: 30,
-                                  width: 30,
-                                  fit: BoxFit.cover,
-                                ),
-                                const SizedBox(width: 20),
-                                Text("Sign in with Google"),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 20),
-
-                          RichText(
-                            text: TextSpan(
-                              text: "Don't have an account? ",
-                              style: TextStyle(color: Colors.black),
-                              children: [
-                                TextSpan(
-                                  text: "Sign Up",
-                                  style: TextStyle(color: Colors.blue),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              const SignUpView(),
-                                        ),
-                                      );
-                                    },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+    return Scaffold(
+      body: Selector<LoginViewModel, bool>(
+        selector: (_, vm) => vm.isActionLoading,
+        builder: (context, isActionLoading, child) {
+          return Stack(
+            children: [
+              child!,
+              if (isActionLoading) LoadingOverlayColumn(message: 'Logging in'),
+            ],
+          );
+        },
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppFormat.primaryPadding,
+              vertical: AppFormat.secondaryPadding,
+            ),
+            child: Column(
+              children: [
+                // Title
+                Text(
+                  "Eventee",
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
+                ),
+                SizedBox(height: 24),
 
-                  if (isActionLoading)
-                    LoadingOverlayColumn(message: 'Logging in'),
-                ],
-              );
-            },
+                // TextFields
+                _buildLoginForm(vm),
+                SizedBox(height: 40),
+
+                // Action Buttons
+                ElevatedButton(
+                  onPressed: () => login(),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 48),
+                  ),
+                  child: Text("Login"),
+                ),
+                SizedBox(height: 10),
+
+                Divider(),
+                const SizedBox(height: 10),
+
+                ElevatedButton(
+                  onPressed: () => loginWithGoogle(),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 60),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/icons/google.png',
+                        height: 30,
+                        width: 30,
+                        fit: BoxFit.cover,
+                      ),
+                      const SizedBox(width: 20),
+                      Text("Sign in with Google"),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+
+                RichText(
+                  text: TextSpan(
+                    text: "Don't have an account? ",
+                    style: TextStyle(color: Colors.black),
+                    children: [
+                      TextSpan(
+                        text: "Sign Up",
+                        style: TextStyle(color: Colors.blue),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SignUpView(),
+                              ),
+                            );
+                          },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 

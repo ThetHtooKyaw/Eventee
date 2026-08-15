@@ -12,81 +12,98 @@ import 'package:eventee/src/event/widgets/event_list_skeleton.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EventListView extends StatelessWidget {
+class EventListView extends StatefulWidget {
   const EventListView({super.key});
+
+  @override
+  State<EventListView> createState() => _EventListViewState();
+}
+
+class _EventListViewState extends State<EventListView> {
+  late final EventListViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = context.read<EventListViewModel>();
+    _viewModel.addListener(_onViewModelChanged);
+  }
+
+  @override
+  void dispose() {
+    _viewModel.removeListener(_onViewModelChanged);
+    super.dispose();
+  }
+
+  void _onViewModelChanged() {
+    if (_viewModel.errorMessage != null && mounted) {
+      AppSnackbars.showErrorSnackbar(context, _viewModel.errorMessage!);
+      _viewModel.setError(null);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final vm = context.watch<EventListViewModel>();
+    final vm = context.read<EventListViewModel>();
 
-    return Selector<EventListViewModel, String?>(
-      selector: (_, vm) => vm.errorMessage,
-      builder: (context, errorMessage, child) {
-        if (errorMessage != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            AppSnackbars.showErrorSnackbar(context, errorMessage);
-            vm.setError(null);
-          });
-        }
-
-        return Scaffold(
-          appBar: _buildAppBar(context, vm),
-          body: Selector<EventListViewModel, bool>(
-            selector: (_, vm) => vm.isScreenLoading,
-            builder: (context, isScreenLoading, child) {
-              return Selector<EventListViewModel, List<EventModel>>(
-                selector: (_, vm) => vm.events,
-                builder: (context, events, child) {
-                  if (events.isEmpty && !isScreenLoading) {
-                    return Center(
-                      child: Text(
-                        'No events found!',
-                        style: t.textTheme.bodyLarge,
-                      ),
-                    );
-                  }
-                  return ListView.separated(
-                    padding: EdgeInsets.symmetric(
-                      vertical: AppFormat.secondaryPadding,
-                      horizontal: AppFormat.primaryPadding,
-                    ),
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 20),
-                    itemCount: isScreenLoading ? 6 : events.length,
-                    itemBuilder: (context, index) {
-                      if (isScreenLoading) {
-                        return EventListSkeleton(cardWidth: double.infinity);
-                      }
-
-                      final event = events[index];
-
-                      return GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ChangeNotifierProvider<EventDetailsViewModel>(
-                                  create: (context) => EventDetailsViewModel(
-                                    context.read<BookiedEventService>(),
-                                  ),
-                                  child: EventDetailsView(event: event),
-                                ),
-                          ),
-                        ),
-                        child: EventCard(
-                          event: event,
-                          cardWidth: double.infinity,
-                        ),
-                      );
-                    },
-                  );
-                },
+    return Scaffold(
+      appBar: _buildAppBar(context, vm),
+      body: Selector<EventListViewModel, bool>(
+        selector: (_, vm) => vm.isScreenLoading,
+        builder: (context, isScreenLoading, child) {
+          if (isScreenLoading) {
+            return ListView.separated(
+              padding: EdgeInsets.symmetric(
+                vertical: AppFormat.secondaryPadding,
+                horizontal: AppFormat.primaryPadding,
+              ),
+              separatorBuilder: (context, index) => const SizedBox(height: 20),
+              itemCount: 6,
+              itemBuilder: (context, index) {
+                return EventListSkeleton(cardWidth: double.infinity);
+              },
+            );
+          }
+          return child!;
+        },
+        child: Selector<EventListViewModel, List<EventModel>>(
+          selector: (_, vm) => vm.events,
+          builder: (context, events, child) {
+            if (events.isEmpty) {
+              return Center(
+                child: Text('No events found!', style: t.textTheme.bodyLarge),
               );
-            },
-          ),
-        );
-      },
+            }
+            return ListView.separated(
+              padding: EdgeInsets.symmetric(
+                vertical: AppFormat.secondaryPadding,
+                horizontal: AppFormat.primaryPadding,
+              ),
+              separatorBuilder: (context, index) => const SizedBox(height: 20),
+              itemCount: events.length,
+              itemBuilder: (context, index) {
+                final event = events[index];
+                return GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ChangeNotifierProvider<EventDetailsViewModel>(
+                            create: (context) => EventDetailsViewModel(
+                              context.read<BookiedEventService>(),
+                            ),
+                            child: EventDetailsView(event: event),
+                          ),
+                    ),
+                  ),
+                  child: EventCard(event: event, cardWidth: double.infinity),
+                );
+              },
+            );
+          },
+        ),
+      ),
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:eventee/src/event/model/booking.dart';
 
 class EventHistoryModel {
   final String uid;
+  final String organizerId;
   final String bookingId;
   final String eventId;
   final String imageUrl;
@@ -20,6 +21,7 @@ class EventHistoryModel {
 
   const EventHistoryModel({
     required this.uid,
+    required this.organizerId,
     required this.bookingId,
     required this.eventId,
     required this.imageUrl,
@@ -39,6 +41,7 @@ class EventHistoryModel {
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
+      'organizerId': organizerId,
       'bookingId': bookingId,
       'eventId': eventId,
       'imageUrl': imageUrl,
@@ -59,6 +62,7 @@ class EventHistoryModel {
   factory EventHistoryModel.fromMap(Map<String, dynamic> map) {
     return EventHistoryModel(
       uid: map['uid'] ?? '',
+      organizerId: map['organizerId'] ?? '',
       bookingId: map['bookingId'] ?? '',
       eventId: map['eventId'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
@@ -84,6 +88,7 @@ class EventHistoryModel {
   }) {
     return EventHistoryModel(
       uid: uid,
+      organizerId: bookedEvent.organizerId,
       bookingId: bookingId,
       eventId: bookedEvent.eventId,
       imageUrl: bookedEvent.imageUrl,

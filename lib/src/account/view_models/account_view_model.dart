@@ -1,15 +1,13 @@
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
-import 'package:eventee/core/utils/base_view_model.dart';
+import 'package:eventee/core/view_models/base_view_model.dart';
 import 'package:eventee/src/account/repo/account_service.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
 
 class AccountViewModel extends BaseViewModel {
   // Dependencies
   final AccountService _accountService;
-  AccountViewModel(this._accountService) {
-    loadUser();
-  }
+  AccountViewModel(this._accountService);
 
   // Variables
   AppUser? _user;

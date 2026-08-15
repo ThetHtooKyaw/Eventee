@@ -15,10 +15,8 @@ class AccountService {
 
   CollectionReference get _usersCollection => _firestore.collection('users');
 
-  User? get _currentUser => _auth.currentUser;
-
   Future<Object> getUser() async {
-    final user = _currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
       return Failure(response: 'No authenticated user found.');
     }
@@ -58,7 +56,7 @@ class AccountService {
   }
 
   Future<Object> updateProfileAvatar({required File profileFile}) async {
-    final user = _currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
       return Failure(
         response: 'You must be logged in to update profile avatar.',
@@ -79,7 +77,7 @@ class AccountService {
   }
 
   Future<Object> updateUsername({required String newUsername}) async {
-    final user = _currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
       return Failure(response: 'You must be logged in to update username.');
     }
@@ -93,7 +91,7 @@ class AccountService {
   }
 
   Future<Object> updatePhoneNumber({required String newPhoneNumber}) async {
-    final user = _currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
       return Failure(response: 'You must be logged in to update phone number.');
     }
@@ -109,7 +107,7 @@ class AccountService {
   }
 
   Future<Object> updateDateOfBirth({required DateTime newDateOfBirth}) async {
-    final user = _currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
       return Failure(
         response: 'You must be logged in to update date of birth.',
@@ -127,7 +125,7 @@ class AccountService {
   }
 
   Future<Object> updateAddress({required String newAddress}) async {
-    final user = _currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
       return Failure(response: 'You must be logged in to update address.');
     }

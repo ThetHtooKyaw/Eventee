@@ -2,8 +2,11 @@ import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/src/account/repo/account_service.dart';
+import 'package:eventee/src/account/repo/billing_service.dart';
 import 'package:eventee/src/account/view_models/account_detail_view_model.dart';
+import 'package:eventee/src/account/view_models/billing_view_model.dart';
 import 'package:eventee/src/account/views/account_detail_view.dart';
+import 'package:eventee/src/account/views/billing_view.dart';
 import 'package:eventee/src/account/widgets/account_menu.dart';
 import 'package:eventee/src/account/widgets/account_skeleton.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
@@ -22,6 +25,28 @@ class AccountView extends StatefulWidget {
 }
 
 class _AccountViewState extends State<AccountView> {
+  late final AccountViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = context.read<AccountViewModel>();
+    _viewModel.addListener(_onViewModelChanged);
+  }
+
+  @override
+  void dispose() {
+    _viewModel.removeListener(_onViewModelChanged);
+    super.dispose();
+  }
+
+  void _onViewModelChanged() {
+    if (_viewModel.errorMessage != null && mounted) {
+      AppSnackbars.showErrorSnackbar(context, _viewModel.errorMessage!);
+      _viewModel.setError(null);
+    }
+  }
+
   Future<void> _logout() async {
     final vm = context.read<AccountViewModel>();
     final success = await vm.logoutUser();
@@ -33,8 +58,6 @@ class _AccountViewState extends State<AccountView> {
         MaterialPageRoute(builder: (context) => const LoginView()),
         (Route<dynamic> route) => false,
       );
-    } else {
-      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
     }
   }
 
@@ -42,180 +65,178 @@ class _AccountViewState extends State<AccountView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Selector<AccountViewModel, String?>(
-      selector: (_, vm) => vm.errorMessage,
-      builder: (context, errorMessage, child) {
-        if (errorMessage != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            AppSnackbars.showErrorSnackbar(context, errorMessage);
-            context.read<AccountViewModel>().setError(null);
-          });
-        }
-
-        return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: theme.brightness == Brightness.light
-              ? SystemUiOverlayStyle.dark
-              : SystemUiOverlayStyle.light,
-          child: Scaffold(
-            body: SafeArea(
-              child: Selector<AccountViewModel, bool>(
-                selector: (_, vm) => vm.isScreenLoading,
-                builder: (context, isScreenLoading, child) {
-                  if (isScreenLoading) {
-                    return AccountSkeleton();
-                  }
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppFormat.primaryPadding,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: theme.brightness == Brightness.light
+          ? SystemUiOverlayStyle.dark
+          : SystemUiOverlayStyle.light,
+      child: Scaffold(
+        body: SafeArea(
+          child: Selector<AccountViewModel, bool>(
+            selector: (_, vm) => vm.isScreenLoading,
+            builder: (context, isScreenLoading, child) {
+              if (isScreenLoading) {
+                return AccountSkeleton();
+              }
+              return child!;
+            },
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppFormat.primaryPadding,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Text(
+                    "Account",
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Profile
+                  Selector<AccountViewModel, AppUser?>(
+                    selector: (_, vm) => vm.user,
+                    builder: (context, userData, child) {
+                      if (userData == null) {
+                        return _buildErrorProfile(theme, context);
+                      }
+
+                      return _buildProfile(userData, theme);
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  Text(
+                    'PERSONALIZE',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColor.textPlaceholder,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 10),
+
+                  MenuCard(
+                    color: theme.colorScheme.primary,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header
-                        Text(
-                          "Account",
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
+                        // Personal Information
+                        MenuItem(
+                          icon: Icons.person,
+                          title: 'Personal Information',
+                          onTap: () async {
+                            final user = context.read<AccountViewModel>().user;
 
-                        // Profile
-                        Selector<AccountViewModel, AppUser?>(
-                          selector: (_, vm) => vm.user,
-                          builder: (context, userData, child) {
-                            if (userData == null) {
-                              return _buildErrorProfile(theme, context);
-                            }
-
-                            return _buildProfile(userData, theme);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (naviContext) =>
+                                    ChangeNotifierProvider<
+                                      AccountDetailViewModel
+                                    >(
+                                      create: (context) =>
+                                          AccountDetailViewModel(
+                                            context.read<AccountService>(),
+                                            user,
+                                          ),
+                                      child: const AccountDetailView(),
+                                    ),
+                              ),
+                            );
                           },
                         ),
-                        const SizedBox(height: 20),
+                        _buildCustomDivider(),
 
-                        Text(
-                          'PERSONALIZE',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppColor.textPlaceholder,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                        // Settings
+                        MenuItem(
+                          icon: Icons.settings,
+                          title: 'Settings',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SettingsView(),
+                              ),
+                            );
+                          },
                         ),
-                        const SizedBox(height: 10),
+                        _buildCustomDivider(),
 
-                        MenuCard(
-                          color: theme.colorScheme.primary,
-                          child: Column(
-                            children: [
-                              // Personal Information
-                              MenuItem(
-                                icon: Icons.person,
-                                title: 'Personal Information',
-                                onTap: () async {
-                                  final user = context
-                                      .read<AccountViewModel>()
-                                      .user;
-
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (naviContext) =>
-                                          ChangeNotifierProvider<
-                                            AccountDetailViewModel
-                                          >(
-                                            create: (context) =>
-                                                AccountDetailViewModel(
-                                                  context
-                                                      .read<AccountService>(),
-                                                  user,
-                                                ),
-                                            child: const AccountDetailView(),
-                                          ),
+                        // Billing
+                        MenuItem(
+                          icon: Icons.wallet,
+                          title: 'Billing',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (naviContext) =>
+                                    ChangeNotifierProvider<BillingViewModel>(
+                                      create: (context) => BillingViewModel(
+                                        context.read<BillingService>(),
+                                      ),
+                                      child: const BillingView(),
                                     ),
-                                  );
-                                },
                               ),
-                              _buildCustomDivider(),
-
-                              // Settings
-                              MenuItem(
-                                icon: Icons.settings,
-                                title: 'Settings',
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const SettingsView(),
-                                    ),
-                                  );
-                                },
-                              ),
-                              _buildCustomDivider(),
-
-                              // Billing
-                              MenuItem(
-                                icon: Icons.wallet,
-                                title: 'Billing',
-                                onTap: () {},
-                              ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                        const SizedBox(height: 20),
-
-                        Text(
-                          'GENERAL',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppColor.textPlaceholder,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 10),
-
-                        MenuCard(
-                          color: theme.colorScheme.primary,
-                          child: Column(
-                            children: [
-                              // Language
-                              MenuItem(
-                                icon: Icons.language,
-                                title: 'Language',
-                                onTap: () {},
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        SizedBox(
-                          width: double.infinity,
-                          child: Selector<AccountViewModel, bool>(
-                            selector: (_, vm) => vm.isActionLoading,
-                            builder: (context, isActionLoading, child) {
-                              return ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
-                                ),
-                                onPressed: isActionLoading ? null : _logout,
-                                child: isActionLoading
-                                    ? const CircularProgressIndicator()
-                                    : const Text('Logout'),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 80),
                       ],
                     ),
-                  );
-                },
+                  ),
+                  const SizedBox(height: 20),
+
+                  Text(
+                    'GENERAL',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColor.textPlaceholder,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 10),
+
+                  MenuCard(
+                    color: theme.colorScheme.primary,
+                    child: Column(
+                      children: [
+                        // Language
+                        MenuItem(
+                          icon: Icons.language,
+                          title: 'Language',
+                          onTap: () {},
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: Selector<AccountViewModel, bool>(
+                      selector: (_, vm) => vm.isActionLoading,
+                      builder: (context, isActionLoading, child) {
+                        return ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          onPressed: isActionLoading ? null : _logout,
+                          child: isActionLoading
+                              ? const CircularProgressIndicator()
+                              : const Text('Logout'),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 80),
+                ],
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -264,7 +285,9 @@ class _AccountViewState extends State<AccountView> {
           // Image
           CircleAvatar(
             radius: 40,
-            backgroundImage: NetworkImage(userData.photoUrl),
+            backgroundImage: userData.photoUrl.isNotEmpty
+                ? NetworkImage(userData.photoUrl)
+                : null,
             backgroundColor: AppColor.placeholder.withOpacity(0.4),
             child: userData.photoUrl.isEmpty
                 ? const Icon(Icons.person, color: Colors.black)

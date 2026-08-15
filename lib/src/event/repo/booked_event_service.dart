@@ -11,7 +11,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 
 class BookiedEventService {
   final _firestore = FirebaseFirestore.instance;
-  final _functions = FirebaseFunctions.instance;
+  final _functions = FirebaseFunctions.instanceFor(region: 'asia-southeast1');
   final _auth = FirebaseAuth.instance;
 
   static const platform = MethodChannel('com.example.eventee/calendar');
@@ -21,10 +21,8 @@ class BookiedEventService {
   CollectionReference _userBookings(String uid) =>
       _usersCollection.doc(uid).collection('bookings');
 
-  User? get _currentUser => _auth.currentUser;
-
   Future<Object> fetchBookingHistory() async {
-    final user = _currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
       return Success(response: Stream.value(<String>{}));
     }
@@ -50,9 +48,11 @@ class BookiedEventService {
   }
 
   Future<Object> updateBookingStatus(String bookingId, String newStatus) async {
-    final user = _currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
-      return Failure(response: 'You must be logged in to update booking status.');
+      return Failure(
+        response: 'You must be logged in to update booking status.',
+      );
     }
 
     try {
@@ -67,7 +67,7 @@ class BookiedEventService {
   }
 
   Future<Object> makePayment({required BookingModel bookedEvent}) async {
-    final user = _currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
       return Failure(response: 'You must be logged in to make payments.');
     }
@@ -75,13 +75,12 @@ class BookiedEventService {
     try {
       // The Handshake (Cloud Function)
       final int amount = (bookedEvent.total * 100).toInt();
-      final HttpsCallable callable = _functions.httpsCallable(
-        'createPaymentIntent',
-      );
+      final callable = _functions.httpsCallable('createPaymentIntent');
       final result = await callable.call(<String, dynamic>{
+        'organizerId': bookedEvent.organizerId,
+        'email': user.email,
         'amount': amount,
         'currency': 'thb',
-        'email': user.email,
       });
 
       if (result.data == null) {
@@ -89,10 +88,12 @@ class BookiedEventService {
       }
 
       final data = Map<String, dynamic>.from(result.data as dynamic);
-      final clientSecret = data['clientSecret'];
+      final clientSecret = data['clientSecret'] as String?;
 
       if (clientSecret == null) {
-        return Failure(response: 'Client secret missing from server response');
+        return Failure(
+          response: 'Client secret missing or invalid from server response',
+        );
       }
 
       // The Payment Sheet

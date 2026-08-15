@@ -23,172 +23,187 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  late final EventListViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = context.read<EventListViewModel>();
+    _viewModel.addListener(_onViewModelChanged);
+    _viewModel.fetchAllEvents();
+  }
+
+  @override
+  void dispose() {
+    _viewModel.removeListener(_onViewModelChanged);
+    super.dispose();
+  }
+
+  void _onViewModelChanged() {
+    if (_viewModel.errorMessage != null && mounted) {
+      AppSnackbars.showErrorSnackbar(context, _viewModel.errorMessage!);
+      _viewModel.setError(null);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final vm = context.watch<EventListViewModel>();
 
-    return Selector<EventListViewModel, String?>(
-      selector: (_, vm) => vm.errorMessage,
-      builder: (context, errorMessage, child) {
-        if (errorMessage != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            AppSnackbars.showErrorSnackbar(context, errorMessage);
-            vm.setError(null);
-          });
-        }
-
-        return Scaffold(
-          body: CustomScrollView(
-            slivers: [
-              // AppBar
-              SliverAppBar(
-                expandedHeight: 120,
-                floating: false,
-                pinned: false,
-                elevation: 0,
-                backgroundColor: Colors.transparent,
-                systemOverlayStyle: theme.brightness == Brightness.light
-                    ? const SystemUiOverlayStyle(
-                        statusBarIconBrightness: Brightness.light,
-                        statusBarBrightness: Brightness.dark,
-                      )
-                    : const SystemUiOverlayStyle(
-                        statusBarIconBrightness: Brightness.dark,
-                        statusBarBrightness: Brightness.light,
-                      ),
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Stack(
-                    children: [
-                      // Background Color
-                      Container(
-                        height: 140,
-                        width: double.infinity,
-                        color: theme.colorScheme.primary,
-                      ),
-
-                      // Header
-                      SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppFormat.secondaryPadding,
-                            horizontal: AppFormat.primaryPadding,
-                          ),
-                          child: _buildHeader(theme),
-                        ),
-                      ),
-
-                      // Search Bar
-                      Positioned(
-                        bottom: 1,
-                        right: AppFormat.primaryPadding,
-                        left: AppFormat.primaryPadding,
-                        child: _buildSearchBar(
-                          context,
-                          vm,
-                        ), // Pass EventListViewModel
-                      ),
-                    ],
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          // AppBar
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: false,
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            systemOverlayStyle: theme.brightness == Brightness.light
+                ? const SystemUiOverlayStyle(
+                    statusBarIconBrightness: Brightness.light,
+                    statusBarBrightness: Brightness.dark,
+                  )
+                : const SystemUiOverlayStyle(
+                    statusBarIconBrightness: Brightness.dark,
+                    statusBarBrightness: Brightness.light,
                   ),
-                ),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                children: [
+                  // Background Color
+                  Container(
+                    height: 140,
+                    width: double.infinity,
+                    color: theme.colorScheme.primary,
+                  ),
+
+                  // Header
+                  SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppFormat.secondaryPadding,
+                        horizontal: AppFormat.primaryPadding,
+                      ),
+                      child: _buildHeader(theme),
+                    ),
+                  ),
+
+                  // Search Bar
+                  Positioned(
+                    bottom: 1,
+                    right: AppFormat.primaryPadding,
+                    left: AppFormat.primaryPadding,
+                    child: _buildSearchBar(
+                      context,
+                      vm,
+                    ), // Pass EventListViewModel
+                  ),
+                ],
               ),
-
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppFormat.primaryPadding,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Event Title
-                      SectionTitle(
-                        title: 'Upcoming Events',
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const EventListView(),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Event List
-                      SizedBox(
-                        height: 310,
-                        child: Selector<EventListViewModel, bool>(
-                          selector: (_, vm) => vm.isScreenLoading,
-                          builder: (context, isScreenLoading, child) {
-                            return Selector<
-                              EventListViewModel,
-                              List<EventModel>
-                            >(
-                              selector: (_, vm) => vm.events,
-                              builder: (context, events, child) {
-                                if (events.isEmpty && !isScreenLoading) {
-                                  return Center(
-                                    child: Text(
-                                      'No upcoming events!',
-                                      style: theme.textTheme.bodyLarge,
-                                    ),
-                                  );
-                                }
-
-                                return ListView.separated(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: AppFormat.primaryPadding,
-                                  ),
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: isScreenLoading
-                                      ? 6
-                                      : events.length,
-                                  separatorBuilder: (context, index) =>
-                                      const SizedBox(width: 20),
-                                  itemBuilder: (context, index) {
-                                    if (isScreenLoading) {
-                                      return EventListSkeleton();
-                                    }
-
-                                    final event = events[index];
-
-                                    return GestureDetector(
-                                      onTap: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ChangeNotifierProvider<
-                                                EventDetailsViewModel
-                                              >(
-                                                create: (context) =>
-                                                    EventDetailsViewModel(
-                                                      context
-                                                          .read<
-                                                            BookiedEventService
-                                                          >(),
-                                                    ),
-                                                child: EventDetailsView(
-                                                  event: event,
-                                                ),
-                                              ),
-                                        ),
-                                      ),
-                                      child: EventCard(event: event),
-                                    );
-                                  },
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        );
-      },
+
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: AppFormat.primaryPadding,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Event Title
+                  SectionTitle(
+                    title: 'Upcoming Events',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EventListView(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Event List
+                  SizedBox(
+                    height: 310,
+                    child: Selector<EventListViewModel, bool>(
+                      selector: (_, vm) => vm.isScreenLoading,
+                      builder: (context, isScreenLoading, child) {
+                        if (isScreenLoading) {
+                          return ListView.separated(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppFormat.primaryPadding,
+                            ),
+                            scrollDirection: Axis.horizontal,
+                            itemCount: 6,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(width: 20),
+                            itemBuilder: (context, index) {
+                              return EventListSkeleton();
+                            },
+                          );
+                        }
+
+                        return child!;
+                      },
+                      child: Selector<EventListViewModel, List<EventModel>>(
+                        selector: (_, vm) => vm.events,
+                        builder: (context, events, child) {
+                          if (events.isEmpty) {
+                            return Center(
+                              child: Text(
+                                'No upcoming events!',
+                                style: theme.textTheme.bodyLarge,
+                              ),
+                            );
+                          }
+
+                          return ListView.separated(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppFormat.primaryPadding,
+                            ),
+                            scrollDirection: Axis.horizontal,
+                            itemCount: events.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(width: 20),
+                            itemBuilder: (context, index) {
+                              final event = events[index];
+                              return GestureDetector(
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        ChangeNotifierProvider<
+                                          EventDetailsViewModel
+                                        >(
+                                          create: (context) =>
+                                              EventDetailsViewModel(
+                                                context
+                                                    .read<
+                                                      BookiedEventService
+                                                    >(),
+                                              ),
+                                          child: EventDetailsView(event: event),
+                                        ),
+                                  ),
+                                ),
+                                child: EventCard(event: event),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

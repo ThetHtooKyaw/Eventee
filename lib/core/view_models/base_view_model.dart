@@ -1,83 +1,82 @@
 import 'package:flutter/foundation.dart';
-
-// This is a private helper function to check if a ChangeNotifier has been disposed.
-// It works by exploiting the fact that calling `notifyListeners` on a disposed
-// notifier will throw a FlutterError. We catch this error to determine the state.
-bool _isDisposed(ChangeNotifier notifier) {
-  try {
-    // This is a no-op that will throw if the object is disposed.
-    notifier.toString();
-    return false;
-  } catch (_) {
-    return true;
-  }
-}
+import 'package:flutter/scheduler.dart';
 
 class BaseViewModel extends ChangeNotifier {
+  // State Variables
   bool _isScreenloading = false;
   bool _isActionLoading = false;
   String? _successMessage;
   String? _errorMessage;
 
+  // Getters
   bool get isScreenLoading => _isScreenloading;
   bool get isActionLoading => _isActionLoading;
   String? get successMessage => _successMessage;
   String? get errorMessage => _errorMessage;
 
-  bool get mounted => !_isDisposed(this);
-  
+  void safeNotifyListeners() {
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    } else {
+      notifyListeners();
+    }
+  }
+
+  // Use Cases
   // Screen Loading
   void setScreenLoading(bool value) {
     _isScreenloading = value;
-    if (mounted) notifyListeners();
+    safeNotifyListeners();
   }
 
   void startScreenLoading() {
     _isScreenloading = true;
     _errorMessage = null;
     _successMessage = null;
-    if (mounted) notifyListeners();
+    safeNotifyListeners();
   }
 
   void stopScreenLoadingWithErrorMessage(String? message) {
     _isScreenloading = false;
     _errorMessage = message;
-    if (mounted) notifyListeners();
+    safeNotifyListeners();
   }
-  
+
   // Action Loading
   void setActionLoading(bool value) {
     _isActionLoading = value;
-    if (mounted) notifyListeners();
+    safeNotifyListeners();
   }
 
   void startActionLoading() {
     _isActionLoading = true;
     _errorMessage = null;
     _successMessage = null;
-    if (mounted) notifyListeners();
+    safeNotifyListeners();
   }
 
   void stopActionLoadingWithSuccessMessage(String? message) {
     _isActionLoading = false;
     _successMessage = message;
-    if (mounted) notifyListeners();
+    safeNotifyListeners();
   }
 
   void stopActionLoadingWithErrorMessage(String? message) {
     _isActionLoading = false;
     _errorMessage = message;
-    if (mounted) notifyListeners();
+    safeNotifyListeners();
   }
-
 
   void setSuccess(String? message) {
     _successMessage = message;
-    if (mounted) notifyListeners();
+    safeNotifyListeners();
   }
 
   void setError(String? message) {
     _errorMessage = message;
-    if (mounted) notifyListeners();
+    safeNotifyListeners();
   }
 }

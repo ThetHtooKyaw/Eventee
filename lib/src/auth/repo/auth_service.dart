@@ -43,6 +43,7 @@ class AuthService {
 
       final newUser = AppUser(
         uid: userCredential.user!.uid,
+        stripeAccountId: '',
         username: username,
         email: email,
         photoUrl: '',
@@ -103,6 +104,7 @@ class AuthService {
 
         final newUser = AppUser(
           uid: user.uid,
+          stripeAccountId: '',
           username: user.displayName ?? '',
           email: user.email ?? '',
           photoUrl: downloadUrl ?? '',

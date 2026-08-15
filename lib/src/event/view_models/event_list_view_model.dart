@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
-import 'package:eventee/core/utils/base_view_model.dart';
+import 'package:eventee/core/view_models/base_view_model.dart';
 import 'package:eventee/src/event/model/event.dart';
 import 'package:eventee/src/event/repo/event_service.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +13,7 @@ enum EventSortOrder { none, priceAscending, priceDescending }
 class EventListViewModel extends BaseViewModel {
   // Dependencies
   final EventService _eventService;
-  EventListViewModel(this._eventService) {
-    fetchAllEvents();
-  }
+  EventListViewModel(this._eventService);
 
   // Controllers
   final searchController = TextEditingController();

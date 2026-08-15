@@ -7,8 +7,10 @@ import 'package:eventee/firebase_options_loader.dart';
 import 'package:eventee/src/auth/views/login_view.dart';
 import 'package:eventee/src/onboarding/views/onboarding_view.dart';
 import 'package:eventee/src/settings/view_models/theme_view_model.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -22,7 +24,23 @@ void main() async {
   await dotenv.load(fileName: ".env");
 
   await Firebase.initializeApp(options: FirebaseOptionsLoader.currentPlatform);
-  // await FirebaseAuth.instance.signOut();
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: kDebugMode
+        ? AndroidProvider.debug
+        : AndroidProvider.playIntegrity,
+    appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.deviceCheck,
+  );
+
+  if (kDebugMode) {
+    try {
+      final token = await FirebaseAppCheck.instance.getToken(true);
+      print("App Check initialized successfully! Token: $token");
+    } catch (e) {
+      print(
+        "Token fetch triggered background logging. Check your system logs.",
+      );
+    }
+  }
 
   Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
   Stripe.instance.applySettings();

@@ -17,7 +17,31 @@ class CreateEventView extends StatefulWidget {
 }
 
 class _CreateEventViewState extends State<CreateEventView> {
+  late final CreateEventViewModel _viewModel;
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = context.read<CreateEventViewModel>();
+    _viewModel.addListener(_onViewModelChanged);
+  }
+
+  @override
+  void dispose() {
+    _viewModel.removeListener(_onViewModelChanged);
+    super.dispose();
+  }
+
+  void _onViewModelChanged() {
+    if (_viewModel.errorMessage != null && mounted) {
+      AppSnackbars.showErrorSnackbar(context, _viewModel.errorMessage!);
+      _viewModel.setError(null);
+    } else if (_viewModel.successMessage != null && mounted) {
+      AppSnackbars.showSuccessSnackbar(context, _viewModel.successMessage!);
+      _viewModel.setSuccess(null);
+    }
+  }
 
   Future<void> _handleUpload() async {
     final vm = context.read<CreateEventViewModel>();
@@ -37,23 +61,9 @@ class _CreateEventViewState extends State<CreateEventView> {
     final theme = Theme.of(context);
     final vm = context.read<CreateEventViewModel>();
 
-    return Consumer<CreateEventViewModel>(
-      builder: (context, vm, child) {
-        if (vm.errorMessage != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
-            vm.setError(null);
-          });
-        }
-
-        if (vm.successMessage != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            AppSnackbars.showSuccessSnackbar(context, vm.successMessage!);
-            vm.setSuccess(null);
-            vm.resetForm();
-          });
-        }
-
+    return Selector<CreateEventViewModel, bool>(
+      selector: (_, vm) => vm.isActionLoading,
+      builder: (context, isActionLoading, child) {
         return Stack(
           children: [
             // Device Status Bar Color
@@ -63,7 +73,7 @@ class _CreateEventViewState extends State<CreateEventView> {
                   : SystemUiOverlayStyle.light,
               child: child!,
             ),
-            if (vm.isActionLoading)
+            if (isActionLoading)
               const LoadingOverlayColumn(message: 'Uploading event...'),
           ],
         );

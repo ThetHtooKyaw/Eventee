@@ -21,7 +21,32 @@ class AccountDetailView extends StatefulWidget {
 }
 
 class _AccountDetailViewState extends State<AccountDetailView> {
+  late final AccountDetailViewModel _viewModel;
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = context.read<AccountDetailViewModel>();
+    _viewModel.addListener(_onViewModelChanged);
+    _viewModel.initialize();
+  }
+
+  @override
+  void dispose() {
+    _viewModel.removeListener(_onViewModelChanged);
+    super.dispose();
+  }
+
+  void _onViewModelChanged() {
+    if (_viewModel.errorMessage != null && mounted) {
+      AppSnackbars.showErrorSnackbar(context, _viewModel.errorMessage!);
+      _viewModel.setError(null);
+    } else if (_viewModel.successMessage != null && mounted) {
+      AppSnackbars.showSuccessSnackbar(context, _viewModel.successMessage!);
+      _viewModel.setSuccess(null);
+    }
+  }
 
   Future<void> _handleSave({
     required Future<bool> Function() updateAction,
@@ -88,129 +113,108 @@ class _AccountDetailViewState extends State<AccountDetailView> {
     );
     final profileAvatar = vm.getProfileAvatar(userData?.photoUrl ?? '');
 
-    return Consumer<AccountDetailViewModel>(
-      builder: (context, vm, child) {
-        if (vm.successMessage != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            AppSnackbars.showSuccessSnackbar(context, vm.successMessage!);
-            vm.setSuccess(null);
-          });
-        }
-        if (vm.errorMessage != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
-            vm.setError(null);
-          });
-        }
-        return child!;
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          leadingWidth: 80,
-          leading: IconButton(
-            onPressed: () => Navigator.pop(context),
-            style: IconButton.styleFrom(
-              backgroundColor: AppColor.placeholder.withOpacity(0.4),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        leadingWidth: 80,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          style: IconButton.styleFrom(
+            backgroundColor: AppColor.placeholder.withOpacity(0.4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
             ),
-            icon: Icon(Icons.arrow_back_ios_new_rounded, size: 32),
           ),
-          title: Text(
-            "Personal Information",
-            style: theme.textTheme.titleSmall,
-          ),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 32),
         ),
-        body: Form(
-          key: _formKey,
-          child: Padding(
-            padding: const EdgeInsets.all(AppFormat.primaryPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Image
-                Center(
-                  child: GestureDetector(
-                    onTap: () => _handlePickProfileImage(vm, profileAvatar),
-                    child: _buildAvatar(profileAvatar),
-                  ),
+        title: Text("Personal Information", style: theme.textTheme.titleSmall),
+      ),
+      body: Form(
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.all(AppFormat.primaryPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Image
+              Center(
+                child: GestureDetector(
+                  onTap: () => _handlePickProfileImage(vm, profileAvatar),
+                  child: _buildAvatar(profileAvatar),
                 ),
-                const SizedBox(height: 10),
+              ),
+              const SizedBox(height: 10),
 
-                // Change Button
-                _buildActionButton(
-                  'Change',
-                  () => _handlePickProfileImage(vm, profileAvatar),
+              // Change Button
+              _buildActionButton(
+                'Change',
+                () => _handlePickProfileImage(vm, profileAvatar),
+              ),
+              const SizedBox(height: 20),
+
+              MenuCard(
+                color: theme.colorScheme.primary,
+                child: Column(
+                  children: [
+                    // Name
+                    PersonalInformationItem(
+                      title: 'Name',
+                      data: userData!.username,
+                      onTap: () => _handleSave(
+                        updateAction: vm.updateUsername,
+                        requiresValidation: true,
+                      ),
+                      child: _buildUsernameField(theme, vm),
+                    ),
+                    _buildCustomDivider(),
+
+                    // Email
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: PersonalInformationItem(
+                        title: 'Email',
+                        data: userData.email,
+                        isReadOnly: true,
+                        child: SizedBox(),
+                      ),
+                    ),
+                    _buildCustomDivider(),
+
+                    // Phone Number
+                    PersonalInformationItem(
+                      title: 'Phone Number',
+                      data: userData.phoneNumber,
+                      onTap: () => _handleSave(
+                        updateAction: vm.updatePhoneNumber,
+                        requiresValidation: true,
+                      ),
+                      child: _buildPhoneNumberField(theme, vm),
+                    ),
+                    _buildCustomDivider(),
+
+                    // Birthday
+                    PersonalInformationItem(
+                      title: 'Birthday',
+                      data: vm.formatBirthday(
+                        userData.dateOfBirth ?? DateTime.now(),
+                      ),
+                      onTap: () =>
+                          _handleSave(updateAction: vm.updateDateOfBirth),
+                      child: _buildDateOfBirthPicker(theme),
+                    ),
+                    _buildCustomDivider(),
+
+                    // Address
+                    PersonalInformationItem(
+                      title: 'Address',
+                      data: userData.address,
+                      onTap: () => _handleSave(updateAction: vm.updateAddress),
+                      child: _buildAddressPicker(theme, vm),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
-
-                MenuCard(
-                  color: theme.colorScheme.primary,
-                  child: Column(
-                    children: [
-                      // Name
-                      PersonalInformationItem(
-                        title: 'Name',
-                        data: userData!.username,
-                        onTap: () => _handleSave(
-                          updateAction: vm.updateUsername,
-                          requiresValidation: true,
-                        ),
-                        child: _buildUsernameField(theme, vm),
-                      ),
-                      _buildCustomDivider(),
-
-                      // Email
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: PersonalInformationItem(
-                          title: 'Email',
-                          data: userData.email,
-                          isReadOnly: true,
-                          child: SizedBox(),
-                        ),
-                      ),
-                      _buildCustomDivider(),
-
-                      // Phone Number
-                      PersonalInformationItem(
-                        title: 'Phone Number',
-                        data: userData.phoneNumber,
-                        onTap: () => _handleSave(
-                          updateAction: vm.updatePhoneNumber,
-                          requiresValidation: true,
-                        ),
-                        child: _buildPhoneNumberField(theme, vm),
-                      ),
-                      _buildCustomDivider(),
-
-                      // Birthday
-                      PersonalInformationItem(
-                        title: 'Birthday',
-                        data: vm.formatBirthday(
-                          userData.dateOfBirth ?? DateTime.now(),
-                        ),
-                        onTap: () =>
-                            _handleSave(updateAction: vm.updateDateOfBirth),
-                        child: _buildDateOfBirthPicker(theme),
-                      ),
-                      _buildCustomDivider(),
-
-                      // Address
-                      PersonalInformationItem(
-                        title: 'Address',
-                        data: userData.address,
-                        onTap: () =>
-                            _handleSave(updateAction: vm.updateAddress),
-                        child: _buildAddressPicker(theme, vm),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

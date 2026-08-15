@@ -18,86 +18,109 @@ class FavouriteView extends StatefulWidget {
 }
 
 class _FavouriteViewState extends State<FavouriteView> {
+  late final FavouriteViewModel _viwModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viwModel = context.read<FavouriteViewModel>();
+    _viwModel.addListener(_onViewModelChanged);
+    _viwModel.fetchFavouritedEventId();
+  }
+
+  @override
+  void dispose() {
+    _viwModel.removeListener(_onViewModelChanged);
+    super.dispose();
+  }
+
+  void _onViewModelChanged() {
+    if (_viwModel.errorMessage != null && mounted) {
+      AppSnackbars.showErrorSnackbar(context, _viwModel.errorMessage!);
+      _viwModel.setError(null);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Selector<FavouriteViewModel, String?>(
-      selector: (_, vm) => vm.errorMessage,
-      builder: (context, errorMessage, child) {
-        if (errorMessage != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            AppSnackbars.showErrorSnackbar(context, errorMessage);
-            context.read<FavouriteViewModel>().setError(null);
-          });
-        }
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        backgroundColor: theme.colorScheme.onPrimary,
+        title: Text('Favourite', style: theme.textTheme.titleSmall),
+      ),
+      body: Selector<FavouriteViewModel, bool>(
+        selector: (_, vm) => vm.isScreenLoading,
+        builder: (context, isScreenLoading, child) {
+          if (isScreenLoading) {
+            return ListView.separated(
+              padding: EdgeInsets.symmetric(
+                vertical: AppFormat.secondaryPadding,
+                horizontal: AppFormat.primaryPadding,
+              ),
+              separatorBuilder: (context, index) => const SizedBox(height: 20),
+              itemCount: 6,
+              itemBuilder: (context, index) {
+                return EventListSkeleton(cardWidth: double.infinity);
+              },
+            );
+          }
+          return child!;
+        },
+        child: Consumer2<FavouriteViewModel, EventListViewModel>(
+          builder: (context, favouriteVm, eventListVm, child) {
+            final favouritedEvents = eventListVm.allEvents
+                .where(
+                  (event) =>
+                      favouriteVm.favouritedEventIds.contains(event.eventId),
+                )
+                .toList();
 
-        return Scaffold(
-          appBar: AppBar(
-            centerTitle: true,
-            backgroundColor: theme.colorScheme.onPrimary,
-            title: Text('Favourite', style: theme.textTheme.titleSmall),
-          ),
+            if (favouritedEvents.isEmpty) {
+              return Center(
+                child: Text(
+                  'No favourited events found!',
+                  style: theme.textTheme.bodyLarge,
+                ),
+              );
+            }
 
-          body: Consumer2<FavouriteViewModel, EventListViewModel>(
-            builder: (context, favouriteVm, eventListVm, child) {
-              final isScreenLoading = favouriteVm.isScreenLoading;
-              final favouritedEvents = eventListVm.allEvents
-                  .where(
-                    (event) =>
-                        favouriteVm.favouritedEventIds.contains(event.eventId),
-                  )
-                  .toList();
+            return ListView.separated(
+              padding: EdgeInsets.symmetric(
+                vertical: AppFormat.secondaryPadding,
+                horizontal: AppFormat.primaryPadding,
+              ),
+              separatorBuilder: (context, index) => const SizedBox(height: 20),
+              itemCount: favouritedEvents.length,
+              itemBuilder: (context, index) {
+                final favouritedEvent = favouritedEvents[index];
 
-              if (favouritedEvents.isEmpty && !isScreenLoading) {
-                return Center(
-                  child: Text(
-                    'No favourited events found!',
-                    style: theme.textTheme.bodyLarge,
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChangeNotifierProvider(
+                          create: (context) => EventDetailsViewModel(
+                            context.read<BookiedEventService>(),
+                          ),
+                          child: EventDetailsView(event: favouritedEvent),
+                        ),
+                      ),
+                    );
+                  },
+                  child: EventCard(
+                    event: favouritedEvent,
+                    cardWidth: double.infinity,
                   ),
                 );
-              }
-
-              return ListView.separated(
-                padding: EdgeInsets.symmetric(
-                  vertical: AppFormat.secondaryPadding,
-                  horizontal: AppFormat.primaryPadding,
-                ),
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 20),
-                itemCount: isScreenLoading ? 6 : favouritedEvents.length,
-                itemBuilder: (context, index) {
-                  if (isScreenLoading) {
-                    return EventListSkeleton(cardWidth: double.infinity);
-                  }
-
-                  final favouritedEvent = favouritedEvents[index];
-
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ChangeNotifierProvider(
-                            create: (context) => EventDetailsViewModel(
-                              context.read<BookiedEventService>(),
-                            ),
-                            child: EventDetailsView(event: favouritedEvent),
-                          ),
-                        ),
-                      );
-                    },
-                    child: EventCard(
-                      event: favouritedEvent,
-                      cardWidth: double.infinity,
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        );
-      },
+              },
+            );
+          },
+        ),
+      ),
     );
   }
 }

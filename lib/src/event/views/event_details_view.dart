@@ -3,7 +3,6 @@ import 'package:coupon_uikit/coupon_uikit.dart';
 import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
-import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/core/widgets/skeleton_widget.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
 import 'package:eventee/src/event/model/event.dart';
@@ -29,12 +28,34 @@ class EventDetailsView extends StatefulWidget {
 }
 
 class _EventDetailsViewState extends State<EventDetailsView> {
+  late final EventDetailsViewModel _viewModel;
   int quantity = 1;
   bool isDesExpanded = false;
 
-  Future<void> _bookEvent(BuildContext context, double total) async {
-    final vm = context.read<EventDetailsViewModel>();
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = context.read<EventDetailsViewModel>();
+    _viewModel.addListener(_onViewModelChanged);
+  }
 
+  @override
+  void dispose() {
+    _viewModel.removeListener(_onViewModelChanged);
+    super.dispose();
+  }
+
+  void _onViewModelChanged() {
+    if (_viewModel.errorMessage != null && mounted) {
+      AppSnackbars.showErrorSnackbar(context, _viewModel.errorMessage!);
+      _viewModel.setError(null);
+    } else if (_viewModel.successMessage != null && mounted) {
+      AppSnackbars.showSuccessSnackbar(context, _viewModel.successMessage!);
+      _viewModel.setSuccess(null);
+    }
+  }
+
+  Future<void> _bookEvent(EventDetailsViewModel vm, double total) async {
     await vm.makePayment(
       bookedEvent: BookingModel.fromEvent(
         event: widget.event,
@@ -48,227 +69,205 @@ class _EventDetailsViewState extends State<EventDetailsView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    final homeVM = context.read<EventListViewModel>();
-    final eventDate = homeVM.formatDateMonthDay(widget.event.date);
-    final eventStartTime = homeVM.formatTime(widget.event.startTime);
-    final eventEndTime = homeVM.formatTime(widget.event.endTime);
+    final vm = context.read<EventListViewModel>();
+    final eventDate = vm.formatDateMonthDay(widget.event.date);
+    final eventStartTime = vm.formatTime(widget.event.startTime);
+    final eventEndTime = vm.formatTime(widget.event.endTime);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: theme.brightness == Brightness.dark
           ? SystemUiOverlayStyle.light
           : SystemUiOverlayStyle.dark,
-      child: Consumer<EventDetailsViewModel>(
-        builder: (context, vm, child) {
-          if (vm.errorMessage != null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
-              vm.setError(null);
-            });
-          }
-          if (vm.successMessage != null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              AppSnackbars.showSuccessSnackbar(context, vm.successMessage!);
-              vm.setSuccess(null);
-              Navigator.pop(context);
-            });
-          }
-
-          return Stack(
-            children: [
-              child!,
-              if (vm.isActionLoading)
-                LoadingOverlayColumn(message: 'Processing payment'),
-            ],
-          );
-        },
-        child: Scaffold(
-          // Bottom Section
-          bottomNavigationBar: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppFormat.primaryPadding,
-              vertical: AppFormat.secondaryPadding,
-            ),
-            child: ElevatedButton(
-              onPressed: () => _showTicketSheet(
+      child: Scaffold(
+        // Bottom Section
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppFormat.primaryPadding,
+            vertical: AppFormat.secondaryPadding,
+          ),
+          child: ElevatedButton(
+            onPressed: () {
+              final vm = context.read<EventDetailsViewModel>();
+              _showTicketSheet(
                 theme,
                 eventDate,
                 eventStartTime,
                 eventEndTime,
+                vm,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
               ),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              child: const Text("Get a Ticket"),
             ),
+            child: const Text("Get a Ticket"),
           ),
+        ),
 
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppFormat.primaryPadding,
-              ),
-              child: Column(
-                children: [
-                  const SizedBox(height: AppFormat.secondaryPadding),
-                  // Image
-                  _buildImageContainer(theme, eventDate),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppFormat.primaryPadding,
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: AppFormat.secondaryPadding),
+                // Image
+                _buildImageContainer(theme, eventDate),
 
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppFormat.primaryPadding,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Title
-                        Text(
-                          widget.event.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppFormat.primaryPadding,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title
+                      Text(
+                        widget.event.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 10),
+                      ),
+                      const SizedBox(height: 10),
 
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'By',
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'By',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundColor: theme.colorScheme.primary,
+                            child: Text(
+                              'W',
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: theme.colorScheme.onPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+
+                          // TODO: Get Organizer Name
+                          // Organizer Name
+                          Expanded(
+                            child: Text(
+                              'Organizer Name',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodyLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            CircleAvatar(
-                              radius: 16,
-                              backgroundColor: theme.colorScheme.primary,
-                              child: Text(
-                                'W',
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: theme.colorScheme.onPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                          ),
+
+                          // Price
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 4,
+                              horizontal: AppFormat.secondaryBorderRadius,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary,
+                              borderRadius: BorderRadius.circular(
+                                AppFormat.primaryBorderRadius,
                               ),
                             ),
-                            const SizedBox(width: 10),
-
-                            // TODO: Get Organizer Name
-                            // Organizer Name
-                            Expanded(
-                              child: Text(
-                                'Organizer Name',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-
-                            // Price
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 4,
-                                horizontal: AppFormat.secondaryBorderRadius,
-                              ),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primary,
-                                borderRadius: BorderRadius.circular(
-                                  AppFormat.primaryBorderRadius,
-                                ),
-                              ),
-                              child: Text(
-                                '฿${widget.event.price}',
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: theme.colorScheme.onPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-
-                        // Ticket Quantity
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Number of Tickets',
-                              style: theme.textTheme.titleSmall?.copyWith(
+                            child: Text(
+                              '฿${widget.event.price}',
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: theme.colorScheme.onPrimary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            QuantitySelector(
-                              quantity: quantity,
-                              onIncrement: () => setState(() => quantity += 1),
-                              onDecrement: () => setState(() => quantity -= 1),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Ticket Quantity
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Number of Tickets',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-
-                        // Timeline
-                        Text(
-                          'Timeline Event',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
                           ),
-                        ),
-                        const SizedBox(height: 10),
-
-                        TimelineCard(
-                          label: 'Opening Time',
-                          eventDate: eventDate,
-                          eventTime: eventStartTime,
-                        ),
-                        const SizedBox(height: 10),
-
-                        TimelineCard(
-                          label: 'Closing Time',
-                          eventDate: eventDate,
-                          eventTime: eventEndTime,
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Description
-                        Text(
-                          'About',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
+                          QuantitySelector(
+                            quantity: quantity,
+                            onIncrement: () => setState(() => quantity += 1),
+                            onDecrement: () => setState(() => quantity -= 1),
                           ),
-                        ),
-                        const SizedBox(height: 10),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
 
-                        ReadMoreText(
-                          widget.event.description,
-                          trimLines: 3,
-                          trimMode: TrimMode.Line,
-                          trimCollapsedText: 'Read More',
-                          trimExpandedText: 'Read Less',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: AppColor.textPlaceholder,
-                          ),
-                          moreStyle: theme.textTheme.bodyLarge?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          lessStyle: theme.textTheme.bodyLarge?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      // Timeline
+                      Text(
+                        'Timeline Event',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      TimelineCard(
+                        label: 'Opening Time',
+                        eventDate: eventDate,
+                        eventTime: eventStartTime,
+                      ),
+                      const SizedBox(height: 10),
+
+                      TimelineCard(
+                        label: 'Closing Time',
+                        eventDate: eventDate,
+                        eventTime: eventEndTime,
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Description
+                      Text(
+                        'About',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      ReadMoreText(
+                        widget.event.description,
+                        trimLines: 3,
+                        trimMode: TrimMode.Line,
+                        trimCollapsedText: 'Read More',
+                        trimExpandedText: 'Read Less',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: AppColor.textPlaceholder,
+                        ),
+                        moreStyle: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        lessStyle: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -397,6 +396,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
     String eventDate,
     String eventStartTime,
     String eventEndTime,
+    EventDetailsViewModel vm,
   ) {
     final total = widget.event.price * quantity;
 
@@ -406,19 +406,19 @@ class _EventDetailsViewState extends State<EventDetailsView> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadiusGeometry.vertical(top: Radius.circular(30)),
       ),
-      builder: (context) {
-        return Container(
+      builder: (sheetContext) => ChangeNotifierProvider.value(
+        value: vm,
+        child: Container(
           padding: const EdgeInsets.symmetric(
             vertical: AppFormat.secondaryPadding,
             horizontal: AppFormat.primaryPadding,
           ),
-          height: MediaQuery.of(context).size.height * 0.7,
+          height: MediaQuery.of(sheetContext).size.height * 0.7,
           width: double.infinity,
           decoration: BoxDecoration(
             color: theme.colorScheme.onPrimary,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           ),
-
           child: Column(
             children: [
               Divider(
@@ -479,7 +479,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                                 Selector<AccountViewModel, String>(
                                   selector: (_, vm) =>
                                       vm.user?.username ?? 'Unknown',
-                                  builder: (context, username, child) {
+                                  builder: (_, username, child) {
                                     return Text(
                                       username,
                                       maxLines: 1,
@@ -582,7 +582,6 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                                 ),
                               ],
                             ),
-
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
@@ -633,23 +632,28 @@ class _EventDetailsViewState extends State<EventDetailsView> {
               const Spacer(),
 
               // Make Payment Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => _bookEvent(context, total),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+              Selector<EventDetailsViewModel, bool>(
+                selector: (_, vm) => vm.isActionLoading,
+                builder: (_, isLoading, _) {
+                  return ElevatedButton(
+                    onPressed: () => isLoading ? null : _bookEvent(vm, total),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      minimumSize: const Size(double.infinity, 60),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
                     ),
-                  ),
-                  child: const Text("Make Payment"),
-                ),
+                    child: isLoading
+                        ? const CircularProgressIndicator()
+                        : const Text("Make Payment"),
+                  );
+                },
               ),
             ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

@@ -2,16 +2,14 @@ import 'dart:async';
 
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
-import 'package:eventee/core/utils/base_view_model.dart';
+import 'package:eventee/core/view_models/base_view_model.dart';
 import 'package:eventee/src/event/model/event.dart';
 import 'package:eventee/src/favourite/services/favourite_service.dart';
 
 class FavouriteViewModel extends BaseViewModel {
   // Dependencies
   final FavouriteService _favouriteService;
-  FavouriteViewModel(this._favouriteService) {
-    fetchFavouritedEventId();
-  }
+  FavouriteViewModel(this._favouriteService);
 
   // Variables
   StreamSubscription? _favouriteSubscription;

@@ -17,9 +17,30 @@ class SignUpView extends StatefulWidget {
 }
 
 class _SignUpViewState extends State<SignUpView> {
+  late final SignUpViewModel _viewModel;
   final _formKey = GlobalKey<FormState>();
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = context.read<SignUpViewModel>();
+    _viewModel.addListener(_onViewModelChanged);
+  }
+
+  @override
+  void dispose() {
+    _viewModel.removeListener(_onViewModelChanged);
+    super.dispose();
+  }
+
+  void _onViewModelChanged() {
+    if (_viewModel.errorMessage != null && mounted) {
+      AppSnackbars.showErrorSnackbar(context, _viewModel.errorMessage!);
+      _viewModel.setError(null);
+    }
+  }
 
   Future<void> signUp() async {
     final vm = context.read<SignUpViewModel>();
@@ -34,8 +55,6 @@ class _SignUpViewState extends State<SignUpView> {
           context,
           MaterialPageRoute(builder: (context) => OnboardingView()),
         );
-      } else {
-        AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
       }
     }
   }
@@ -60,8 +79,6 @@ class _SignUpViewState extends State<SignUpView> {
           (r) => false,
         );
       }
-    } else {
-      AppSnackbars.showErrorSnackbar(context, vm.errorMessage!);
     }
   }
 
@@ -70,116 +87,112 @@ class _SignUpViewState extends State<SignUpView> {
     final t = Theme.of(context);
     final vm = context.read<SignUpViewModel>();
 
-    return Selector<SignUpViewModel, String?>(
-      selector: (_, vm) => vm.errorMessage,
-      builder: (context, errorMessage, child) {
-        if (errorMessage != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            AppSnackbars.showErrorSnackbar(context, errorMessage);
-            vm.setError(null);
-          });
-        }
+    return Scaffold(
+      body: Selector<SignUpViewModel, bool>(
+        selector: (_, vm) => vm.isActionLoading,
+        builder: (context, isActionLoading, child) {
+          return Stack(
+            children: [
+              child!,
+              if (isActionLoading)
+                LoadingOverlayColumn(message: 'Creating your account'),
+            ],
+          );
+        },
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppFormat.primaryPadding),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Title
+                Text(
+                  "Unlock the Future of \nEvent Booking App",
+                  textAlign: TextAlign.center,
+                  style: t.textTheme.displayLarge,
+                ),
 
-        return Scaffold(
-          body: Selector<SignUpViewModel, bool>(
-            selector: (_, vm) => vm.isActionLoading,
-            builder: (context, isActionLoading, child) {
-              return Stack(
-                children: [
-                  SafeArea(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(AppFormat.primaryPadding),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Title
-                          Text(
-                            "Unlock the Future of \nEvent Booking App",
-                            textAlign: TextAlign.center,
-                            style: t.textTheme.displayLarge,
-                          ),
+                const SizedBox(height: 20),
 
-                          const SizedBox(height: 20),
-
-                          Text(
-                            "Discover, book, and experience unforgettable moments effortlessly",
-                            textAlign: TextAlign.center,
-                            style: t.textTheme.bodyLarge?.copyWith(
-                              color: AppColor.textPlaceholder,
-                            ),
-                          ),
-                          const SizedBox(height: 60),
-
-                          // Text Fields
-                          _buildSignUpForm(vm),
-                          SizedBox(height: 40),
-
-                          ElevatedButton(
-                            onPressed: isActionLoading ? null : () => signUp(),
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: Size(double.infinity, 60),
-                            ),
-                            child: Text("Sign up"),
-                          ),
-                          SizedBox(height: 10),
-
-                          Divider(),
-                          const SizedBox(height: 10),
-
-                          // Action Buttons
-                          ElevatedButton(
-                            onPressed: isActionLoading
-                                ? null
-                                : () => signUpWithGoogle(),
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: Size(double.infinity, 60),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.asset(
-                                  'assets/icons/google.png',
-                                  height: 30,
-                                  width: 30,
-                                  fit: BoxFit.cover,
-                                ),
-                                const SizedBox(width: 20),
-                                Text("Sign up with Google"),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 20),
-
-                          RichText(
-                            text: TextSpan(
-                              text: "Already have an account? ",
-                              style: TextStyle(color: Colors.black),
-                              children: [
-                                TextSpan(
-                                  text: "Login",
-                                  style: TextStyle(color: Colors.blue),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () {
-                                      Navigator.pop(context);
-                                    },
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                        ],
-                      ),
-                    ),
+                Text(
+                  "Discover, book, and experience unforgettable moments effortlessly",
+                  textAlign: TextAlign.center,
+                  style: t.textTheme.bodyLarge?.copyWith(
+                    color: AppColor.textPlaceholder,
                   ),
+                ),
+                const SizedBox(height: 60),
 
-                  if (isActionLoading)
-                    LoadingOverlayColumn(message: 'Creating your account'),
-                ],
-              );
-            },
+                // Text Fields
+                _buildSignUpForm(vm),
+                SizedBox(height: 40),
+
+                // Action Buttons
+                Selector<SignUpViewModel, bool>(
+                  selector: (_, vm) => vm.isActionLoading,
+                  builder: (context, isActionLoading, child) {
+                    return Column(
+                      children: [
+                        ElevatedButton(
+                          onPressed: isActionLoading ? null : () => signUp(),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: Size(double.infinity, 60),
+                          ),
+                          child: Text("Sign up"),
+                        ),
+                        SizedBox(height: 10),
+                        Divider(),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: isActionLoading
+                              ? null
+                              : () => signUpWithGoogle(),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: Size(double.infinity, 60),
+                          ),
+                          child: child,
+                        ),
+                      ],
+                    );
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/icons/google.png',
+                        height: 30,
+                        width: 30,
+                        fit: BoxFit.cover,
+                      ),
+                      const SizedBox(width: 20),
+                      Text("Sign up with Google"),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+
+                RichText(
+                  text: TextSpan(
+                    text: "Already have an account? ",
+                    style: TextStyle(color: Colors.black),
+                    children: [
+                      TextSpan(
+                        text: "Login",
+                        style: TextStyle(color: Colors.blue),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Navigator.pop(context);
+                          },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 

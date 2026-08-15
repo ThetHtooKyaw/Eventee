@@ -1,5 +1,5 @@
 import 'package:eventee/core/status/success.dart';
-import 'package:eventee/core/utils/base_view_model.dart';
+import 'package:eventee/core/view_models/base_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/src/auth/repo/auth_service.dart';
@@ -39,7 +39,9 @@ class SignUpViewModel extends BaseViewModel {
       return false;
     }
 
-    setActionLoading(false);
+    stopActionLoadingWithSuccessMessage(
+      (response as Success).response.toString(),
+    );
     return true;
   }
 

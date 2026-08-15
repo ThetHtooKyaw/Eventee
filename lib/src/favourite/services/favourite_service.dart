@@ -12,10 +12,8 @@ class FavouriteService {
   CollectionReference _userFavourites(String uid) =>
       _userCollection.doc(uid).collection('favourites');
 
-  User? get _currentUser => _auth.currentUser;
-
   Future<Object> fetchFavouritedEventId() async {
-    final user = _currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
       return Success(response: Stream.value(<String>{}));
     }
@@ -34,7 +32,7 @@ class FavouriteService {
   }
 
   Future<Object> addFavourite(String eventId) async {
-    final user = _currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
       return Failure(response: 'You must be logged in to add favourites.');
     }
@@ -50,11 +48,11 @@ class FavouriteService {
   }
 
   Future<Object> removeFavourite(String eventId) async {
-    final user = _currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
       return Failure(response: 'You must be logged in to remove favourites.');
     }
-    
+
     try {
       await _userFavourites(user.uid).doc(eventId).delete();
       return Success(response: true);

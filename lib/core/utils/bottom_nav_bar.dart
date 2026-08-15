@@ -1,4 +1,5 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:eventee/src/account/view_models/account_view_model.dart';
 import 'package:eventee/src/event/repo/create_event_service.dart';
 import 'package:eventee/src/event/view_models/create_event_view_model.dart';
 import 'package:eventee/src/event/views/create_event_view.dart';
@@ -25,6 +26,12 @@ class _BottomNavBarState extends State<BottomNavBar> {
     FavouriteView(),
     AccountView(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<AccountViewModel>().loadUser();
+  }
 
   @override
   Widget build(BuildContext context) {

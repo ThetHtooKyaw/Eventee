@@ -4,11 +4,13 @@ import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
 import 'package:eventee/src/event/model/event.dart';
 import 'package:eventee/src/event/view_models/params/create_event_params.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:random_string/random_string.dart';
 
 class CreateEventService {
+  final _auth = FirebaseAuth.instance;
   final _storage = FirebaseStorage.instance;
   final _firestore = FirebaseFirestore.instance;
   final _imagePicker = ImagePicker();
@@ -51,6 +53,11 @@ class CreateEventService {
   }
 
   Future<Object> uploadEventDetail({required CreateEventParams params}) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return Failure(response: 'You must be logged in to create an event.');
+    }
+
     try {
       final imageResponse = await uploadEventImage(eventFile: params.imageUrl);
 
@@ -62,6 +69,7 @@ class CreateEventService {
       DocumentReference eventId = _eventsCollection.doc();
 
       final event = EventModel(
+        organizerId: user.uid,
         eventId: eventId.id,
         imageUrl: imageUrl,
         title: params.title,

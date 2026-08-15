@@ -16,10 +16,8 @@ class OnboardingService {
 
   CollectionReference get _usersCollection => _firestore.collection('users');
 
-  User? get _currentUser => _auth.currentUser;
-
   Future<Object> fetchCurrentProfileAvatar() async {
-    final user = _currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
       return Success(response: '');
     }
@@ -61,7 +59,7 @@ class OnboardingService {
     required String phoneNumber,
     required String address,
   }) async {
-    final user = _currentUser;
+    final user = _auth.currentUser;
     if (user == null) {
       return Failure(
         response: 'You must be logged in to submit onboarding data.',
