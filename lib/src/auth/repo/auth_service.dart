@@ -40,6 +40,7 @@ class AuthService {
     required String username,
     required String email,
     required String password,
+    required bool tosPrivacyAccepted,
   }) async {
     try {
       UserCredential userCredential = await _auth
@@ -54,6 +55,7 @@ class AuthService {
         phoneNumber: '',
         address: '',
         dateOfBirth: null,
+        tosPrivacyAccepted: tosPrivacyAccepted,
       );
 
       await _usersCollection.doc(userCredential.user!.uid).set(newUser.toMap());

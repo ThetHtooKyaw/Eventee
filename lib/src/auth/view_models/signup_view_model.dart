@@ -15,6 +15,18 @@ class SignUpViewModel extends BaseViewModel {
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
+  // Variables
+  bool _tosPrivacyAccepted = false;
+
+  // Getters
+  bool get tosPrivacyAccepted => _tosPrivacyAccepted;
+
+  // Setters
+  void setTosPrivacyAccepted(bool value) {
+    _tosPrivacyAccepted = value;
+    notifyListeners();
+  }
+
   // Use Cases
   @override
   void dispose() {
@@ -32,6 +44,7 @@ class SignUpViewModel extends BaseViewModel {
       username: nameController.text.trim(),
       email: emailController.text.trim(),
       password: passwordController.text.trim(),
+      tosPrivacyAccepted: _tosPrivacyAccepted,
     );
 
     if (response is Failure) {

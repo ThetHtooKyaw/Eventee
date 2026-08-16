@@ -117,7 +117,7 @@ class _LoginViewState extends State<LoginView> {
                 _buildLoginForm(vm),
                 SizedBox(height: 40),
 
-                // Action Buttons
+                // Login Button
                 ElevatedButton(
                   onPressed: () => login(),
                   style: ElevatedButton.styleFrom(
@@ -130,6 +130,7 @@ class _LoginViewState extends State<LoginView> {
                 Divider(),
                 const SizedBox(height: 10),
 
+                // Google Login Button
                 ElevatedButton(
                   onPressed: () => loginWithGoogle(),
                   style: ElevatedButton.styleFrom(
@@ -151,6 +152,7 @@ class _LoginViewState extends State<LoginView> {
                 ),
                 SizedBox(height: 20),
 
+                // Sign-Up Link
                 RichText(
                   text: TextSpan(
                     text: "Don't have an account? ",

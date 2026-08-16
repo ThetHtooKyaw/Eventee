@@ -9,6 +9,7 @@ class AppUser {
   final String phoneNumber;
   final DateTime? dateOfBirth;
   final String address;
+  final bool tosPrivacyAccepted;
 
   const AppUser({
     required this.uid,
@@ -19,6 +20,7 @@ class AppUser {
     required this.phoneNumber,
     this.dateOfBirth,
     required this.address,
+    this.tosPrivacyAccepted = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -33,6 +35,7 @@ class AppUser {
           ? Timestamp.fromDate(dateOfBirth!)
           : null,
       'address': address,
+      'tosPrivacyAccepted': tosPrivacyAccepted,
     };
   }
 
@@ -48,6 +51,7 @@ class AppUser {
           ? (map['dateOfBirth'] as Timestamp).toDate()
           : null,
       address: map['address'],
+      tosPrivacyAccepted: map['tosPrivacyAccepted'],
     );
   }
 

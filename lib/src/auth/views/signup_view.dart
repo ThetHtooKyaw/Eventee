@@ -7,6 +7,8 @@ import 'package:eventee/src/onboarding/views/onboarding_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:eventee/src/settings/views/privacy_policy_view.dart';
+import 'package:eventee/src/settings/views/terms_of_service_view.dart';
 import 'package:eventee/src/auth/view_models/signup_view_model.dart';
 
 class SignUpView extends StatefulWidget {
@@ -122,36 +124,26 @@ class _SignUpViewState extends State<SignUpView> {
 
                 // Text Fields
                 _buildSignUpForm(vm),
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
+                // Login Buttons
+                ElevatedButton(
+                  onPressed: () => signUp(),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 60),
+                  ),
+                  child: Text("Sign up"),
+                ),
+                SizedBox(height: 10),
 
-                // Action Buttons
-                Selector<SignUpViewModel, bool>(
-                  selector: (_, vm) => vm.isActionLoading,
-                  builder: (context, isActionLoading, child) {
-                    return Column(
-                      children: [
-                        ElevatedButton(
-                          onPressed: isActionLoading ? null : () => signUp(),
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: Size(double.infinity, 60),
-                          ),
-                          child: Text("Sign up"),
-                        ),
-                        SizedBox(height: 10),
-                        Divider(),
-                        const SizedBox(height: 10),
-                        ElevatedButton(
-                          onPressed: isActionLoading
-                              ? null
-                              : () => signUpWithGoogle(),
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: Size(double.infinity, 60),
-                          ),
-                          child: child,
-                        ),
-                      ],
-                    );
-                  },
+                Divider(),
+                const SizedBox(height: 10),
+
+                // Google Sign-Up Button
+                ElevatedButton(
+                  onPressed: () => signUpWithGoogle(),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 60),
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -161,6 +153,7 @@ class _SignUpViewState extends State<SignUpView> {
                         width: 30,
                         fit: BoxFit.cover,
                       ),
+
                       const SizedBox(width: 20),
                       Text("Sign up with Google"),
                     ],
@@ -168,6 +161,7 @@ class _SignUpViewState extends State<SignUpView> {
                 ),
                 SizedBox(height: 20),
 
+                // Login Link
                 RichText(
                   text: TextSpan(
                     text: "Already have an account? ",
@@ -291,12 +285,110 @@ class _SignUpViewState extends State<SignUpView> {
               setState(() => obscureConfirmPassword = !obscureConfirmPassword);
             },
           ),
+          const SizedBox(height: 20),
+
+          // Terms and Conditions
+          _buildTermsAndConditions(Theme.of(context)),
         ],
       ),
     );
   }
 
-  TextFormField _buildPasswordField({
+  Widget _buildTermsAndConditions(ThemeData theme) {
+    return Selector<SignUpViewModel, bool>(
+      selector: (_, vm) => vm.tosPrivacyAccepted,
+      builder: (context, tosPrivacyAccepted, _) {
+        return FormField<bool>(
+          initialValue: tosPrivacyAccepted,
+          validator: (value) {
+            if (value == false) {
+              return 'Please agree to the terms to continue.';
+            }
+            return null;
+          },
+          builder: (state) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: Checkbox(
+                        value: tosPrivacyAccepted,
+                        onChanged: (value) {
+                          _viewModel.setTosPrivacyAccepted(value ?? false);
+                          state.didChange(value ?? false);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          text:
+                              'By creating an account, I acknowledge that I have read and agree to the ',
+                          style: theme.textTheme.bodySmall,
+                          children: [
+                            _buildClickableTextSpan('Terms of Service', () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const TermsOfServiceView(),
+                                ),
+                              );
+                            }),
+                            const TextSpan(
+                              text:
+                                  ' and consent to the processing of my data as outlined in the ',
+                            ),
+                            _buildClickableTextSpan('Privacy Policy', () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const PrivacyPolicyView(),
+                                ),
+                              );
+                            }),
+                            const TextSpan(text: '.'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (state.hasError)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12.0, top: 8.0),
+                    child: Text(
+                      state.errorText!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.error,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  TextSpan _buildClickableTextSpan(String text, VoidCallback onTap) {
+    return TextSpan(
+      text: text,
+      style: const TextStyle(
+        color: Colors.blue,
+        decoration: TextDecoration.underline,
+      ),
+      recognizer: TapGestureRecognizer()..onTap = onTap,
+    );
+  }
+
+  Widget _buildPasswordField({
     required TextEditingController controller,
     required String labelText,
     required String? Function(String?) validator,
