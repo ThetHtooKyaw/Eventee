@@ -199,6 +199,7 @@ class _SignUpViewState extends State<SignUpView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Name TextField
           _buildTextField(
             controller: vm.nameController,
             keyboardType: TextInputType.name,
@@ -210,11 +211,13 @@ class _SignUpViewState extends State<SignUpView> {
               if (value.length < 4) {
                 return 'Name must be at least 4 characters long';
               }
+
               return null;
             },
           ),
           SizedBox(height: 16),
 
+          // Email TextField
           _buildTextField(
             controller: vm.emailController,
             keyboardType: TextInputType.emailAddress,
@@ -223,11 +226,20 @@ class _SignUpViewState extends State<SignUpView> {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter your email';
               }
+
+              final emailRegex = RegExp(
+                r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+              );
+              if (!emailRegex.hasMatch(value)) {
+                return 'Please enter a valid email address';
+              }
+
               return null;
             },
           ),
           SizedBox(height: 16),
 
+          // Password TextField
           _buildPasswordField(
             controller: vm.passwordController,
             labelText: "Password",
@@ -236,9 +248,22 @@ class _SignUpViewState extends State<SignUpView> {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter your password';
               }
-              if (value.trim().length < 6) {
-                return 'Password must be at least 6 characters long';
+              if (value.length < 8) {
+                return 'Password must be at least 8 characters long.';
               }
+              if (!value.contains(RegExp(r'[A-Z]'))) {
+                return 'Password must contain an uppercase letter.';
+              }
+              if (!value.contains(RegExp(r'[a-z]'))) {
+                return 'Password must contain a lowercase letter.';
+              }
+              if (!value.contains(RegExp(r'[0-9]'))) {
+                return 'Password must contain a number.';
+              }
+              if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+                return 'Password must contain a special character.';
+              }
+
               return null;
             },
             onObscureIconTap: () {
@@ -247,17 +272,19 @@ class _SignUpViewState extends State<SignUpView> {
           ),
           SizedBox(height: 16),
 
+          // Confirm Password TextField
           _buildPasswordField(
             controller: vm.confirmPasswordController,
             labelText: "Confirm Password",
             obscureIconState: obscureConfirmPassword,
             validator: (value) {
-              if (value == null || value.trim().isEmpty) {
+              if (value == null || value.isEmpty) {
                 return 'Please enter your confirm password';
               }
               if (value != vm.passwordController.text) {
                 return 'Passwords do not match';
               }
+
               return null;
             },
             onObscureIconTap: () {

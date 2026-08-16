@@ -186,25 +186,35 @@ class _LoginViewState extends State<LoginView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Email TextField
           TextFormField(
             controller: vm.emailController,
             keyboardType: TextInputType.emailAddress,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             decoration: InputDecoration(labelText: "Email"),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return "Please enter your email";
-              } else if (value.contains('@') == false) {
-                return "Please enter a valid email";
+                return 'Please enter your email';
               }
+
+              final emailRegex = RegExp(
+                r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+              );
+              if (!emailRegex.hasMatch(value)) {
+                return 'Please enter a valid email address';
+              }
+
               return null;
             },
           ),
           SizedBox(height: 16),
 
+          // Password TextField
           TextFormField(
             controller: vm.passwordController,
             keyboardType: TextInputType.text,
             obscureText: _obscurePassword,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             decoration: InputDecoration(
               labelText: "Password",
               suffixIcon: IconButton(
@@ -219,9 +229,7 @@ class _LoginViewState extends State<LoginView> {
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return "Please enter your password";
-              } else if (value.length < 6) {
-                return "Password must be at least 6 characters";
+                return 'Please enter your password';
               }
 
               return null;

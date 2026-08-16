@@ -24,9 +24,13 @@ class AuthService {
 
       return Success(response: 'User logged in successfully!');
     } on FirebaseAuthException catch (e) {
-      return Failure(
-        response: 'FirebaseAuthException: ${e.code} - ${e.message}',
-      );
+      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+        return Failure(
+          response: 'Invalid email or password. Please try again.',
+        );
+      }
+
+      return Failure(response: e.message ?? 'An unknown error occurred.');
     } catch (e) {
       return Failure(response: 'Failed to login user: $e.');
     }
