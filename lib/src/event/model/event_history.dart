@@ -8,6 +8,8 @@ class EventHistoryModel {
   final String eventId;
   final String imageUrl;
   final String title;
+  final String organization;
+  final String organizer;
   final String location;
   final DateTime date;
   final DateTime startTime;
@@ -30,6 +32,8 @@ class EventHistoryModel {
     required this.startTime,
     required this.endTime,
     required this.title,
+    required this.organization,
+    required this.organizer,
     required this.price,
     required this.description,
     required this.total,
@@ -46,6 +50,8 @@ class EventHistoryModel {
       'eventId': eventId,
       'imageUrl': imageUrl,
       'title': title,
+      'organization': organization,
+      'organizer': organizer,
       'location': location,
       'date': date.toIso8601String(),
       'startTime': startTime.toIso8601String(),
@@ -67,6 +73,8 @@ class EventHistoryModel {
       eventId: map['eventId'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
       title: map['title'] ?? 'Unnamed Event',
+      organization: map['organization'] ?? '',
+      organizer: map['organizer'] ?? '',
       location: map['location'] ?? '',
       date: DateTime.tryParse(map['date'] ?? '') ?? DateTime.now(),
       startTime: DateTime.tryParse(map['startTime'] ?? '') ?? DateTime.now(),
@@ -93,6 +101,8 @@ class EventHistoryModel {
       eventId: bookedEvent.eventId,
       imageUrl: bookedEvent.imageUrl,
       title: bookedEvent.title,
+      organization: bookedEvent.organization,
+      organizer: bookedEvent.organizer,
       location: bookedEvent.location,
       date: bookedEvent.date,
       startTime: bookedEvent.startTime,

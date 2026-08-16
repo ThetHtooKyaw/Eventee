@@ -3,6 +3,8 @@ class EventModel {
   final String eventId;
   final String imageUrl;
   final String title;
+  final String organization;
+  final String organizer;
   final String location;
   final DateTime date;
   final DateTime startTime;
@@ -15,11 +17,13 @@ class EventModel {
     required this.organizerId,
     required this.eventId,
     required this.imageUrl,
+    required this.title,
+    required this.organization,
+    required this.organizer,
     required this.location,
     required this.date,
     required this.startTime,
     required this.endTime,
-    required this.title,
     required this.price,
     required this.description,
     required this.category,
@@ -31,6 +35,8 @@ class EventModel {
       'eventId': eventId,
       'imageUrl': imageUrl,
       'title': title,
+      'organization': organization,
+      'organizer': organizer,
       'location': location,
       'date': date.toIso8601String(),
       'startTime': startTime.toIso8601String(),
@@ -48,6 +54,8 @@ class EventModel {
       imageUrl: map['imageUrl'] ?? '',
       title: map['title'] ?? 'Unnamed Event',
       location: map['location'] ?? '',
+      organization: map['organization'] ?? '',
+      organizer: map['organizer'] ?? '',
       date: DateTime.tryParse(map['date'] ?? '') ?? DateTime.now(),
       startTime: DateTime.tryParse(map['startTime'] ?? '') ?? DateTime.now(),
       endTime: DateTime.tryParse(map['endTime'] ?? '') ?? DateTime.now(),

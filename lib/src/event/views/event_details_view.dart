@@ -55,8 +55,8 @@ class _EventDetailsViewState extends State<EventDetailsView> {
     }
   }
 
-  Future<void> _bookEvent(EventDetailsViewModel vm, double total) async {
-    final success = await vm.makePayment(
+  Future<void> _bookEvent(double total) async {
+    final success = await _viewModel.makePayment(
       bookedEvent: BookingModel.fromEvent(
         event: widget.event,
         total: total,
@@ -91,14 +91,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
           ),
           child: ElevatedButton(
             onPressed: () {
-              final vm = context.read<EventDetailsViewModel>();
-              _showTicketSheet(
-                theme,
-                eventDate,
-                eventStartTime,
-                eventEndTime,
-                vm,
-              );
+              _showTicketSheet(theme, eventDate, eventStartTime, eventEndTime);
             },
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 20),
@@ -149,11 +142,15 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                             ),
                           ),
                           const SizedBox(width: 10),
+
+                          // Organization First Letter
                           CircleAvatar(
                             radius: 16,
                             backgroundColor: theme.colorScheme.primary,
                             child: Text(
-                              'W',
+                              widget.event.organization.isNotEmpty
+                                  ? widget.event.organization.substring(0, 1)
+                                  : '?',
                               style: theme.textTheme.bodyLarge?.copyWith(
                                 color: theme.colorScheme.onPrimary,
                                 fontWeight: FontWeight.bold,
@@ -162,11 +159,10 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                           ),
                           const SizedBox(width: 10),
 
-                          // TODO: Get Organizer Name
                           // Organizer Name
                           Expanded(
                             child: Text(
-                              'Organizer Name',
+                              widget.event.organizer,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodyLarge?.copyWith(
@@ -400,7 +396,6 @@ class _EventDetailsViewState extends State<EventDetailsView> {
     String eventDate,
     String eventStartTime,
     String eventEndTime,
-    EventDetailsViewModel vm,
   ) {
     final total = widget.event.price * quantity;
 
@@ -408,10 +403,10 @@ class _EventDetailsViewState extends State<EventDetailsView> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadiusGeometry.vertical(top: Radius.circular(30)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
       builder: (sheetContext) => ChangeNotifierProvider.value(
-        value: vm,
+        value: _viewModel,
         child: Container(
           padding: const EdgeInsets.symmetric(
             vertical: AppFormat.secondaryPadding,
@@ -640,7 +635,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                 selector: (_, vm) => vm.isActionLoading,
                 builder: (_, isLoading, _) {
                   return ElevatedButton(
-                    onPressed: () => isLoading ? null : _bookEvent(vm, total),
+                    onPressed: () => isLoading ? null : _bookEvent(total),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 20),
                       minimumSize: const Size(double.infinity, 60),

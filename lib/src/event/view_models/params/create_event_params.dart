@@ -1,10 +1,11 @@
 import 'dart:io';
-
 import 'package:equatable/equatable.dart';
 
 class CreateEventParams extends Equatable {
   final File imageUrl;
   final String title;
+  final String organization;
+  final String organizer;
   final String location;
   final DateTime date;
   final DateTime startTime;
@@ -16,6 +17,8 @@ class CreateEventParams extends Equatable {
   const CreateEventParams({
     required this.imageUrl,
     required this.title,
+    required this.organization,
+    required this.organizer,
     required this.location,
     required this.date,
     required this.startTime,
@@ -28,6 +31,9 @@ class CreateEventParams extends Equatable {
   @override
   List<Object?> get props => [
     imageUrl,
+    title,
+    organization,
+    organizer,
     location,
     date,
     startTime,

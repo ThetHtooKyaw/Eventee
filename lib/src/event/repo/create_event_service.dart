@@ -73,6 +73,8 @@ class CreateEventService {
         eventId: eventId.id,
         imageUrl: imageUrl,
         title: params.title,
+        organization: params.organization,
+        organizer: params.organizer,
         date: params.date,
         location: params.location,
         startTime: params.startTime,

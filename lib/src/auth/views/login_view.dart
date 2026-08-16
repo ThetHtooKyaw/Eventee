@@ -43,10 +43,8 @@ class _LoginViewState extends State<LoginView> {
   }
 
   Future<void> login() async {
-    final vm = context.read<LoginViewModel>();
-
     if (_formKey.currentState!.validate()) {
-      final success = await vm.loginUser();
+      final success = await _viewModel.loginUser();
 
       if (!mounted) return;
 
@@ -60,8 +58,7 @@ class _LoginViewState extends State<LoginView> {
   }
 
   Future<void> loginWithGoogle() async {
-    final vm = context.read<LoginViewModel>();
-    final result = await vm.signInWithGoogle();
+    final result = await _viewModel.signInWithGoogle();
 
     if (!mounted) return;
 

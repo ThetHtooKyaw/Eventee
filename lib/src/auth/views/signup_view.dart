@@ -43,10 +43,8 @@ class _SignUpViewState extends State<SignUpView> {
   }
 
   Future<void> signUp() async {
-    final vm = context.read<SignUpViewModel>();
-
     if (_formKey.currentState!.validate()) {
-      final success = await vm.createUser();
+      final success = await _viewModel.createUser();
 
       if (!mounted) return;
 
@@ -60,8 +58,7 @@ class _SignUpViewState extends State<SignUpView> {
   }
 
   Future<void> signUpWithGoogle() async {
-    final vm = context.read<SignUpViewModel>();
-    final result = await vm.signUpWithGoogle();
+    final result = await _viewModel.signUpWithGoogle();
 
     if (!mounted) return;
 

@@ -47,8 +47,7 @@ class _OnboardingViewState extends State<OnboardingView> {
   }
 
   Future<void> _submit(BuildContext context) async {
-    final vm = context.read<OnboardingViewModel>();
-    final success = await vm.submitOnboardingData();
+    final success = await _viewModel.submitOnboardingData();
 
     if (!mounted) return;
 
@@ -61,10 +60,9 @@ class _OnboardingViewState extends State<OnboardingView> {
     }
   }
 
-  void _nextPage(BuildContext context, GlobalKey<FormState> formKey) {
-    final vm = context.read<OnboardingViewModel>();
-    if (formKey.currentState!.validate()) {
-      vm.nextPage();
+  void _nextPage(BuildContext context) {
+    if (_formKey.currentState!.validate()) {
+      _viewModel.nextPage();
     }
   }
 
@@ -173,7 +171,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                                     ? (isActionLoading
                                           ? null
                                           : () => _submit(context))
-                                    : () => _nextPage(context, _formKey),
+                                    : () => _nextPage(context),
                                 child:
                                     isActionLoading &&
                                         currentPage == _pages.length - 1

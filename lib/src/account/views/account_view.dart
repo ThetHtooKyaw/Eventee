@@ -48,8 +48,7 @@ class _AccountViewState extends State<AccountView> {
   }
 
   Future<void> _logout() async {
-    final vm = context.read<AccountViewModel>();
-    final success = await vm.logoutUser();
+    final success = await _viewModel.logoutUser();
 
     if (!mounted) return;
 
@@ -173,10 +172,13 @@ class _AccountViewState extends State<AccountView> {
                               context,
                               MaterialPageRoute(
                                 builder: (naviContext) =>
-                                    ChangeNotifierProvider<PayoutStepupViewModel>(
-                                      create: (context) => PayoutStepupViewModel(
-                                        context.read<PayoutStepupService>(),
-                                      ),
+                                    ChangeNotifierProvider<
+                                      PayoutStepupViewModel
+                                    >(
+                                      create: (context) =>
+                                          PayoutStepupViewModel(
+                                            context.read<PayoutStepupService>(),
+                                          ),
                                       child: const PayoutStepupView(),
                                     ),
                               ),

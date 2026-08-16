@@ -13,25 +13,39 @@ class CreateEventViewModel extends BaseViewModel {
   CreateEventViewModel(this._createEventService);
 
   // Controllers
-  final eventNameController = TextEditingController();
-  final eventDateController = TextEditingController();
-  final eventStartTimeController = TextEditingController();
-  final eventEndTimeController = TextEditingController();
-  final eventLocationController = TextEditingController();
+  GlobalKey<FormState>? formKey;
 
+  final eventNameController = TextEditingController();
+  final organizationNameController = TextEditingController();
+  final organizerNameController = TextEditingController();
+  final dateController = TextEditingController();
+  final startTimeController = TextEditingController();
+  final endTimeController = TextEditingController();
+  final locationController = TextEditingController();
   final ticketPriceController = TextEditingController();
   final eventDetailController = TextEditingController();
 
   // Variables
+
   final List<String> categories = ['Music', 'Sport', 'Art', 'Food'];
   File? _eventImage;
   String? _selectedCategory;
+  DateTime? _selectedDate;
+  DateTime? _startTime;
+  DateTime? _endTime;
 
   // Getters
   File? get eventImage => _eventImage;
   String? get selectedCategory => _selectedCategory;
+  DateTime? get selectedDate => _selectedDate;
+  DateTime? get startTime => _startTime;
+  DateTime? get endTime => _endTime;
 
   // Setters
+  void setFormKey(GlobalKey<FormState> key) {
+    formKey = key;
+  }
+
   void setCategory(String? value) {
     _selectedCategory = value;
     notifyListeners();
@@ -41,10 +55,12 @@ class CreateEventViewModel extends BaseViewModel {
   @override
   void dispose() {
     eventNameController.dispose();
-    eventDateController.dispose();
-    eventStartTimeController.dispose();
-    eventEndTimeController.dispose();
-    eventLocationController.dispose();
+    organizationNameController.dispose();
+    organizerNameController.dispose();
+    dateController.dispose();
+    startTimeController.dispose();
+    endTimeController.dispose();
+    locationController.dispose();
     ticketPriceController.dispose();
     eventDetailController.dispose();
     super.dispose();
@@ -52,10 +68,12 @@ class CreateEventViewModel extends BaseViewModel {
 
   void resetForm() {
     eventNameController.clear();
-    eventDateController.clear();
-    eventStartTimeController.clear();
-    eventEndTimeController.clear();
-    eventLocationController.clear();
+    organizationNameController.clear();
+    organizerNameController.clear();
+    dateController.clear();
+    startTimeController.clear();
+    endTimeController.clear();
+    locationController.clear();
     ticketPriceController.clear();
     eventDetailController.clear();
     _selectedCategory = null;
@@ -74,62 +92,77 @@ class CreateEventViewModel extends BaseViewModel {
     }
 
     _eventImage = (response as Success).response as File;
+    notifyListeners();
     setActionLoading(false);
   }
 
-  Future<void> pickDate(BuildContext context) async {
-    DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2030),
-    );
+  void onDatePicked(DateTime pickedDate) {
+    _selectedDate = pickedDate;
+    String formattedDate = DateFormat('dd MMM, yyyy').format(pickedDate);
+    dateController.text = formattedDate;
 
-    if (pickedDate != null) {
-      String formattedDate = DateFormat('dd MMM, yyyy').format(pickedDate);
-      eventDateController.text = formattedDate;
-      notifyListeners();
+    if (_startTime != null) {
+      _startTime = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        _startTime!.hour,
+        _startTime!.minute,
+      );
     }
+
+    if (_endTime != null) {
+      _endTime = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        _endTime!.hour,
+        _endTime!.minute,
+      );
+    }
+
+    formKey?.currentState?.validate();
+    notifyListeners();
   }
 
-  Future<void> pickStartTime(BuildContext context) async {
-    TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
+  void onStartTimePicked(TimeOfDay pickedTime) {
+    final date = _selectedDate ?? DateTime.now();
+    _startTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      pickedTime.hour,
+      pickedTime.minute,
     );
 
-    if (pickedTime != null) {
-      final dt = DateTime(0, 0, 0, pickedTime.hour, pickedTime.minute);
-      String formattedTime = DateFormat('hh:mm a').format(dt);
-      eventStartTimeController.text = formattedTime;
-      notifyListeners();
-    }
+    String formattedTime = DateFormat('hh:mm a').format(_startTime!);
+    startTimeController.text = formattedTime;
+    formKey?.currentState?.validate();
+    notifyListeners();
   }
 
-  Future<void> pickEndTime(BuildContext context) async {
-    TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
+  void onEndTimePicked(TimeOfDay pickedTime) {
+    final date = _selectedDate ?? DateTime.now();
+    _endTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      pickedTime.hour,
+      pickedTime.minute,
     );
 
-    if (pickedTime != null) {
-      final dt = DateTime(0, 0, 0, pickedTime.hour, pickedTime.minute);
-      String formattedTime = DateFormat('hh:mm a').format(dt);
-      eventEndTimeController.text = formattedTime;
-      notifyListeners();
-    }
+    String formattedTime = DateFormat('hh:mm a').format(_endTime!);
+    endTimeController.text = formattedTime;
+    formKey?.currentState?.validate();
+    notifyListeners();
   }
 
-  Future<void> uploadEventDetail() async {
+  Future<bool> uploadEventDetail() async {
     startActionLoading();
 
-    final baseDate = DateFormat('dd MMM, yyyy').parse(eventDateController.text);
-    final baseStartTime = DateFormat(
-      'hh:mm a',
-    ).parse(eventStartTimeController.text);
-    final baseEndTime = DateFormat(
-      'hh:mm a',
-    ).parse(eventEndTimeController.text);
+    final baseDate = DateFormat('dd MMM, yyyy').parse(dateController.text);
+    final baseStartTime = DateFormat('hh:mm a').parse(startTimeController.text);
+    final baseEndTime = DateFormat('hh:mm a').parse(endTimeController.text);
 
     final startTime = DateTime(
       baseDate.year,
@@ -150,7 +183,9 @@ class CreateEventViewModel extends BaseViewModel {
     final params = CreateEventParams(
       imageUrl: _eventImage!,
       title: eventNameController.text.trim(),
-      location: eventLocationController.text.trim(),
+      organization: organizationNameController.text.trim(),
+      organizer: organizerNameController.text.trim(),
+      location: locationController.text.trim(),
       date: baseDate,
       startTime: startTime,
       endTime: endTime,
@@ -165,11 +200,13 @@ class CreateEventViewModel extends BaseViewModel {
 
     if (response is Failure) {
       stopActionLoadingWithErrorMessage(response.response.toString());
-      return;
+      return false;
     }
 
+    resetForm();
     stopActionLoadingWithSuccessMessage(
       (response as Success).response.toString(),
     );
+    return true;
   }
 }

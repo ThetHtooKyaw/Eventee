@@ -1,68 +1,62 @@
 import 'package:eventee/core/themes/app_color.dart';
-import 'package:eventee/core/themes/app_format.dart';
 import 'package:flutter/material.dart';
 
 class CustomTextfield extends StatelessWidget {
   final TextEditingController controller;
   final String label;
+  final bool readOnly;
+  final TextInputType? keyboardType;
   final String hintText;
-  final IconData icon;
-  final VoidCallback onTap;
+  final IconData? icon;
+  final VoidCallback? onTap;
+  final FormFieldValidator<String> validator;
   const CustomTextfield({
     super.key,
     required this.controller,
     required this.label,
+    this.readOnly = false,
+    this.keyboardType,
     required this.hintText,
-    required this.icon,
-    required this.onTap,
+    this.icon,
+    this.onTap,
+    required this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
 
-    return SizedBox(
-      width: 174,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: t.textTheme.bodyMedium?.copyWith(
-              color: AppColor.textPlaceholder,
-              fontWeight: FontWeight.bold,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: AppColor.textPlaceholder,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        TextFormField(
+          onTap: onTap,
+          controller: controller,
+          readOnly: readOnly,
+          keyboardType: keyboardType,
+          validator: validator,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          decoration: InputDecoration(
+            hintText: hintText,
+            suffixIcon: icon != null
+                ? Icon(icon, color: AppColor.lightPrimary)
+                : null,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 14,
             ),
           ),
-          const SizedBox(height: 10),
-
-          TextFormField(
-            onTap: onTap,
-            controller: controller,
-            readOnly: true,
-            decoration: InputDecoration(
-              hintText: hintText,
-              suffixIcon: Icon(icon, color: AppColor.lightPrimary),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide.none,
-                borderRadius: BorderRadius.circular(
-                  AppFormat.primaryBorderRadius,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide.none,
-                borderRadius: BorderRadius.circular(
-                  AppFormat.primaryBorderRadius,
-                ),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 14,
-              ),
-            ),
-            style: t.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

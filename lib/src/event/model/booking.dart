@@ -5,6 +5,8 @@ class BookingModel {
   final String eventId;
   final String imageUrl;
   final String title;
+  final String organization;
+  final String organizer;
   final String location;
   final DateTime date;
   final DateTime startTime;
@@ -19,11 +21,13 @@ class BookingModel {
     required this.organizerId,
     required this.eventId,
     required this.imageUrl,
+    required this.title,
+    required this.organization,
+    required this.organizer,
     required this.location,
     required this.date,
     required this.startTime,
     required this.endTime,
-    required this.title,
     required this.price,
     required this.description,
     required this.total,
@@ -37,6 +41,8 @@ class BookingModel {
       'eventId': eventId,
       'imageUrl': imageUrl,
       'title': title,
+      'organization': organization,
+      'organizer': organizer,
       'location': location,
       'date': date.toIso8601String(),
       'startTime': startTime.toIso8601String(),
@@ -55,6 +61,8 @@ class BookingModel {
       eventId: map['eventId'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
       title: map['title'] ?? 'Unnamed Event',
+      organization: map['organization'] ?? '',
+      organizer: map['organizer'] ?? '',
       location: map['location'] ?? '',
       date: DateTime.tryParse(map['date'] ?? '') ?? DateTime.now(),
       startTime: DateTime.tryParse(map['startTime'] ?? '') ?? DateTime.now(),
@@ -78,6 +86,8 @@ class BookingModel {
       eventId: event.eventId,
       imageUrl: event.imageUrl,
       title: event.title,
+      organization: event.organization,
+      organizer: event.organizer,
       location: event.location,
       date: event.date,
       startTime: event.startTime,

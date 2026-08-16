@@ -25,6 +25,7 @@ class _CreateEventViewState extends State<CreateEventView> {
     super.initState();
     _viewModel = context.read<CreateEventViewModel>();
     _viewModel.addListener(_onViewModelChanged);
+    _viewModel.setFormKey(_formKey);
   }
 
   @override
@@ -44,16 +45,86 @@ class _CreateEventViewState extends State<CreateEventView> {
   }
 
   Future<void> _handleUpload() async {
-    final vm = context.read<CreateEventViewModel>();
-
     if (!_formKey.currentState!.validate()) return;
 
-    if (vm.eventImage == null && mounted) {
-      AppSnackbars.showErrorSnackbar(context, 'Please select an event image.');
-      return;
-    }
+    final success = await _viewModel.uploadEventDetail();
 
-    await vm.uploadEventDetail();
+    if (success && mounted) {
+      Navigator.pop(context);
+    }
+  }
+
+  Future<void> _pickDate() async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _viewModel.selectedDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedDate != null) {
+      _viewModel.onDatePicked(pickedDate);
+    }
+  }
+
+  Future<void> _pickStartTime() async {
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(
+        _viewModel.startTime ?? DateTime.now(),
+      ),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedTime != null) {
+      _viewModel.onStartTimePicked(pickedTime);
+    }
+  }
+
+  Future<void> _pickEndTime() async {
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_viewModel.endTime ?? DateTime.now()),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedTime != null) {
+      _viewModel.onEndTimePicked(pickedTime);
+    }
   }
 
   @override
@@ -92,12 +163,8 @@ class _CreateEventViewState extends State<CreateEventView> {
                   const SizedBox(height: AppFormat.secondaryPadding),
 
                   // Upload Image
-                  _buildImagePicker(),
-                  const SizedBox(height: 20),
-
-                  // Event Title
                   Text(
-                    'Event Title',
+                    'Event Image',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppColor.textPlaceholder,
                       fontWeight: FontWeight.bold,
@@ -105,86 +172,188 @@ class _CreateEventViewState extends State<CreateEventView> {
                   ),
                   const SizedBox(height: 10),
 
-                  TextFormField(
+                  _buildImagePicker(theme, vm),
+                  const SizedBox(height: 20),
+
+                  // Event Title
+                  CustomTextfield(
                     controller: vm.eventNameController,
+                    label: 'Event Title',
                     keyboardType: TextInputType.text,
+                    hintText: 'Enter event title',
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Event title is required';
                       }
+
                       return null;
                     },
-                    decoration: InputDecoration(labelText: 'Enter Title'),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Organization Name
+                  CustomTextfield(
+                    controller: vm.organizationNameController,
+                    label: 'Organization Name',
+                    keyboardType: TextInputType.text,
+                    hintText: 'Enter organization name',
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Organization name is required';
+                      }
+                      if (value.length < 3) {
+                        return 'Organization name must be at least 3 characters long';
+                      }
+
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Organizer Name
+                  CustomTextfield(
+                    controller: vm.organizerNameController,
+                    label: 'Organizer Name',
+                    keyboardType: TextInputType.text,
+                    hintText: 'Enter organizer name',
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Organizer name is required';
+                      }
+                      if (value.length < 3) {
+                        return 'Organizer name must be at least 3 characters long';
+                      }
+
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 20),
 
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       // Date
-                      CustomTextfield(
-                        controller: vm.eventDateController,
-                        label: 'Date',
-                        hintText: 'dd MMM, yyyy',
-                        icon: Icons.calendar_month,
-                        onTap: () => vm.pickDate(context),
+                      Expanded(
+                        child: CustomTextfield(
+                          controller: vm.dateController,
+                          label: 'Date',
+                          hintText: 'dd MMM, yyyy',
+                          readOnly: true,
+                          icon: Icons.calendar_month,
+                          onTap: _pickDate,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Event date is required';
+                            }
+
+                            return null;
+                          },
+                        ),
                       ),
+                      const SizedBox(width: 20),
 
                       // Category Dropdown
-                      _buildCategoryDropDown(theme),
+                      Expanded(child: _buildCategoryDropDown(theme)),
                     ],
                   ),
                   const SizedBox(height: 20),
 
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       // Start Time
-                      CustomTextfield(
-                        controller: vm.eventStartTimeController,
-                        label: 'Start Time',
-                        hintText: 'hh:mm',
-                        icon: Icons.timer_outlined,
-                        onTap: () => vm.pickStartTime(context),
+                      Expanded(
+                        child: CustomTextfield(
+                          controller: vm.startTimeController,
+                          label: 'Start Time',
+                          hintText: 'hh:mm',
+                          readOnly: true,
+                          icon: Icons.timer_outlined,
+                          onTap: _pickStartTime,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Start time is required';
+                            }
+                            if (vm.endTime != null &&
+                                vm.startTime != null &&
+                                (vm.startTime!.isAfter(vm.endTime!) ||
+                                    vm.startTime!.isAtSameMomentAs(
+                                      vm.endTime!,
+                                    ))) {
+                              return 'Must be before end time';
+                            }
+                            if (DateUtils.isSameDay(
+                                  vm.selectedDate,
+                                  DateTime.now(),
+                                ) &&
+                                vm.startTime!.isBefore(DateTime.now())) {
+                              return 'Must be after current time';
+                            }
+
+                            return null;
+                          },
+                        ),
                       ),
+                      const SizedBox(width: 20),
 
                       // End Time
-                      CustomTextfield(
-                        controller: vm.eventEndTimeController,
-                        label: 'End Time',
-                        hintText: 'hh:mm',
-                        icon: Icons.timer_outlined,
-                        onTap: () => vm.pickEndTime(context),
+                      Expanded(
+                        child: CustomTextfield(
+                          controller: vm.endTimeController,
+                          label: 'End Time',
+                          hintText: 'hh:mm',
+                          readOnly: true,
+                          icon: Icons.timer_outlined,
+                          onTap: _pickEndTime,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'End time is required';
+                            }
+                            if (vm.startTime != null &&
+                                vm.endTime != null &&
+                                vm.endTime!.isBefore(vm.startTime!)) {
+                              return 'Must be after start time';
+                            }
+
+                            return null;
+                          },
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
 
                   // Location TextField
-                  _buildTextField(
-                    theme,
-                    vm.eventLocationController,
-                    TextInputType.text,
-                    'Enter Location',
-                    (value) {
+                  CustomTextfield(
+                    controller: vm.locationController,
+                    label: 'Location',
+                    keyboardType: TextInputType.streetAddress,
+                    hintText: 'Enter location',
+                    validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Event location is required';
                       }
+                      if (value.length < 6) {
+                        return 'Event location must be at least 6 characters long';
+                      }
+
                       return null;
                     },
                   ),
                   const SizedBox(height: 20),
 
                   // Price TextField
-                  _buildTextField(
-                    theme,
-                    vm.ticketPriceController,
-                    TextInputType.number,
-                    'Enter Price',
-                    (value) {
+                  CustomTextfield(
+                    controller: vm.ticketPriceController,
+                    label: 'Price',
+                    hintText: 'Enter price',
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Ticket price is required';
                       }
+                      if (!RegExp(r'^\d+$').hasMatch(value)) {
+                        return 'Please enter numbers only';
+                      }
+
                       return null;
                     },
                   ),
@@ -193,9 +362,13 @@ class _CreateEventViewState extends State<CreateEventView> {
                   // Description TextField
                   Text(
                     'Additional Information',
-                    style: theme.textTheme.titleMedium,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColor.textPlaceholder,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 10),
+
                   TextField(
                     controller: vm.eventDetailController,
                     maxLines: 6,
@@ -203,7 +376,7 @@ class _CreateEventViewState extends State<CreateEventView> {
                       hintText: 'What will be on that event...',
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 40),
 
                   // Action Button
                   Center(
@@ -236,31 +409,63 @@ class _CreateEventViewState extends State<CreateEventView> {
     );
   }
 
-  Widget _buildImagePicker() {
+  Widget _buildImagePicker(ThemeData theme, CreateEventViewModel vm) {
     return Selector<CreateEventViewModel, File?>(
       selector: (context, vm) => vm.eventImage,
-      builder: (context, eventImage, child) {
-        return GestureDetector(
-          onTap: () => context.read<CreateEventViewModel>().pickImage(),
-          child: Container(
-            height: 250,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.onPrimary,
-              border: Border.all(color: AppColor.placeholder, width: 1),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Center(
-              child: eventImage != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadiusGeometry.circular(
-                        AppFormat.primaryPadding,
+      builder: (context, eventImage, _) {
+        return FormField<File>(
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          validator: (value) {
+            if (vm.eventImage == null) {
+              return 'Please select an event image.';
+            }
+
+            return null;
+          },
+          builder: (state) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    await vm.pickImage();
+                    state.didChange(vm.eventImage);
+                  },
+                  child: Container(
+                    height: 250,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      border: Border.all(color: AppColor.placeholder, width: 1),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: eventImage != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(30),
+                            child: Image.file(
+                              eventImage,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
+                          )
+                        : const Center(child: Icon(Icons.camera_alt, size: 60)),
+                  ),
+                ),
+
+                if (state.hasError)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12.0, top: 8.0),
+                    child: Text(
+                      state.errorText!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.error,
                       ),
-                      child: Image.file(eventImage, fit: BoxFit.cover),
-                    )
-                  : Icon(Icons.camera_alt, size: 60),
-            ),
-          ),
+                    ),
+                  ),
+              ],
+            );
+          },
         );
       },
     );
@@ -283,28 +488,26 @@ class _CreateEventViewState extends State<CreateEventView> {
           selector: (_, vm) => vm.selectedCategory,
           builder: (context, selectedCategory, child) {
             return FormField<String>(
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               validator: (value) {
                 if (selectedCategory == null) {
                   return 'Please select a category';
                 }
+
                 return null;
               },
-
-              builder: (FormFieldState<String> state) {
+              builder: (state) {
                 final vm = context.read<CreateEventViewModel>();
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      width: 174,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        border: state.hasError
-                            ? Border.all(color: Colors.red, width: 1.0)
-                            : null,
                         borderRadius: BorderRadius.circular(
-                          AppFormat.primaryBorderRadius,
+                          AppFormat.secondaryBorderRadius,
                         ),
                       ),
                       child: DropdownButtonHideUnderline(
@@ -327,13 +530,16 @@ class _CreateEventViewState extends State<CreateEventView> {
                               )
                               .toList(),
                           dropdownColor: theme.colorScheme.onPrimary,
+                          borderRadius: BorderRadius.circular(
+                            AppFormat.secondaryBorderRadius,
+                          ),
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                           icon: Icon(
                             Icons.arrow_drop_down,
                             color: Colors.black,
                             size: 40,
-                          ),
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
                           ),
                           hint: Text(
                             'Select Category',
@@ -349,11 +555,11 @@ class _CreateEventViewState extends State<CreateEventView> {
 
                     if (state.hasError)
                       Padding(
-                        padding: const EdgeInsetsGeometry.only(top: 10),
+                        padding: const EdgeInsets.only(left: 12.0, top: 8.0),
                         child: Text(
                           state.errorText!,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: Colors.red,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.error,
                           ),
                         ),
                       ),
@@ -362,34 +568,6 @@ class _CreateEventViewState extends State<CreateEventView> {
               },
             );
           },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTextField(
-    ThemeData theme,
-    TextEditingController controller,
-    TextInputType keyboardType,
-    String label,
-    FormFieldValidator<String>? validator,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: AppColor.textPlaceholder,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 10),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          validator: validator,
-          decoration: InputDecoration(labelText: label),
         ),
       ],
     );
