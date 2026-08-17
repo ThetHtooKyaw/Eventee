@@ -132,4 +132,22 @@ class AuthService {
       return Failure(response: 'Failed to authenticate with Google: $e');
     }
   }
+
+  Future<Object> resetPassword({required String email}) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+
+      return Success(response: 'Password reset email sent successfully!');
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        return Failure(response: 'No user found with this email.');
+      } else if (e.code == 'invalid-email') {
+        return Failure(response: 'The email address is poorly formatted.');
+      }
+
+      return Failure(response: 'An error occurred. Please try again.');
+    } catch (e) {
+      return Failure(response: 'Failed to reset password: $e');
+    }
+  }
 }

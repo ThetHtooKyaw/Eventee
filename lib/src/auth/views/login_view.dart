@@ -3,11 +3,13 @@ import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/utils/bottom_nav_bar.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
+import 'package:eventee/src/auth/widgets/custom_divider.dart';
 import 'package:eventee/src/onboarding/views/onboarding_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:eventee/src/auth/view_models/login_view_model.dart';
+import 'package:eventee/src/auth/views/forgot_password_view.dart';
 import 'package:eventee/src/auth/views/signup_view.dart';
 
 class LoginView extends StatefulWidget {
@@ -111,24 +113,24 @@ class _LoginViewState extends State<LoginView> {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                SizedBox(height: 24),
+                SizedBox(height: 20),
 
                 // TextFields
                 _buildLoginForm(vm),
-                SizedBox(height: 40),
+                const SizedBox(height: 20),
 
                 // Login Button
                 ElevatedButton(
                   onPressed: () => login(),
                   style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 48),
+                    minimumSize: Size(double.infinity, 60),
                   ),
                   child: Text("Login"),
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: 20),
 
-                Divider(),
-                const SizedBox(height: 10),
+                CustomDivider(),
+                const SizedBox(height: 20),
 
                 // Google Login Button
                 ElevatedButton(
@@ -236,6 +238,29 @@ class _LoginViewState extends State<LoginView> {
 
               return null;
             },
+          ),
+
+          // Forgot Password Button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ForgotPasswordView(),
+                    ),
+                  );
+                },
+                child: Text(
+                  'Forgot Password?',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: Colors.blue),
+                ),
+              ),
+            ],
           ),
         ],
       ),

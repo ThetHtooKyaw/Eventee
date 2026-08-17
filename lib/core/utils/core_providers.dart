@@ -4,6 +4,7 @@ import 'package:eventee/src/account/repo/account_service.dart';
 import 'package:eventee/src/account/repo/payout_stepup_service.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
 import 'package:eventee/src/auth/repo/auth_service.dart';
+import 'package:eventee/src/auth/view_models/forgot_password_view_model.dart';
 import 'package:eventee/src/auth/view_models/login_view_model.dart';
 import 'package:eventee/src/auth/view_models/signup_view_model.dart';
 import 'package:eventee/src/event/repo/booked_event_service.dart';
@@ -35,6 +36,9 @@ class CoreProviders {
     // View Models
     ChangeNotifierProvider(
       create: (context) => LoginViewModel(context.read<AuthService>()),
+    ),
+    ChangeNotifierProvider(
+      create: (context) => ForgotPasswordViewModel(context.read<AuthService>()),
     ),
     ChangeNotifierProvider(
       create: (context) => SignUpViewModel(context.read<AuthService>()),

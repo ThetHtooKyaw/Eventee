@@ -3,6 +3,7 @@ import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/core/utils/bottom_nav_bar.dart';
+import 'package:eventee/src/auth/widgets/custom_divider.dart';
 import 'package:eventee/src/onboarding/views/onboarding_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -110,9 +111,9 @@ class _SignUpViewState extends State<SignUpView> {
                   textAlign: TextAlign.center,
                   style: t.textTheme.displayLarge,
                 ),
-
                 const SizedBox(height: 20),
 
+                // Subtitle
                 Text(
                   "Discover, book, and experience unforgettable moments effortlessly",
                   textAlign: TextAlign.center,
@@ -125,6 +126,7 @@ class _SignUpViewState extends State<SignUpView> {
                 // Text Fields
                 _buildSignUpForm(vm),
                 const SizedBox(height: 40),
+
                 // Login Buttons
                 ElevatedButton(
                   onPressed: () => signUp(),
@@ -133,10 +135,10 @@ class _SignUpViewState extends State<SignUpView> {
                   ),
                   child: Text("Sign up"),
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: 20),
 
-                Divider(),
-                const SizedBox(height: 10),
+                CustomDivider(),
+                const SizedBox(height: 20),
 
                 // Google Sign-Up Button
                 ElevatedButton(
@@ -325,6 +327,7 @@ class _SignUpViewState extends State<SignUpView> {
                       ),
                     ),
                     const SizedBox(width: 10),
+
                     Expanded(
                       child: RichText(
                         text: TextSpan(
