@@ -22,7 +22,6 @@ class AccountDetailView extends StatefulWidget {
 
 class _AccountDetailViewState extends State<AccountDetailView> {
   late final AccountDetailViewModel _viewModel;
-  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -50,11 +49,8 @@ class _AccountDetailViewState extends State<AccountDetailView> {
 
   Future<void> _handleSave({
     required Future<bool> Function() updateAction,
-    bool requiresValidation = false,
   }) async {
     final accountVM = context.read<AccountViewModel>();
-
-    if (requiresValidation && !_formKey.currentState!.validate()) return;
 
     final success = await updateAction();
 
@@ -129,135 +125,85 @@ class _AccountDetailViewState extends State<AccountDetailView> {
         ),
         title: Text("Personal Information", style: theme.textTheme.titleSmall),
       ),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.all(AppFormat.primaryPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Image
-              Center(
-                child: GestureDetector(
-                  onTap: () => _handlePickProfileImage(vm, profileAvatar),
-                  child: _buildAvatar(profileAvatar),
-                ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppFormat.primaryPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Image
+            Center(
+              child: GestureDetector(
+                onTap: () => _handlePickProfileImage(vm, profileAvatar),
+                child: _buildAvatar(profileAvatar),
               ),
-              const SizedBox(height: 10),
+            ),
+            const SizedBox(height: 10),
 
-              // Change Button
-              _buildActionButton(
-                'Change',
-                () => _handlePickProfileImage(vm, profileAvatar),
+            // Change Button
+            _buildActionButton(
+              'Change',
+              () => _handlePickProfileImage(vm, profileAvatar),
+            ),
+            const SizedBox(height: 20),
+
+            MenuCard(
+              color: theme.colorScheme.primary,
+              child: Column(
+                children: [
+                  // Name
+                  PersonalInformationItem(
+                    title: 'Name',
+                    data: userData!.username,
+                    onTap: () => _handleSave(updateAction: vm.updateUsername),
+                    child: _buildUsernameField(theme, vm),
+                  ),
+                  _buildCustomDivider(),
+
+                  // Email
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: PersonalInformationItem(
+                      title: 'Email',
+                      data: userData.email,
+                      isReadOnly: true,
+                      child: SizedBox(),
+                    ),
+                  ),
+                  _buildCustomDivider(),
+
+                  // Phone Number
+                  PersonalInformationItem(
+                    title: 'Phone Number',
+                    data: userData.phoneNumber,
+                    onTap: () =>
+                        _handleSave(updateAction: vm.updatePhoneNumber),
+                    child: _buildPhoneNumberField(theme, vm),
+                  ),
+                  _buildCustomDivider(),
+
+                  // Birthday
+                  PersonalInformationItem(
+                    title: 'Birthday',
+                    data: vm.formatBirthday(
+                      userData.dateOfBirth ?? DateTime.now(),
+                    ),
+                    onTap: () =>
+                        _handleSave(updateAction: vm.updateDateOfBirth),
+                    child: _buildDateOfBirthPicker(theme, vm),
+                  ),
+                  _buildCustomDivider(),
+
+                  // Address
+                  PersonalInformationItem(
+                    title: 'Address',
+                    data: userData.address,
+                    onTap: () => _handleSave(updateAction: vm.updateAddress),
+                    child: _buildAddressPicker(theme, vm),
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
-
-              MenuCard(
-                color: theme.colorScheme.primary,
-                child: Column(
-                  children: [
-                    // Name
-                    PersonalInformationItem(
-                      title: 'Name',
-                      data: userData!.username,
-                      onTap: () => _handleSave(
-                        updateAction: vm.updateUsername,
-                        requiresValidation: true,
-                      ),
-                      child: _buildUsernameField(theme, vm),
-                    ),
-                    _buildCustomDivider(),
-
-                    // Email
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: PersonalInformationItem(
-                        title: 'Email',
-                        data: userData.email,
-                        isReadOnly: true,
-                        child: SizedBox(),
-                      ),
-                    ),
-                    _buildCustomDivider(),
-
-                    // Phone Number
-                    PersonalInformationItem(
-                      title: 'Phone Number',
-                      data: userData.phoneNumber,
-                      onTap: () => _handleSave(
-                        updateAction: vm.updatePhoneNumber,
-                        requiresValidation: true,
-                      ),
-                      child: _buildPhoneNumberField(theme, vm),
-                    ),
-                    _buildCustomDivider(),
-
-                    // Birthday
-                    PersonalInformationItem(
-                      title: 'Birthday',
-                      data: vm.formatBirthday(
-                        userData.dateOfBirth ?? DateTime.now(),
-                      ),
-                      onTap: () =>
-                          _handleSave(updateAction: vm.updateDateOfBirth),
-                      child: _buildDateOfBirthPicker(theme),
-                    ),
-                    _buildCustomDivider(),
-
-                    // Address
-                    PersonalInformationItem(
-                      title: 'Address',
-                      data: userData.address,
-                      onTap: () => _handleSave(updateAction: vm.updateAddress),
-                      child: _buildAddressPicker(theme, vm),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPhoneNumberField(ThemeData theme, AccountDetailViewModel vm) {
-    return InternationalPhoneNumberInput(
-      autoValidateMode: AutovalidateMode.onUserInteraction,
-      onInputChanged: (PhoneNumber number) {
-        vm.setPhoneNo(number.phoneNumber);
-      },
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return 'Phone number can\'t be empty';
-        }
-        return null;
-      },
-      selectorConfig: SelectorConfig(
-        selectorType: PhoneInputSelectorType.DIALOG,
-        setSelectorButtonAsPrefixIcon: true,
-        leadingPadding: 20,
-        trailingSpace: true,
-      ),
-      textStyle: theme.textTheme.bodyMedium?.copyWith(
-        fontWeight: FontWeight.bold,
-      ),
-      inputDecoration: InputDecoration(
-        hintText: 'Enter your phone number',
-        hintStyle: theme.textTheme.bodyLarge?.copyWith(
-          color: AppColor.textPlaceholder,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppFormat.secondaryBorderRadius),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppFormat.secondaryBorderRadius),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+            ),
+          ],
         ),
       ),
     );
@@ -275,21 +221,6 @@ class _AccountDetailViewState extends State<AccountDetailView> {
       child: avatarImage == null
           ? Icon(Icons.person, color: Colors.black, size: iconSize)
           : null,
-    );
-  }
-
-  Widget _buildActionButton(String label, VoidCallback? onPressed) {
-    return Selector<AccountDetailViewModel, bool>(
-      selector: (_, vm) => vm.isActionLoading,
-      builder: (context, isActionLoading, child) {
-        return ElevatedButton(
-          onPressed: isActionLoading ? null : onPressed,
-          style: ElevatedButton.styleFrom(minimumSize: const Size(70, 40)),
-          child: isActionLoading
-              ? const CircularProgressIndicator()
-              : Text(label),
-        );
-      },
     );
   }
 
@@ -330,6 +261,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                   if (value.length < 4) {
                     return 'Name must be at least 4 characters long';
                   }
+
                   return null;
                 },
               ),
@@ -340,12 +272,75 @@ class _AccountDetailViewState extends State<AccountDetailView> {
     );
   }
 
-  Widget _buildDateOfBirthPicker(ThemeData theme) {
-    return Selector<AccountDetailViewModel, DateTime?>(
-      selector: (_, vm) => vm.selectedBirthday,
-      builder: (context, selectedBirthday, child) {
-        final vm = context.read<AccountDetailViewModel>();
+  Widget _buildPhoneNumberField(ThemeData theme, AccountDetailViewModel vm) {
+    return InternationalPhoneNumberInput(
+      autoValidateMode: AutovalidateMode.onUserInteraction,
+      onInputChanged: (PhoneNumber number) {
+        vm.setPhoneNo(number.phoneNumber);
+      },
+      onInputValidated: (bool value) {
+        vm.setPhoneNumberValidity(value);
+      },
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Phone number can\'t be empty';
+        }
+        if (!vm.isPhoneNumberValid) {
+          return 'Please enter a valid phone number for the selected country.';
+        }
 
+        return null;
+      },
+      selectorConfig: SelectorConfig(
+        selectorType: PhoneInputSelectorType.DIALOG,
+        setSelectorButtonAsPrefixIcon: true,
+        leadingPadding: 20,
+        trailingSpace: true,
+      ),
+      textStyle: theme.textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.bold,
+      ),
+      inputDecoration: InputDecoration(
+        hintText: 'Enter your phone number',
+        hintStyle: theme.textTheme.bodyLarge?.copyWith(
+          color: AppColor.textPlaceholder,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppFormat.secondaryBorderRadius),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppFormat.secondaryBorderRadius),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateOfBirthPicker(ThemeData theme, AccountDetailViewModel vm) {
+    return FormField<DateTime>(
+      initialValue: vm.selectedBirthday,
+      validator: (value) {
+        if (value == null) {
+          return 'Please select your date of birth.';
+        }
+        final now = DateTime.now();
+        final eighteenYearsAgoExact = DateTime(
+          now.year - 18,
+          now.month,
+          now.day,
+        );
+        if (value.isAfter(eighteenYearsAgoExact)) {
+          return 'You must be at least 18 years old.';
+        }
+
+        return null;
+      },
+      builder: (state) {
         return Column(
           children: [
             PersonalInformationCard(
@@ -366,7 +361,7 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                     ),
 
                     Text(
-                      vm.formatBirthday(selectedBirthday ?? DateTime.now()),
+                      vm.formatBirthday(state.value ?? DateTime.now()),
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: AppColor.textPlaceholder,
                         fontWeight: FontWeight.bold,
@@ -397,19 +392,27 @@ class _AccountDetailViewState extends State<AccountDetailView> {
                 ),
                 child: CupertinoDatePicker(
                   mode: CupertinoDatePickerMode.date,
-                  initialDateTime:
-                      selectedBirthday ??
-                      DateTime(
-                        DateTime.now().year - 18,
-                        DateTime.now().month,
-                        DateTime.now().day,
-                      ),
+                  initialDateTime: vm.selectedBirthday,
                   minimumDate: DateTime(1900),
                   maximumDate: DateTime.now(),
-                  onDateTimeChanged: (newDate) => vm.setBirthday(newDate),
+                  onDateTimeChanged: (newDate) {
+                    vm.setBirthday(newDate);
+                    state.didChange(newDate);
+                  },
                 ),
               ),
             ),
+
+            if (state.hasError)
+              Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 8.0),
+                child: Text(
+                  state.errorText!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+              ),
           ],
         );
       },
@@ -417,67 +420,120 @@ class _AccountDetailViewState extends State<AccountDetailView> {
   }
 
   Widget _buildAddressPicker(ThemeData theme, AccountDetailViewModel vm) {
-    return Column(
-      children: [
-        PersonalInformationCard(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppFormat.primaryPadding,
-            ),
-            child: Row(
-              children: [
-                Text(
-                  'Address',
-                  maxLines: 1,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
+    return FormField<String>(
+      validator: (_) {
+        if (vm.country == null || vm.country!.isEmpty) {
+          return 'Please select a country.';
+        }
+        if (vm.state == null || vm.state!.isEmpty) {
+          return 'Please select a state.';
+        }
+        if (vm.city == null || vm.city!.isEmpty) {
+          return 'Please select a city.';
+        }
+
+        return null;
+      },
+      builder: (state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            PersonalInformationCard(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppFormat.primaryPadding,
                 ),
-                const SizedBox(width: 20),
+                child: Row(
+                  children: [
+                    Text(
+                      'Address',
+                      maxLines: 1,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
 
-                Expanded(
-                  child: TextField(
-                    controller: vm.addressController,
-                    keyboardType: TextInputType.text,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: TextFormField(
+                        controller: vm.addressController,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          isDense: true,
+                        ),
+                      ),
                     ),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                    ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
-        SelectState(
-          defaultValue: vm.country,
-          defaultState: vm.state,
-          defaultCity: vm.city,
-          onCountryChanged: (value) => vm.setCountry(value),
-          onStateChanged: (value) => vm.setState(value),
-          onCityChanged: (value) => vm.setCity(value),
-          spacing: 20,
-          style: theme.textTheme.bodyLarge?.copyWith(color: Colors.black),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(
-                AppFormat.secondaryBorderRadius,
               ),
-              borderSide: BorderSide.none,
             ),
-          ),
-        ),
-      ],
+            const SizedBox(height: 20),
+
+            SelectState(
+              key: ValueKey('${vm.country}-${vm.state}-${vm.city}'),
+              defaultValue: vm.country,
+              defaultState: vm.state,
+              defaultCity: vm.city,
+              onCountryChanged: (value) {
+                vm.setCountry(value);
+                state.didChange(value);
+              },
+              onStateChanged: (value) {
+                vm.setState(value);
+                state.didChange(value);
+              },
+              onCityChanged: (value) {
+                vm.setCity(value);
+                state.didChange(value);
+              },
+              spacing: 20,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: Colors.black),
+              hintStyle: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: AppColor.textPlaceholder),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    AppFormat.secondaryBorderRadius,
+                  ),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+
+            if (state.hasError)
+              Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 8.0),
+                child: Text(
+                  state.errorText!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildActionButton(String label, VoidCallback? onPressed) {
+    return Selector<AccountDetailViewModel, bool>(
+      selector: (_, vm) => vm.isActionLoading,
+      builder: (context, isActionLoading, child) {
+        return ElevatedButton(
+          onPressed: isActionLoading ? null : onPressed,
+          style: ElevatedButton.styleFrom(minimumSize: const Size(70, 40)),
+          child: isActionLoading
+              ? const CircularProgressIndicator()
+              : Text(label),
+        );
+      },
     );
   }
 

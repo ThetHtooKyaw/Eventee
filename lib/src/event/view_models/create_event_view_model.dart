@@ -189,7 +189,7 @@ class CreateEventViewModel extends BaseViewModel {
       date: baseDate,
       startTime: startTime,
       endTime: endTime,
-      price: double.parse(ticketPriceController.text),
+      price: double.parse(ticketPriceController.text.trim()),
       description: eventDetailController.text.trim(),
       category: _selectedCategory!,
     );

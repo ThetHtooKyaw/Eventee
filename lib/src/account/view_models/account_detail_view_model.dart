@@ -25,6 +25,7 @@ class AccountDetailViewModel extends BaseViewModel {
     DateTime.now().day,
   );
   String? _phoneNumber;
+  bool _isPhoneNumberValid = false;
   String? _country;
   String? _state;
   String? _city;
@@ -33,6 +34,7 @@ class AccountDetailViewModel extends BaseViewModel {
   File? get profileAvatar => _profileAvatar;
   DateTime? get selectedBirthday => _selectedBirthday;
   String? get phoneNumber => _phoneNumber;
+  bool get isPhoneNumberValid => _isPhoneNumberValid;
   String? get country => _country;
   String? get state => _state;
   String? get city => _city;
@@ -48,8 +50,20 @@ class AccountDetailViewModel extends BaseViewModel {
     notifyListeners();
   }
 
+  void setPhoneNumberValidity(bool isValid) {
+    _isPhoneNumberValid = isValid;
+    notifyListeners();
+  }
+
   void setCountry(String? value) {
-    _country = value;
+    if (value != null) {
+      final regex = RegExp(
+        r'(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])',
+      );
+      _country = value.replaceAll(regex, '').trim();
+    } else {
+      _country = null;
+    }
     notifyListeners();
   }
 
@@ -74,8 +88,21 @@ class AccountDetailViewModel extends BaseViewModel {
   void initialize() {
     if (_user == null) return;
     nameController.text = _user.username;
-    addressController.text = _user.address;
     _selectedBirthday = _user.dateOfBirth;
+
+    if (_user.address.isNotEmpty) {
+      final parts = _user.address.split(',').map((e) => e.trim()).toList();
+
+      if (parts.length >= 3) {
+        _country = parts.removeLast();
+        _state = parts.removeLast();
+        _city = parts.removeLast();
+        addressController.text = parts.join(', ');
+      } else {
+        addressController.text = _user.address;
+      }
+    }
+
     safeNotifyListeners();
   }
 

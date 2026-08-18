@@ -22,6 +22,7 @@ class CustomPasswordTextfield extends StatelessWidget {
       controller: controller,
       keyboardType: TextInputType.text,
       obscureText: obscureIconState,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       decoration: InputDecoration(
         labelText: labelText,
         suffixIcon: IconButton(

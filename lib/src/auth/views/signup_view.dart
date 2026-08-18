@@ -202,6 +202,7 @@ class _SignUpViewState extends State<SignUpView> {
           TextFormField(
             controller: vm.nameController,
             keyboardType: TextInputType.name,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             decoration: InputDecoration(labelText: 'Name'),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -220,6 +221,7 @@ class _SignUpViewState extends State<SignUpView> {
           TextFormField(
             controller: vm.emailController,
             keyboardType: TextInputType.emailAddress,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             decoration: InputDecoration(labelText: 'Email'),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {

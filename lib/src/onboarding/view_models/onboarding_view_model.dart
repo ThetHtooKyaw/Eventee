@@ -29,6 +29,7 @@ class OnboardingViewModel extends BaseViewModel {
     DateTime.now().day,
   );
   String? _phoneNumber;
+  bool _isPhoneNumberValid = false;
   String? _country;
   String? _state;
   String? _city;
@@ -36,7 +37,9 @@ class OnboardingViewModel extends BaseViewModel {
   // Getters
   String? get currentProfileAvatar => _currentProfileAvatar;
   File? get profileAvatar => _profileAvatar;
+  DateTime? get selectedBirthday => _selectedBirthday;
   String? get phoneNumber => _phoneNumber;
+  bool get isPhoneNumberValid => _isPhoneNumberValid;
   String? get country => _country;
   String? get state => _state;
   String? get city => _city;
@@ -57,8 +60,20 @@ class OnboardingViewModel extends BaseViewModel {
     notifyListeners();
   }
 
+  void setPhoneNumberValidity(bool isValid) {
+    _isPhoneNumberValid = isValid;
+    notifyListeners();
+  }
+
   void setCountry(String? value) {
-    _country = value;
+    if (value != null) {
+      final regex = RegExp(
+        r'(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])',
+      );
+      _country = value.replaceAll(regex, '').trim();
+    } else {
+      _country = null;
+    }
     notifyListeners();
   }
 

@@ -22,6 +22,8 @@ class AccountBottonsheet extends StatefulWidget {
 }
 
 class _AccountBottonsheetState extends State<AccountBottonsheet> {
+  final _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -34,53 +36,62 @@ class _AccountBottonsheetState extends State<AccountBottonsheet> {
         color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Back Button
-              IconButton(
-                onPressed: () => Navigator.pop(context),
-                style: IconButton.styleFrom(
-                  backgroundColor: AppColor.placeholder.withOpacity(0.4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                icon: const Icon(Icons.close, size: 32),
-              ),
-
-              // Title
-              Text(widget.title, style: theme.textTheme.titleSmall),
-
-              // Save Button
-              Selector<AccountDetailViewModel, bool>(
-                selector: (_, vm) => vm.isActionLoading,
-                builder: (context, isActionLoading, child) {
-                  return IconButton(
-                    onPressed: widget.onTap,
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppColor.placeholder.withOpacity(0.4),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Back Button
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppColor.placeholder.withOpacity(0.4),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
                     ),
-                    icon: isActionLoading
-                        ? const CircularProgressIndicator()
-                        : const Icon(Icons.check, size: 32),
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
+                  ),
+                  icon: const Icon(Icons.close, size: 32),
+                ),
 
-          // Contents
-          widget.child,
-        ],
+                // Title
+                Text('Edit ${widget.title}', style: theme.textTheme.titleSmall),
+
+                // Save Button
+                Selector<AccountDetailViewModel, bool>(
+                  selector: (_, vm) => vm.isActionLoading,
+                  builder: (context, isActionLoading, child) {
+                    return IconButton(
+                      onPressed: isActionLoading
+                          ? null
+                          : () {
+                              if (_formKey.currentState?.validate() ?? false) {
+                                widget.onTap?.call();
+                              }
+                            },
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppColor.placeholder.withOpacity(0.4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      icon: isActionLoading
+                          ? const CircularProgressIndicator()
+                          : const Icon(Icons.check, size: 32),
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Contents
+            Expanded(child: SingleChildScrollView(child: widget.child)),
+          ],
+        ),
       ),
     );
   }

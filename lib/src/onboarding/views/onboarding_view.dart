@@ -47,16 +47,18 @@ class _OnboardingViewState extends State<OnboardingView> {
   }
 
   Future<void> _submit(BuildContext context) async {
-    final success = await _viewModel.submitOnboardingData();
+    if (_formKey.currentState!.validate()) {
+      final success = await _viewModel.submitOnboardingData();
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    if (success) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const BottomNavBar()),
-        (route) => false,
-      );
+      if (success) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const BottomNavBar()),
+          (route) => false,
+        );
+      }
     }
   }
 
@@ -275,34 +277,74 @@ class _DateOfBirthPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.read<OnboardingViewModel>();
+    final theme = Theme.of(context);
 
-    return Container(
-      height: 250,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppFormat.primaryBorderRadius),
-      ),
-      child: CupertinoTheme(
-        data: CupertinoThemeData(
-          textTheme: CupertinoTextThemeData(
-            dateTimePickerTextStyle: TextStyle(
-              color: Colors.black,
-              fontSize: 20,
+    return FormField<DateTime>(
+      initialValue: vm.selectedBirthday,
+      validator: (value) {
+        if (value == null) {
+          return 'Please select your date of birth.';
+        }
+
+        final now = DateTime.now();
+        final eighteenYearsAgoExact = DateTime(
+          now.year - 18,
+          now.month,
+          now.day,
+        );
+
+        if (value.isAfter(eighteenYearsAgoExact)) {
+          return 'You must be at least 18 years old.';
+        }
+
+        return null;
+      },
+      builder: (state) {
+        return Column(
+          children: [
+            Container(
+              height: 250,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(
+                  AppFormat.primaryBorderRadius,
+                ),
+              ),
+              child: CupertinoTheme(
+                data: const CupertinoThemeData(
+                  textTheme: CupertinoTextThemeData(
+                    dateTimePickerTextStyle: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.date,
+                  initialDateTime: vm.selectedBirthday,
+                  minimumDate: DateTime(1900),
+                  maximumDate: DateTime.now(),
+                  onDateTimeChanged: (newDate) {
+                    vm.setBirthday(newDate);
+                    state.didChange(newDate);
+                  },
+                ),
+              ),
             ),
-          ),
-        ),
-        child: CupertinoDatePicker(
-          mode: CupertinoDatePickerMode.date,
-          initialDateTime: DateTime(
-            DateTime.now().year - 18,
-            DateTime.now().month,
-            DateTime.now().day,
-          ),
-          minimumDate: DateTime(1900),
-          maximumDate: DateTime.now(),
-          onDateTimeChanged: (newDate) => vm.setBirthday(newDate),
-        ),
-      ),
+
+            if (state.hasError)
+              Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 8.0),
+                child: Text(
+                  state.errorText!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -320,10 +362,17 @@ class _PhoneNumberField extends StatelessWidget {
       onInputChanged: (PhoneNumber number) {
         vm.setPhoneNo(number.phoneNumber);
       },
+      onInputValidated: (bool value) {
+        vm.setPhoneNumberValidity(value);
+      },
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
-          return 'Phone number can\'theme be empty';
+          return 'Phone number can\'t be empty';
         }
+        if (!vm.isPhoneNumberValid) {
+          return 'Please enter a valid phone number for the selected country.';
+        }
+
         return null;
       },
       selectorConfig: SelectorConfig(
@@ -360,45 +409,89 @@ class _PhoneNumberField extends StatelessWidget {
 class _AddressPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final vm = context.read<OnboardingViewModel>();
 
-    return Selector<OnboardingViewModel, bool>(
-      selector: (_, vm) => vm.isScreenLoading,
-      builder: (context, isScreenLoading, child) {
-        if (isScreenLoading) {
-          return AddressTextfieldsSkeletion();
+    return FormField<String>(
+      validator: (value) {
+        if (vm.country == null || vm.country!.isEmpty) {
+          return 'Please select a country.';
         }
-        return child!;
+        if (vm.state == null || vm.state!.isEmpty) {
+          return 'Please select a state.';
+        }
+        if (vm.city == null || vm.city!.isEmpty) {
+          return 'Please select a city.';
+        }
+
+        return null;
       },
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: SelectState(
-          key: ValueKey('${vm.country}-${vm.state}-${vm.city}'),
-          defaultValue: vm.country,
-          defaultState: vm.state,
-          defaultCity: vm.city,
-          onCountryChanged: (value) => vm.setCountry(value),
-          onStateChanged: (value) => vm.setState(value),
-          onCityChanged: (value) => vm.setCity(value),
-          spacing: 20,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(color: Colors.black),
-          hintStyle: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(color: AppColor.textPlaceholder),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(
-                AppFormat.secondaryBorderRadius,
+      builder: (state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Selector<OnboardingViewModel, bool>(
+              selector: (_, vm) => vm.isScreenLoading,
+              builder: (context, isScreenLoading, child) {
+                if (isScreenLoading) {
+                  return AddressTextfieldsSkeletion();
+                }
+
+                return child!;
+              },
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: SelectState(
+                  key: ValueKey('${vm.country}-${vm.state}-${vm.city}'),
+                  defaultValue: vm.country,
+                  defaultState: vm.state,
+                  defaultCity: vm.city,
+                  onCountryChanged: (value) {
+                    vm.setCountry(value);
+                    state.didChange(value);
+                  },
+                  onStateChanged: (value) {
+                    vm.setState(value);
+                    state.didChange(value);
+                  },
+                  onCityChanged: (value) {
+                    vm.setCity(value);
+                    state.didChange(value);
+                  },
+                  spacing: 20,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: Colors.black),
+                  hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppColor.textPlaceholder,
+                  ),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppFormat.secondaryBorderRadius,
+                      ),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
               ),
-              borderSide: BorderSide.none,
             ),
-          ),
-        ),
-      ),
+
+            if (state.hasError)
+              Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 8.0),
+                child: Text(
+                  state.errorText!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
