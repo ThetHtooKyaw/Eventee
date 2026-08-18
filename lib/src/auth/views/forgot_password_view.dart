@@ -1,6 +1,9 @@
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
+import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/core/widgets/view_appbar.dart';
+import 'package:eventee/src/auth/repo/auth_service.dart';
+import 'package:eventee/src/auth/view_models/check_email_view_model.dart';
 import 'package:eventee/src/auth/view_models/forgot_password_view_model.dart';
 import 'package:eventee/src/auth/views/check_email_view.dart';
 import 'package:flutter/material.dart';
@@ -40,14 +43,20 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
     }
   }
 
-  Future<void> _resetPassword() async {
+  Future<void> _sendPasswordResetEmail() async {
     if (_formKey.currentState!.validate()) {
-      final success = await _viewModel.resetPassword();
+      final success = await _viewModel.sendPasswordResetEmail();
 
       if (success && mounted) {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const CheckEmailView()),
+          MaterialPageRoute(
+            builder: (context) => ChangeNotifierProvider(
+              create: (context) =>
+                  CheckEmailViewModel(context.read<AuthService>()),
+              child: const CheckEmailView(),
+            ),
+          ),
         );
       }
     }
@@ -55,64 +64,76 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.read<ForgotPasswordViewModel>();
-
-    return Scaffold(
-      appBar: ViewAppbar(title: 'Reset Password'),
-      body: Padding(
-        padding: const EdgeInsets.all(AppFormat.primaryPadding),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Description
-              Text(
-                'Enter your email associated with your account and we will send you an email with instructions to reset your password.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 40),
-
-              // Email TextField
-              Text(
-                'Email Address',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 10),
-
-              TextFormField(
-                controller: vm.emailController,
-                keyboardType: TextInputType.emailAddress,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                decoration: const InputDecoration(
-                  labelText: "Enter email address",
+    return Selector<ForgotPasswordViewModel, bool>(
+      selector: (_, vm) => vm.isActionLoading,
+      builder: (context, isActionLoading, child) {
+        return Stack(
+          children: [
+            child!,
+            if (isActionLoading)
+              LoadingOverlayColumn(message: 'Sending password reset email'),
+          ],
+        );
+      },
+      child: Scaffold(
+        appBar: ViewAppbar(title: 'Reset Password'),
+        body: Padding(
+          padding: const EdgeInsets.all(AppFormat.primaryPadding),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Description
+                Text(
+                  'Enter your email associated with your account and we will send you an email with instructions to reset your password.',
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
+                const SizedBox(height: 40),
 
-                  final emailRegex = RegExp(
-                    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                  );
-                  if (!emailRegex.hasMatch(value)) {
-                    return 'Please enter a valid email address';
-                  }
-
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Reset Password Button
-              ElevatedButton(
-                onPressed: _resetPassword,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 60),
+                // Email TextField
+                Text(
+                  'Email Address',
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                child: const Text('Reset Password'),
-              ),
-            ],
+                const SizedBox(height: 10),
+
+                TextFormField(
+                  controller: context
+                      .read<ForgotPasswordViewModel>()
+                      .emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    labelText: "Enter email address",
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email';
+                    }
+
+                    final emailRegex = RegExp(
+                      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                    );
+                    if (!emailRegex.hasMatch(value)) {
+                      return 'Please enter a valid email address';
+                    }
+
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Reset Password Button
+                ElevatedButton(
+                  onPressed: _sendPasswordResetEmail,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 60),
+                  ),
+                  child: const Text('Reset Password'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

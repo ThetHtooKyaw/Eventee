@@ -4,26 +4,29 @@ import 'package:eventee/core/view_models/base_view_model.dart';
 import 'package:eventee/src/auth/repo/auth_service.dart';
 import 'package:flutter/material.dart';
 
-class ForgotPasswordViewModel extends BaseViewModel {
+class ResetPasswordViewModel extends BaseViewModel {
   // Dependencies
   final AuthService _authService;
-  ForgotPasswordViewModel(this._authService);
+  ResetPasswordViewModel(this._authService);
 
   // Controllers
-  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
 
   // Use Cases
   @override
   void dispose() {
     super.dispose();
-    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
   }
 
-  Future<bool> sendPasswordResetEmail() async {
+  Future<bool> resetPassword({required String oobCode}) async {
     startActionLoading();
 
-    final response = await _authService.sendPasswordResetEmail(
-      email: emailController.text.trim(),
+    final response = await _authService.resetPassword(
+      oobCode: oobCode,
+      newPassword: passwordController.text.trim(),
     );
 
     if (response is Failure) {

@@ -83,6 +83,7 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final vm = context.read<LoginViewModel>();
 
     return Scaffold(
@@ -158,11 +159,13 @@ class _LoginViewState extends State<LoginView> {
                 RichText(
                   text: TextSpan(
                     text: "Don't have an account? ",
-                    style: TextStyle(color: Colors.black),
+                    style: theme.textTheme.bodyMedium,
                     children: [
                       TextSpan(
                         text: "Sign Up",
-                        style: TextStyle(color: Colors.blue),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.blue,
+                        ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
                             Navigator.push(

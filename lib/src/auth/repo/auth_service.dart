@@ -6,6 +6,7 @@ import 'package:eventee/src/auth/models/app_user.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 class AuthService {
   final _auth = FirebaseAuth.instance;
@@ -133,9 +134,19 @@ class AuthService {
     }
   }
 
-  Future<Object> resetPassword({required String email}) async {
+  Future<Object> sendPasswordResetEmail({required String email}) async {
     try {
-      await _auth.sendPasswordResetEmail(email: email);
+      await _auth.sendPasswordResetEmail(
+        email: email,
+        actionCodeSettings: ActionCodeSettings(
+          url: 'https://eventee-2003.web.app/reset-password',
+          handleCodeInApp: true,
+          androidInstallApp: true,
+          androidMinimumVersion: '1',
+          androidPackageName: 'com.example.eventee',
+          iOSBundleId: 'com.example.eventee',
+        ),
+      );
 
       return Success(response: 'Password reset email sent successfully!');
     } on FirebaseAuthException catch (e) {
@@ -146,6 +157,35 @@ class AuthService {
       }
 
       return Failure(response: 'An error occurred. Please try again.');
+    } catch (e) {
+      return Failure(response: 'Failed to reset password: $e');
+    }
+  }
+
+  Future<Object> openEmailApp() async {
+    try {
+      final Uri emailLaunchUri = Uri(scheme: 'mailto');
+
+      if (await canLaunchUrl(emailLaunchUri)) {
+        await launchUrl(emailLaunchUri);
+      } else {
+        return Failure(response: 'Could not find an email app to open.');
+      }
+
+      return Success(response: 'Email app opened successfully!');
+    } catch (e) {
+      return Failure(response: 'Failed to open email app: $e');
+    }
+  }
+
+  Future<Object> resetPassword({
+    required String oobCode,
+    required String newPassword,
+  }) async {
+    try {
+      await _auth.confirmPasswordReset(code: oobCode, newPassword: newPassword);
+
+      return Success(response: 'Password reset successfully!');
     } catch (e) {
       return Failure(response: 'Failed to reset password: $e');
     }

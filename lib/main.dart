@@ -1,11 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:eventee/core/services/app_links_service.dart';
 import 'package:eventee/core/utils/bottom_nav_bar.dart';
 import 'package:eventee/core/themes/app_theme.dart';
 import 'package:eventee/core/utils/core_providers.dart';
 import 'package:eventee/core/widgets/loading_indicator.dart';
 import 'package:eventee/firebase_options_loader.dart';
+import 'package:eventee/src/auth/repo/auth_service.dart';
+import 'package:eventee/src/auth/view_models/reset_password_view_model.dart';
 import 'package:eventee/src/auth/views/login_view.dart';
 import 'package:eventee/src/onboarding/views/onboarding_view.dart';
+import 'package:eventee/src/auth/views/reset_password_view.dart';
 import 'package:eventee/src/settings/view_models/theme_view_model.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -76,8 +80,39 @@ class MainApp extends StatelessWidget {
   }
 }
 
-class AuthGate extends StatelessWidget {
+class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinkListener();
+  }
+
+  void _initDeepLinkListener() {
+    AppLinksService.instance.uriLinkStream.listen((Uri uri) {
+      if (uri.queryParameters['mode'] == 'resetPassword') {
+        String? oobCode = uri.queryParameters['oobCode'];
+
+        if (oobCode != null && mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ChangeNotifierProvider(
+                create: (context) =>
+                    ResetPasswordViewModel(context.read<AuthService>()),
+                child: ResetPasswordView(oobCode: oobCode),
+              ),
+            ),
+          );
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

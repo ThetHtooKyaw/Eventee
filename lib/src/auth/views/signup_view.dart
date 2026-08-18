@@ -4,6 +4,7 @@ import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/core/utils/bottom_nav_bar.dart';
 import 'package:eventee/src/auth/widgets/custom_divider.dart';
+import 'package:eventee/src/auth/widgets/custom_password_textfield.dart';
 import 'package:eventee/src/onboarding/views/onboarding_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -84,7 +85,7 @@ class _SignUpViewState extends State<SignUpView> {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
     final vm = context.read<SignUpViewModel>();
 
     return Scaffold(
@@ -109,7 +110,7 @@ class _SignUpViewState extends State<SignUpView> {
                 Text(
                   "Unlock the Future of \nEvent Booking App",
                   textAlign: TextAlign.center,
-                  style: t.textTheme.displayLarge,
+                  style: theme.textTheme.displayLarge,
                 ),
                 const SizedBox(height: 20),
 
@@ -117,7 +118,7 @@ class _SignUpViewState extends State<SignUpView> {
                 Text(
                   "Discover, book, and experience unforgettable moments effortlessly",
                   textAlign: TextAlign.center,
-                  style: t.textTheme.bodyLarge?.copyWith(
+                  style: theme.textTheme.bodyLarge?.copyWith(
                     color: AppColor.textPlaceholder,
                   ),
                 ),
@@ -167,11 +168,13 @@ class _SignUpViewState extends State<SignUpView> {
                 RichText(
                   text: TextSpan(
                     text: "Already have an account? ",
-                    style: TextStyle(color: Colors.black),
+                    style: theme.textTheme.bodyMedium,
                     children: [
                       TextSpan(
                         text: "Login",
-                        style: TextStyle(color: Colors.blue),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.blue,
+                        ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
                             Navigator.pop(context);
@@ -196,10 +199,10 @@ class _SignUpViewState extends State<SignUpView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Name TextField
-          _buildTextField(
+          TextFormField(
             controller: vm.nameController,
             keyboardType: TextInputType.name,
-            labelText: "Name",
+            decoration: InputDecoration(labelText: 'Name'),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter your name';
@@ -214,10 +217,10 @@ class _SignUpViewState extends State<SignUpView> {
           SizedBox(height: 16),
 
           // Email TextField
-          _buildTextField(
+          TextFormField(
             controller: vm.emailController,
             keyboardType: TextInputType.emailAddress,
-            labelText: "Email",
+            decoration: InputDecoration(labelText: 'Email'),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter your email';
@@ -236,7 +239,7 @@ class _SignUpViewState extends State<SignUpView> {
           SizedBox(height: 16),
 
           // Password TextField
-          _buildPasswordField(
+          CustomPasswordTextfield(
             controller: vm.passwordController,
             labelText: "Password",
             obscureIconState: obscurePassword,
@@ -269,7 +272,7 @@ class _SignUpViewState extends State<SignUpView> {
           SizedBox(height: 16),
 
           // Confirm Password TextField
-          _buildPasswordField(
+          CustomPasswordTextfield(
             controller: vm.confirmPasswordController,
             labelText: "Confirm Password",
             obscureIconState: obscureConfirmPassword,
@@ -388,45 +391,6 @@ class _SignUpViewState extends State<SignUpView> {
         decoration: TextDecoration.underline,
       ),
       recognizer: TapGestureRecognizer()..onTap = onTap,
-    );
-  }
-
-  Widget _buildPasswordField({
-    required TextEditingController controller,
-    required String labelText,
-    required String? Function(String?) validator,
-    required bool obscureIconState,
-    required VoidCallback onObscureIconTap,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: TextInputType.text,
-      obscureText: obscureIconState,
-      decoration: InputDecoration(
-        labelText: labelText,
-        suffixIcon: IconButton(
-          onPressed: onObscureIconTap,
-          icon: Icon(
-            obscureIconState ? Icons.visibility_off : Icons.visibility,
-            color: AppColor.lightPrimary,
-          ),
-        ),
-      ),
-      validator: validator,
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required TextInputType keyboardType,
-    required String labelText,
-    required String? Function(String?) validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(labelText: labelText),
-      validator: validator,
     );
   }
 }

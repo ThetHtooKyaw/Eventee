@@ -1,6 +1,9 @@
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
+import 'package:eventee/core/widgets/loading_column.dart';
+import 'package:eventee/src/auth/view_models/check_email_view_model.dart';
 import 'package:eventee/src/auth/view_models/forgot_password_view_model.dart';
+import 'package:eventee/src/auth/views/login_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -13,12 +16,12 @@ class CheckEmailView extends StatefulWidget {
 }
 
 class _CheckEmailViewState extends State<CheckEmailView> {
-  late final ForgotPasswordViewModel _viewModel;
+  late final CheckEmailViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _viewModel = context.read<ForgotPasswordViewModel>();
+    _viewModel = context.read<CheckEmailViewModel>();
     _viewModel.addListener(_onViewModelChanged);
   }
 
@@ -32,102 +35,122 @@ class _CheckEmailViewState extends State<CheckEmailView> {
     if (_viewModel.errorMessage != null && mounted) {
       AppSnackbars.showErrorSnackbar(context, _viewModel.errorMessage!);
       _viewModel.setError(null);
-    } else if (_viewModel.successMessage != null && mounted) {
-      AppSnackbars.showSuccessSnackbar(context, _viewModel.successMessage!);
-      _viewModel.setSuccess(null);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final vm = context.read<ForgotPasswordViewModel>();
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: AppFormat.secondaryPadding,
-            horizontal: AppFormat.primaryPadding,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+      body: Selector<ForgotPasswordViewModel, bool>(
+        selector: (_, vm) => vm.isActionLoading,
+        builder: (context, isActionLoading, child) {
+          return Stack(
             children: [
-              // Icon
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  borderRadius: BorderRadius.circular(
-                    AppFormat.primaryBorderRadius,
-                  ),
-                ),
-                child: Icon(
-                  Icons.mark_as_unread_rounded,
-                  size: 48,
-                  color: theme.colorScheme.onSecondary,
-                ),
-              ),
-              const SizedBox(height: 40),
-
-              // Title
-              Text(
-                'Check your mail',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Description
-              Text(
-                'We have sent a password recover\ninstructions to your email.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 40),
-
-              // Action Button
-              ElevatedButton(
-                onPressed: () {
-                  // TODO: Implement package open code or intent launcher
-                },
-                style: ElevatedButton.styleFrom(minimumSize: Size(200, 60)),
-                child: const Text('Open email app'),
-              ),
-              const SizedBox(height: 20),
-
-              // Skip Burron
-              TextButton(
-                onPressed: () => '',
-                child: Text(
-                  'Skip, I\'ll confirm later',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ),
-
-              // Try Another Email Button
-              Column(
-                mainAxisSize: MainAxisSize.min,
+              child!,
+              if (isActionLoading)
+                LoadingOverlayColumn(message: 'Opening email app'),
+            ],
+          );
+        },
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppFormat.primaryPadding,
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // Icon
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      borderRadius: BorderRadius.circular(
+                        AppFormat.primaryBorderRadius,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.mark_as_unread_rounded,
+                      size: 60,
+                      color: theme.colorScheme.onSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+
+                  // Title
+                  Text(
+                    'Check your mail',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Description
+                  Text(
+                    'We have sent a password recover\ninstructions to your email.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Helper Text
+                  Text(
+                    'If the app doesn\'t open your inbox, please switch to it manually to find our email.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 40),
+
+                  // Action Button
+                  ElevatedButton(
+                    onPressed: () async => await context
+                        .read<CheckEmailViewModel>()
+                        .openEmailApp(),
+                    style: ElevatedButton.styleFrom(minimumSize: Size(200, 60)),
+                    child: const Text('Open Email App'),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Skip Button
+                  TextButton(
+                    onPressed: () => Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginView(),
+                      ),
+                      (route) => false,
+                    ),
+                    child: Text(
+                      'Skip, I\'ll confirm later',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 120),
+
                   const Text(
                     'Did not receive the email? Check your spam filter,',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 13, color: Color(0xFF4B5563)),
                   ),
-                  const SizedBox(height: 4),
+
+                  // Try Another Email Button
                   RichText(
                     text: TextSpan(
                       text: "or ",
-                      style: TextStyle(color: Colors.black),
+                      style: theme.textTheme.bodyMedium,
                       children: [
                         TextSpan(
                           text: "try another email address",
-                          style: TextStyle(color: Colors.blue),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Colors.blue,
+                          ),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
                               Navigator.pop(context);
@@ -136,9 +159,10 @@ class _CheckEmailViewState extends State<CheckEmailView> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 20),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
