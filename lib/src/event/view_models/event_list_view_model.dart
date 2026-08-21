@@ -64,9 +64,16 @@ class EventListViewModel extends BaseViewModel {
       await _eventSubscription?.cancel();
       _eventSubscription = stream.listen(
         (eventList) {
-          _events = eventList;
+          final now = DateTime.now();
+          _events = eventList
+              .where(
+                (event) =>
+                    event.endTime.isAfter(now) ||
+                    event.endTime.isAtSameMomentAs(now),
+              )
+              .toList();
 
-          _maxPrice = eventList.fold(
+          _maxPrice = _events.fold(
             0.0,
             (max, event) => event.price > max ? event.price : max,
           );
@@ -93,7 +100,13 @@ class EventListViewModel extends BaseViewModel {
   }
 
   void applyFilters() {
-    List<EventModel> currentFilteredList = List.from(_events);
+    final now = DateTime.now();
+    List<EventModel> currentFilteredList = _events
+        .where(
+          (event) =>
+              event.endTime.isAfter(now) || event.endTime.isAtSameMomentAs(now),
+        )
+        .toList();
 
     // Search filter
     if (searchController.text.isNotEmpty) {

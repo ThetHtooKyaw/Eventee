@@ -49,7 +49,6 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final vm = context.watch<EventListViewModel>();
 
     return Scaffold(
       body: CustomScrollView(
@@ -96,10 +95,7 @@ class _HomeViewState extends State<HomeView> {
                     bottom: 1,
                     right: AppFormat.primaryPadding,
                     left: AppFormat.primaryPadding,
-                    child: _buildSearchBar(
-                      context,
-                      vm,
-                    ), // Pass EventListViewModel
+                    child: _buildSearchBar(context), // Pass EventListViewModel
                   ),
                 ],
               ),
@@ -246,20 +242,24 @@ class _HomeViewState extends State<HomeView> {
         // Notification
         IconButton(
           onPressed: () {},
-          icon: Icon(Icons.notifications_none_outlined, size: 32),
+          icon: Icon(
+            Icons.notifications_none_outlined,
+            color: theme.colorScheme.onPrimary,
+            size: 32,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildSearchBar(BuildContext context, EventListViewModel vm) {
+  Widget _buildSearchBar(BuildContext context) {
     return TextField(
-      controller: vm.searchController,
-      onSubmitted: (value) {
-        vm.filterEvents(value);
+      onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const EventListView()),
+          MaterialPageRoute(
+            builder: (context) => const EventListView(autofocusSearch: true),
+          ),
         );
       },
       readOnly: true,

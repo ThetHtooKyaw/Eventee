@@ -13,7 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class EventListView extends StatefulWidget {
-  const EventListView({super.key});
+  final bool autofocusSearch;
+  const EventListView({super.key, this.autofocusSearch = false});
 
   @override
   State<EventListView> createState() => _EventListViewState();
@@ -21,17 +22,28 @@ class EventListView extends StatefulWidget {
 
 class _EventListViewState extends State<EventListView> {
   late final EventListViewModel _viewModel;
+  late final FocusNode _searchFocusNode;
 
   @override
   void initState() {
     super.initState();
     _viewModel = context.read<EventListViewModel>();
     _viewModel.addListener(_onViewModelChanged);
+
+    _searchFocusNode = FocusNode();
+    if (widget.autofocusSearch) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _searchFocusNode.requestFocus();
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
     _viewModel.removeListener(_onViewModelChanged);
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -124,6 +136,7 @@ class _EventListViewState extends State<EventListView> {
         ),
       ),
       title: TextField(
+        focusNode: _searchFocusNode,
         controller: vm.searchController,
         onChanged: (value) => vm.filterEvents(value),
         decoration: InputDecoration(

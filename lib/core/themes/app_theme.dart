@@ -226,7 +226,7 @@ class AppTheme {
           minimumSize: const Size(160, 60),
           foregroundColor: AppColor.darkTextSecondary,
           backgroundColor: AppColor.darkPrimary,
-          disabledBackgroundColor: AppColor.textPlaceholder,
+          disabledBackgroundColor: AppColor.darkTextPlaceholder,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppFormat.primaryBorderRadius),
           ),
@@ -238,7 +238,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(160, 60),
           foregroundColor: AppColor.darkPrimary,
-          disabledBackgroundColor: AppColor.textPlaceholder,
+          disabledBackgroundColor: AppColor.darkTextPlaceholder,
           side: const BorderSide(color: AppColor.darkPrimary, width: 1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppFormat.primaryBorderRadius),
@@ -249,7 +249,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColor.darkTextSecondary,
-          disabledForegroundColor: AppColor.textPlaceholder,
+          disabledForegroundColor: AppColor.darkTextPlaceholder,
           textStyle: AppTextStyle.bodyLarge,
         ),
       ),
