@@ -18,12 +18,36 @@ class AuthService {
 
   CollectionReference get _usersCollection => _firestore.collection('users');
 
+  Future<String?> _getFcmToken() async {
+    try {
+      final token = await _messaging.getToken();
+      return token?.isNotEmpty == true ? token : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> _updateFcmToken(String uid) async {
+    final fcmToken = await _getFcmToken();
+    if (fcmToken == null) return false;
+
+    await _usersCollection.doc(uid).set({
+      'fcmToken': fcmToken,
+    }, SetOptions(merge: true));
+    return true;
+  }
+
   Future<Object> loginUser({
     required String email,
     required String password,
   }) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
+
+      final user = _auth.currentUser;
+      if (user == null || !await _updateFcmToken(user.uid)) {
+        return Failure(response: 'Failed to retrieve FCM token.');
+      }
 
       return Success(response: 'User logged in successfully!');
     } on FirebaseAuthException catch (e) {
@@ -49,7 +73,7 @@ class AuthService {
       UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      final fcmToken = await _messaging.getToken() ?? '';
+      final fcmToken = await _getFcmToken() ?? '';
 
       if (fcmToken.isEmpty) {
         return Failure(response: 'Failed to retrieve FCM token.');
@@ -118,7 +142,7 @@ class AuthService {
           }
         }
 
-        final fcmToken = await _messaging.getToken() ?? '';
+        final fcmToken = await _getFcmToken() ?? '';
 
         if (fcmToken.isEmpty) {
           return Failure(response: 'Failed to retrieve FCM token.');
@@ -137,6 +161,8 @@ class AuthService {
         );
 
         await _usersCollection.doc(user.uid).set(newUser.toMap());
+      } else if (!await _updateFcmToken(user.uid)) {
+        return Failure(response: 'Failed to update FCM token.');
       }
 
       return Success(
