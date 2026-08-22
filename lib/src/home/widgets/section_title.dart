@@ -10,7 +10,7 @@ class SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppFormat.primaryPadding),
@@ -20,7 +20,7 @@ class SectionTitle extends StatelessWidget {
           // Title
           Text(
             title,
-            style: t.textTheme.titleMedium?.copyWith(
+            style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -32,7 +32,7 @@ class SectionTitle extends StatelessWidget {
               children: [
                 Text(
                   'See all',
-                  style: t.textTheme.bodyLarge?.copyWith(
+                  style: theme.textTheme.bodyLarge?.copyWith(
                     color: AppColor.textPlaceholder,
                   ),
                 ),

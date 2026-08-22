@@ -84,7 +84,7 @@ class SettingsView extends StatelessWidget {
     );
   }
 
-  Widget _buildCustomDivider(context) {
+  Widget _buildCustomDivider(BuildContext context) {
     return Divider(
       height: 0,
       thickness: 0.8,

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:eventee/core/status/failure.dart';
 import 'package:eventee/core/status/success.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
@@ -12,6 +13,7 @@ class AuthService {
   final _auth = FirebaseAuth.instance;
   final _googleSignIn = GoogleSignIn();
   final _firestore = FirebaseFirestore.instance;
+  final _messaging = FirebaseMessaging.instance;
   final _storage = FirebaseStorage.instance;
 
   CollectionReference get _usersCollection => _firestore.collection('users');
@@ -47,9 +49,16 @@ class AuthService {
       UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(email: email, password: password);
 
+      final fcmToken = await _messaging.getToken() ?? '';
+
+      if (fcmToken.isEmpty) {
+        return Failure(response: 'Failed to retrieve FCM token.');
+      }
+
       final newUser = AppUser(
         uid: userCredential.user!.uid,
         stripeAccountId: '',
+        fcmToken: fcmToken,
         username: username,
         email: email,
         photoUrl: '',
@@ -109,9 +118,16 @@ class AuthService {
           }
         }
 
+        final fcmToken = await _messaging.getToken() ?? '';
+
+        if (fcmToken.isEmpty) {
+          return Failure(response: 'Failed to retrieve FCM token.');
+        }
+
         final newUser = AppUser(
           uid: user.uid,
           stripeAccountId: '',
+          fcmToken: fcmToken,
           username: user.displayName ?? '',
           email: user.email ?? '',
           photoUrl: downloadUrl ?? '',

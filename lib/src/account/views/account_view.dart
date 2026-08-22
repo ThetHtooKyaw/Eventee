@@ -11,6 +11,7 @@ import 'package:eventee/src/account/widgets/account_menu.dart';
 import 'package:eventee/src/account/widgets/account_skeleton.dart';
 import 'package:eventee/src/auth/models/app_user.dart';
 import 'package:eventee/src/auth/views/login_view.dart';
+import 'package:eventee/src/notification/views/notification_view.dart';
 import 'package:eventee/src/settings/views/settings_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -206,9 +207,16 @@ class _AccountViewState extends State<AccountView> {
                       children: [
                         // Language
                         MenuItem(
-                          icon: Icons.language,
-                          title: 'Language',
-                          onTap: () {},
+                          icon: Icons.notifications,
+                          title: 'Notification',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const NotificationView(),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),

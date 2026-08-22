@@ -56,7 +56,7 @@ class _EventListViewState extends State<EventListView> {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
+    final theme = Theme.of(context);
     final vm = context.read<EventListViewModel>();
 
     return Scaffold(
@@ -84,9 +84,13 @@ class _EventListViewState extends State<EventListView> {
           builder: (context, events, child) {
             if (events.isEmpty) {
               return Center(
-                child: Text('No events found!', style: t.textTheme.bodyLarge),
+                child: Text(
+                  'No events found!',
+                  style: theme.textTheme.bodyLarge,
+                ),
               );
             }
+
             return ListView.separated(
               padding: EdgeInsets.symmetric(
                 vertical: AppFormat.secondaryPadding,
@@ -96,6 +100,7 @@ class _EventListViewState extends State<EventListView> {
               itemCount: events.length,
               itemBuilder: (context, index) {
                 final event = events[index];
+
                 return GestureDetector(
                   onTap: () => Navigator.push(
                     context,

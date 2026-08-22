@@ -1,5 +1,7 @@
 import 'package:eventee/core/services/location_service.dart';
+import 'package:eventee/src/notification/repo/notification_service.dart';
 import 'package:eventee/core/view_models/location_view_model.dart';
+import 'package:eventee/src/notification/view_models/notification_view_model.dart';
 import 'package:eventee/src/account/repo/account_service.dart';
 import 'package:eventee/src/account/repo/payout_stepup_service.dart';
 import 'package:eventee/src/account/view_models/account_view_model.dart';
@@ -23,13 +25,14 @@ import 'package:provider/single_child_widget.dart';
 class CoreProviders {
   static final List<SingleChildWidget> providers = [
     // Services
-    Provider(create: (_) => CreateEventService()),
-    Provider(create: (_) => LocationService()),
     Provider(create: (_) => AuthService()),
+    Provider(create: (_) => NotificationService()),
     Provider(create: (_) => OnboardingService()),
+    Provider(create: (_) => LocationService()),
     Provider(create: (_) => AccountService()),
     Provider(create: (_) => PayoutStepupService()),
     Provider(create: (_) => EventService()),
+    Provider(create: (_) => CreateEventService()),
     Provider(create: (_) => FavouriteService()),
     Provider(create: (_) => BookedEventService()),
 
@@ -44,13 +47,17 @@ class CoreProviders {
       create: (context) => SignUpViewModel(context.read<AuthService>()),
     ),
     ChangeNotifierProvider(
-      create: (context) => LocationViewModel(context.read<LocationService>()),
+      create: (context) =>
+          NotificationViewModel(context.read<NotificationService>()),
     ),
     ChangeNotifierProvider(
       create: (context) => OnboardingViewModel(
         context.read<LocationViewModel>(),
         context.read<OnboardingService>(),
       ),
+    ),
+    ChangeNotifierProvider(
+      create: (context) => LocationViewModel(context.read<LocationService>()),
     ),
     ChangeNotifierProvider(
       create: (context) => AccountViewModel(context.read<AccountService>()),

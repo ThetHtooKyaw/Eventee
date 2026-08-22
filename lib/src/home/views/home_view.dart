@@ -11,6 +11,7 @@ import 'package:eventee/src/event/views/event_list_view.dart';
 import 'package:eventee/src/event/widgets/event_card.dart';
 import 'package:eventee/src/event/widgets/event_list_skeleton.dart';
 import 'package:eventee/src/home/widgets/section_title.dart';
+import 'package:eventee/src/notification/views/notification_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -45,6 +46,7 @@ class _HomeViewState extends State<HomeView> {
       _viewModel.setError(null);
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -238,10 +240,12 @@ class _HomeViewState extends State<HomeView> {
           ),
         ),
 
-        // TODO: Implement Notification Feature
         // Notification
         IconButton(
-          onPressed: () {},
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const NotificationView()),
+          ),
           icon: Icon(
             Icons.notifications_none_outlined,
             color: theme.colorScheme.onPrimary,

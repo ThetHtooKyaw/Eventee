@@ -2,6 +2,7 @@ import 'package:eventee/core/themes/app_color.dart';
 import 'package:eventee/core/themes/app_format.dart';
 import 'package:eventee/core/utils/app_snackbars.dart';
 import 'package:eventee/core/utils/bottom_nav_bar.dart';
+import 'package:eventee/src/notification/view_models/notification_view_model.dart';
 import 'package:eventee/core/widgets/loading_column.dart';
 import 'package:eventee/src/auth/widgets/custom_divider.dart';
 import 'package:eventee/src/onboarding/views/onboarding_view.dart';
@@ -21,6 +22,7 @@ class LoginView extends StatefulWidget {
 
 class _LoginViewState extends State<LoginView> {
   late final LoginViewModel _viewModel;
+  late final NotificationViewModel _notificationViewModel;
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
 
@@ -29,11 +31,16 @@ class _LoginViewState extends State<LoginView> {
     super.initState();
     _viewModel = context.read<LoginViewModel>();
     _viewModel.addListener(_onViewModelChanged);
+
+    _notificationViewModel = context.read<NotificationViewModel>();
+    _notificationViewModel.addListener(_onViewModelChanged);
+    _notificationViewModel.requestNotificationPermission();
   }
 
   @override
   void dispose() {
     _viewModel.removeListener(_onViewModelChanged);
+    _notificationViewModel.removeListener(_onViewModelChanged);
     super.dispose();
   }
 

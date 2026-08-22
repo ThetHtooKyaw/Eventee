@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class AppUser {
   final String uid;
   final String stripeAccountId;
+  final String fcmToken;
   final String photoUrl;
   final String username;
   final String email;
@@ -14,6 +15,7 @@ class AppUser {
   const AppUser({
     required this.uid,
     required this.stripeAccountId,
+    required this.fcmToken,
     required this.photoUrl,
     required this.username,
     required this.email,
@@ -27,6 +29,7 @@ class AppUser {
     return {
       'uid': uid,
       'stripeAccountId': stripeAccountId,
+      'fcmToken': fcmToken,
       'photoUrl': photoUrl,
       'username': username,
       'email': email,
@@ -43,6 +46,7 @@ class AppUser {
     return AppUser(
       uid: map['uid'],
       stripeAccountId: map['stripeAccountId'],
+      fcmToken: map['fcmToken'],
       photoUrl: map['photoUrl'],
       username: map['username'],
       email: map['email'],
